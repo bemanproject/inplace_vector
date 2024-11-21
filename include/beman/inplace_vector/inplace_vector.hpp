@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstddef>
 #include <exception>
 #include <iterator>
 #include <limits>
@@ -54,36 +56,70 @@ using inplace_vector_internal_size_type =
           If<Capacity <= std::numeric_limits<uint32_t>::max(), uint32_t,
              uint64_t>>>;
 
+template <typename T, std::size_t Capacity>
+using inplace_vector_array_type =
+    If<!std::is_const_v<T>, std::array<T, Capacity>,
+       const std::array<std::remove_const_t<T>, Capacity>>;
+
+// array based storage is used so that we can satisfy constexpr requirement
+//
+// Selecting this storage type implies: std::is_trivial_v<T> or Capacity = 0
+template <typename T, std::size_t Capacity>
+struct inplace_vector_type_based_storage {
+  inplace_vector_array_type<T, Capacity> elems{};
+
+  constexpr T *begin() { return elems.data(); }
+  constexpr const T *begin() const { return elems.data(); }
+};
+
+// byte array based storage is used for non-constexpr environment, where default
+// initialization may not be available.
+//
+// Selecting this storage type implies: !std::is_trivial_v<T> and Capacity != 0
+template <typename T, std::size_t Capacity>
+struct inplace_vector_bytes_based_storage {
+  alignas(T) inplace_vector_array_type<std::byte, Capacity * sizeof(T)> elems;
+
+  T *begin() { return std::launder(reinterpret_cast<const T *>(elems)); }
+  const T *begin() const {
+    return std::launder(reinterpret_cast<const T *>(elems));
+  }
+};
+
 //  Base class for inplace_vector
 template <typename T, std::size_t Capacity>
 struct inplace_vector_destruct_base {
   using size_type = std::size_t;
   using internal_size_type = inplace_vector_internal_size_type<Capacity>;
+  using internal_storage_type =
+      std::conditional_t<std::is_trivial_v<T> or Capacity == 0,
+                         inplace_vector_type_based_storage<T, Capacity>,
+                         inplace_vector_bytes_based_storage<T, Capacity>>;
 
-  alignas(T) unsigned char elems[Capacity * sizeof(T)] = {};
+  internal_storage_type elems;
   internal_size_type size_{0};
 
   // [containers.sequences.inplace.vector.cons], construct/copy/destroy
   constexpr inplace_vector_destruct_base() = default;
 
-  inplace_vector_destruct_base(
+  constexpr inplace_vector_destruct_base(
       const inplace_vector_destruct_base
           &other) noexcept(std::is_nothrow_copy_constructible_v<T>)
       : elems(), size_(other.size_) {}
 
-  inplace_vector_destruct_base(
+  constexpr inplace_vector_destruct_base(
       const inplace_vector_destruct_base
           &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
-      : elems(), size_(other.size()) {}
+      : elems(), size_(other.size_) {}
 
-  inplace_vector_destruct_base &
+  constexpr inplace_vector_destruct_base &
   operator=(const inplace_vector_destruct_base &other) noexcept(
       std::is_nothrow_copy_constructible_v<T> &&
       std::is_nothrow_copy_assignable_v<T>) {
     size_ = other.size_;
   }
 
-  inplace_vector_destruct_base &
+  constexpr inplace_vector_destruct_base &
   operator=(const inplace_vector_destruct_base &&other) noexcept(
       std::is_nothrow_move_constructible_v<T> &&
       std::is_nothrow_move_assignable_v<T>) {
@@ -108,19 +144,18 @@ struct inplace_vector_base : public inplace_vector_destruct_base<T, Capacity> {
 
   // [containers.sequences.inplace.vector.cons], construct/copy/destroy
   constexpr inplace_vector_base() = default;
-  inplace_vector_base(const inplace_vector_base &other) noexcept(
+  constexpr inplace_vector_base(const inplace_vector_base &other) noexcept(
       std::is_nothrow_copy_constructible_v<T>)
-      : inplace_vector_destruct_base<T, Capacity>(other.size) {
+      : inplace_vector_destruct_base<T, Capacity>(other.size_) {
     std::copy(other.begin(), other.end(), begin());
   }
-  inplace_vector_base(inplace_vector_base &&other) noexcept(
+  constexpr inplace_vector_base(inplace_vector_base &&other) noexcept(
       Capacity == 0 || std::is_nothrow_move_constructible_v<T>)
       : inplace_vector_destruct_base<T, Capacity>(other.size_) {
     std::copy(other.begin(), other.end(), begin());
-    std::destroy(other.begin(), other.end());
-    other.size_ = 0;
   }
-  inplace_vector_base &operator=(const inplace_vector_base &other) noexcept(
+  constexpr inplace_vector_base &
+  operator=(const inplace_vector_base &other) noexcept(
       std::is_nothrow_copy_constructible_v<T> &&
       std::is_nothrow_copy_assignable_v<T>) {
     const auto diff = static_cast<std::ptrdiff_t>(other.size() - size());
@@ -141,7 +176,8 @@ struct inplace_vector_base : public inplace_vector_destruct_base<T, Capacity> {
     return *this;
   }
 
-  inplace_vector_base &operator=(inplace_vector_base &&other) noexcept(
+  constexpr inplace_vector_base &
+  operator=(inplace_vector_base &&other) noexcept(
       Capacity == 0 || (std::is_nothrow_move_constructible_v<T> &&
                         std::is_nothrow_move_assignable_v<T>)) {
     const auto diff = static_cast<std::ptrdiff_t>(other.size() - size());
@@ -151,13 +187,10 @@ struct inplace_vector_base : public inplace_vector_destruct_base<T, Capacity> {
       std::destroy(new_end, end());
       // other size is grater than size
     } else {
-      std::move(other, other.begin(), other.begin() + size(), begin());
+      std::move(other.begin(), other.begin() + size(), begin());
       std::move(other.begin() + size(), other.end(), end());
     }
     this->size_ = other.size();
-    std::destroy(other.begin(), other.end());
-    // reset size to zero
-    other.change_size(-static_cast<std::ptrdiff_t>(other.size()));
     return *this;
   }
   constexpr inplace_vector_base(const size_type size)
@@ -173,28 +206,27 @@ struct inplace_vector_base : public inplace_vector_destruct_base<T, Capacity> {
   constexpr bool empty() const noexcept { return this->size_ == 0; }
 
   // [containers.sequences.inplace.vector.data], data access
-  constexpr T *data() noexcept {
-    return std::launder(reinterpret_cast<T *>(this->elems));
-  }
-  constexpr const T *data() const noexcept {
-    return std::launder(reinterpret_cast<const T *>(this->elems));
-  }
+  constexpr T *data() noexcept { return this->elems.begin(); }
+  constexpr const T *data() const noexcept { return this->elems.begin(); }
 
   // [containers.sequences.inplace.vector.iterators] iterators
-  iterator begin() noexcept {
-    return std::launder(reinterpret_cast<T *>(this->elems));
+  constexpr iterator begin() noexcept {
+    if constexpr (Capacity == 0)
+      return nullptr;
+    else
+      return this->elems.begin();
   }
-  const_iterator begin() const noexcept {
-    return std::launder(reinterpret_cast<const T *>(this->elems));
+  constexpr const_iterator begin() const noexcept {
+    if constexpr (Capacity == 0)
+      return nullptr;
+    else
+      return this->elems.begin();
   }
 
-  iterator end() noexcept {
-    return std::launder(reinterpret_cast<T *>(this->elems) + this->size());
-  }
+  constexpr iterator end() noexcept { return begin() + this->size(); }
 
-  const_iterator end() const noexcept {
-    return std::launder(reinterpret_cast<const T *>(this->elems) +
-                        this->size());
+  constexpr const_iterator end() const noexcept {
+    return begin() + this->size();
   }
 
   // [containers.sequences.inplace.vector.modifiers], modifiers
