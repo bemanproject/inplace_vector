@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.25...3.31)
 project(beman_inplace_vector_example LANGUAGES CXX)
 
 if(PROJECT_IS_TOP_LEVEL)
-    find_package(beman_inplace_vector 1.0.0 EXACT REQUIRED)
+    find_package(inplace_vector 1.0.0 EXACT REQUIRED)
     enable_testing()
 endif()
 

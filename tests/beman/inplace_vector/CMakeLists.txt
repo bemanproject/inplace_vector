@@ -14,6 +14,12 @@ add_test(NAME beman.inplace_vector.test COMMAND beman.inplace_vector.test)
 # NOTE: For an INTERFACE library and multi config generators, we may always use
 # the -C Debug config type instead of  $<CONFIG> to prevent problems! CK
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    if(NOT DEFINED CMAKE_CXX_STANDARD)
+        set(CMAKE_CXX_STANDARD 20)
+    endif()
+    if(NOT DEFINED CMAKE_PREFIX_PATH)
+        set(CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+    endif()
     add_test(
         NAME find-package-test
         COMMAND
