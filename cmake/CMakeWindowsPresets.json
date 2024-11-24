@@ -1,0 +1,156 @@
+{
+  "version": 6,
+  "include": [
+    "CMakeGenericPresets.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "base-Windows-ClangCL",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "inherits": [
+        "root-config"
+      ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Coverage;Asan;Lsan;Usan",
+        "CMAKE_CXX_FLAGS": "/Wall /WX",
+        "CMAKE_C_FLAGS": "/Wall /WX"
+      }
+    },
+    {
+      "name": "debug-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS_DEBUG": "/Zi /Od /MDd",
+        "CMAKE_C_FLAGS_DEBUG": "/Zi /Od /MDd"
+      }
+    },
+    {
+      "name": "relwithdebinfo-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/O2 /Zi /MD",
+        "CMAKE_C_FLAGS_RELWITHDEBINFO": "/O2 /Zi /MD"
+      }
+    },
+    {
+      "name": "release-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS_RELEASE": "/O2 /DNDEBUG /MD",
+        "CMAKE_C_FLAGS_RELEASE": "/O2 /DNDEBUG /MD"
+      }
+    },
+    {
+      "name": "coverage-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Coverage",
+        "CMAKE_CXX_FLAGS_COVERAGE": "-fprofile-instr-generate -fcoverage-mapping",
+        "CMAKE_C_FLAGS_COVERAGE": "-fprofile-instr-generate -fcoverage-mapping",
+        "CMAKE_LD_FLAGS_COVERAGE": "-fprofile-instr-generate"
+      }
+    },
+    {
+      "name": "asan-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Asan",
+        "CMAKE_CXX_FLAGS_ASAN": "-fsanitize=address",
+        "CMAKE_C_FLAGS_ASAN": "-fsanitize=address",
+        "CMAKE_LD_FLAGS_ASAN": "-fsanitize=address"
+      }
+    },
+    {
+      "name": "lsan-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Lsan",
+        "CMAKE_CXX_FLAGS_LSAN": "-fsanitize=leak",
+        "CMAKE_C_FLAGS_LSAN": "-fsanitize=leak",
+        "CMAKE_LD_FLAGS_LSAN": "-fsanitize=leak"
+      }
+    },
+    {
+      "name": "usan-base-Windows-ClangCL",
+      "hidden": true,
+      "inherits": [
+        "base-Windows-ClangCL"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Usan",
+        "CMAKE_CXX_FLAGS_USAN": "-fsanitize=undefined",
+        "CMAKE_C_FLAGS_USAN": "-fsanitize=undefined",
+        "CMAKE_LD_FLAGS_USAN": "-fsanitize=undefined"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug Build",
+      "inherits": [
+        "debug-base-Windows-ClangCL"
+      ]
+    },
+    {
+      "name": "gcov",
+      "displayName": "Coverage Build",
+      "inherits": [
+        "coverage-base-Windows-ClangCL"
+      ]
+    },
+    {
+      "name": "release",
+      "displayName": "Release Build",
+      "inherits": [
+        "relwithdebinfo-base-Windows-ClangCL"
+      ]
+    },
+    {
+      "name": "asan",
+      "displayName": "AddressSanitizer Build",
+      "inherits": [
+        "asan-base-Windows-ClangCL"
+      ]
+    },
+    {
+      "name": "lsan",
+      "displayName": "LeakSanitizer Build",
+      "inherits": [
+        "lsan-base-Windows-ClangCL"
+      ]
+    },
+    {
+      "name": "usan",
+      "displayName": "UndefinedSanitizer Build",
+      "inherits": [
+        "usan-base-Windows-ClangCL"
+      ]
+    }
+  ]
+}

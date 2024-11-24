@@ -11,21 +11,38 @@ on:
     - cron: '30 15 * * *'
 
 jobs:
-  # preset-test:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       preset: []
-  #   name: "Preset Test: ${{ matrix.preset }}"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Setup build environment
-  #       uses: lukka/get-cmake@latest
-  #       with:
-  #         cmakeVersion: "~3.25.0"
-  #         ninjaVersion: "^1.11.1"
-  #     - name: Run preset
-  #       run: cmake --workflow --preset ${{ matrix.preset }}
+  preset-test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [debug, release, gcov, asan, lsan, usan]
+        compiler:
+          - cpp: g++-14
+            c: gcc-14
+            gcov: ""
+          - cpp: clang++-18
+            c: clang-18
+            gcov: llvm-cov-18
+    name: "Preset Test: ${{ matrix.preset }} ${{ matrix.compiler.cpp }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup build environment
+        uses: aminya/setup-cpp@v1
+        with:
+          # cmake: true
+          ninja: true
+          gcovr: true
+
+      - name: Run preset ${{ matrix.preset }} ${{ matrix.compiler.cpp }}
+        run: |
+          which llvm-cov-18 gcov gcovr || echo ignored
+          cmake --workflow --preset ${{ matrix.preset }}
+        env:
+          CC: ${{ matrix.compiler.c }}
+          CXX: ${{ matrix.compiler.cpp }}
+          GCOV: ${{ matrix.compiler.gcov }}
 
   test:
     strategy:
@@ -82,7 +99,7 @@ jobs:
           ninja --version
       - name: Configure CMake
         run: |
-          cmake -B build -S . "-DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }} ${{ matrix.cmake_args.args }}"
+          cmake -B build -S . -DCMAKE_PREFIX_PATH=/tmp/beman.inplace_vector "-DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }} ${{ matrix.cmake_args.args }}"
         env:
           CC: ${{ matrix.compiler.c }}
           CXX: ${{ matrix.compiler.cpp }}
