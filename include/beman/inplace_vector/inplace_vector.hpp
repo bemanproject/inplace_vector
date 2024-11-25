@@ -74,7 +74,7 @@ struct inplace_vector_destruct_base {
   inplace_vector_destruct_base(
       const inplace_vector_destruct_base
           &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
-      : elems(), size_(other.size()) {}
+      : elems(), size_(other.size_) {}
 
   inplace_vector_destruct_base &
   operator=(const inplace_vector_destruct_base &other) noexcept(
