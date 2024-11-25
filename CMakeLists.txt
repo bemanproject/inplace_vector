@@ -37,6 +37,7 @@ set(CPACK_GENERATOR TGZ)
 
 # includes
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 include(CPack)
 
 add_library(beman.inplace_vector INTERFACE)
@@ -63,15 +64,46 @@ target_compile_features(
         "$<$<NOT:$<COMPILE_FEATURES:cxx_std_23>>:cxx_std_20>"
 )
 
-set(TARGET_PACKAGE_NAME ${PROJECT_NAME}-config)
-set(TARGETS_EXPORT_NAME ${PROJECT_NAME}-targets)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+# export cmake config package
+set(TARGET_NAME inplace_vector)
+set(TARGET_NAMESPACE beman)
+set(TARGET_ALIAS ${TARGET_NAMESPACE}::${TARGET_NAME})
+set(TARGET_PREFIX ${TARGET_NAMESPACE}.${TARGET_NAME}) # -> PROJECT_NAME?
+set(TARGET_PACKAGE_NAME ${TARGET_NAME}-config)
+set(TARGETS_EXPORT_NAME ${TARGET_NAME}-targets)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET_NAME})
 
 # Install the InplaceVector library to the appropriate destination
 install(
     TARGETS beman.inplace_vector
     EXPORT ${TARGETS_EXPORT_NAME}
     FILE_SET inplace_vector_public_headers
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    cmake/config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}-version.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+install(
+    EXPORT ${TARGETS_EXPORT_NAME}
+    FILE ${TARGETS_EXPORT_NAME}.cmake
+    DESTINATION "${INSTALL_CONFIGDIR}"
+    NAMESPACE ${TARGET_NAMESPACE}::
 )
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
