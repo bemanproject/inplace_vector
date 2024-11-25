@@ -90,7 +90,7 @@ jobs:
       - name: Build Release
         run: |
           cmake --build build --config Release --verbose
-          # cmake --build build --config Release --target all_verify_interface_header_sets
+          cmake --build build --config Release --target all_verify_interface_header_sets
           cmake --install build --config Release --prefix /tmp/beman.inplace_vector
           find /tmp/beman.inplace_vector -type f
       - name: Test Release
@@ -98,7 +98,7 @@ jobs:
       - name: Build Debug
         run: |
           cmake --build build --config Debug --verbose
-          # cmake --build build --config Debug --target all_verify_interface_header_sets
+          cmake --build build --config Debug --target all_verify_interface_header_sets
           cmake --install build --config Debug --prefix /tmp/beman.inplace_vector
           find /tmp/beman.inplace_vector -type f
       - name: Test Debug
