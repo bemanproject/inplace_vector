@@ -1,3 +1,5 @@
 /build
 /out
 CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles/
