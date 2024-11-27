@@ -4,10 +4,10 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
 
     # Clang-format for C++
     # This brings in a portable version of clang-format.
@@ -15,19 +15,26 @@ repos:
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v18.1.8
     hooks:
-    - id: clang-format
-      types_or: [c++, c]
+      - id: clang-format
+        types_or: [c++, c]
 
     # CMake linting and formatting
   - repo: https://github.com/BlankSpruce/gersemi
     rev: 0.15.1
     hooks:
-    - id: gersemi
-      name: CMake linting
+      - id: gersemi
+        name: CMake linting
 
     # Markdown linting
     # Config file: .markdownlint.yaml
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.42.0
     hooks:
-    - id: markdownlint
+      - id: markdownlint
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        files: ^.*\.(cmake|cpp|hpp|txt|md|json|in|yaml|yml)$
+        args: ["--ignore-words", ".codespellignore" ]

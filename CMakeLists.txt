@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 # cmake-format: on
 
-cmake_minimum_required(VERSION 3.23)
+set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
+
+cmake_minimum_required(VERSION 3.25...3.31)
 
 project(
     beman.inplace_vector
@@ -12,6 +14,10 @@ project(
         "A dynamically-resizable vector with fixed capacity and embedded storage"
     LANGUAGES CXX
 )
+
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    message(FATAL_ERROR "In-source builds are not allowed!")
+endif()
 
 # [CMAKE.SKIP_EXAMPLES]
 option(
@@ -27,41 +33,96 @@ option(
     ${PROJECT_IS_TOP_LEVEL}
 )
 
+set(CPACK_GENERATOR TGZ)
+
+# includes
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+include(CPack)
 
 add_library(beman.inplace_vector INTERFACE)
 # [CMAKE.LIBRARY_ALIAS]
 add_library(beman::inplace_vector ALIAS beman.inplace_vector)
 
-target_include_directories(
+target_sources(
+    beman.inplace_vector
+    PUBLIC
+        FILE_SET inplace_vector_public_headers
+        TYPE HEADERS
+        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+        FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp"
+)
+set_target_properties(
+    beman.inplace_vector
+    PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON
+)
+target_compile_features(
     beman.inplace_vector
     INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        "$<$<COMPILE_FEATURES:cxx_std_23>:cxx_std_23>"
+        "$<$<NOT:$<COMPILE_FEATURES:cxx_std_23>>:cxx_std_20>"
 )
+
+# export cmake config package
+set(TARGET_NAME inplace_vector)
+set(TARGET_NAMESPACE beman)
+set(TARGET_ALIAS ${TARGET_NAMESPACE}::${TARGET_NAME})
+set(TARGET_PREFIX ${TARGET_NAMESPACE}.${TARGET_NAME}) # -> PROJECT_NAME?
+set(TARGET_PACKAGE_NAME ${TARGET_NAME}-config)
+set(TARGETS_EXPORT_NAME ${TARGET_NAME}-targets)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET_NAME})
 
 # Install the InplaceVector library to the appropriate destination
 install(
     TARGETS beman.inplace_vector
     EXPORT ${TARGETS_EXPORT_NAME}
-    DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}
+    FILE_SET inplace_vector_public_headers
 )
 
-# Install the header files to the appropriate destination
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    cmake/config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}
-    FILES_MATCHING
-    PATTERN
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp"
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_PACKAGE_NAME}-version.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+install(
+    EXPORT ${TARGETS_EXPORT_NAME}
+    FILE ${TARGETS_EXPORT_NAME}.cmake
+    DESTINATION "${INSTALL_CONFIGDIR}"
+    NAMESPACE ${TARGET_NAMESPACE}::
 )
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
-    include(CTest)
+    enable_testing()
     add_subdirectory(tests/beman/inplace_vector)
 endif()
 
 if(BEMAN_EXEMPLAR_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+# Coverage
+configure_file(cmake/gcovr.cfg.in gcovr.cfg @ONLY)
+
+add_custom_target(
+    process_coverage
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    DEPENDS test
+    COMMENT "Running gcovr to process coverage results"
+    COMMAND mkdir -p coverage
+    COMMAND gcovr --config gcovr.cfg .
+)

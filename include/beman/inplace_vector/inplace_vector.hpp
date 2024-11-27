@@ -565,7 +565,7 @@ public:
       for (; this->size() != Capacity && first != last; ++first) {
         emplace_back(*first);
       }
-      return frist;
+      return first;
     }
   */
 
