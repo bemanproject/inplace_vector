@@ -31,13 +31,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest]
+        platform: [ubuntu-24.04]
         compiler:
           - cpp: g++
             c: gcc
           - cpp: clang++
             c: clang
-        cpp_version: [17, 20, 23, 26]
+        cpp_version: [23]
         cmake_args:
           - description: "Default"
             args: ""
@@ -46,16 +46,22 @@ jobs:
           - description: "ASan"
             args: "-DCMAKE_CXX_FLAGS='-fsanitize=address -fsanitize=undefined'"
         include:
-          # Needs C++ 20 as C++17 selectivly disables ranges and concepts
-          # related functionalities
-          - platform: ubuntu-latest
+          - platform: ubuntu-24.04
             compiler:
               cpp: g++
               c: gcc
-            cpp_version: 20
+            cpp_version: 23
             cmake_args:
               description: "Werror"
               args: "-DCMAKE_CXX_FLAGS='-Wall -Wextra -Wpedantic -Werror'"
+          - platform: ubuntu-24.04
+            compiler:
+              cpp: g++
+              c: gcc
+            cpp_version: 23
+            cmake_args:
+              description: "Dynamic"
+              cmake_args: "-DBUILD_SHARED_LIBS=on"
 
     name: "Build & Test: ${{ matrix.compiler.c }} ${{ matrix.cpp_version }} ${{ matrix.cmake_args.description }}"
     runs-on: ${{ matrix.platform }}
@@ -66,6 +72,22 @@ jobs:
         with:
           cmakeVersion: "~3.25.0"
           ninjaVersion: "^1.11.1"
+      - name: Install latest compiler
+        run: |
+          if [ "${{ matrix.compiler.cpp}}" == "g++" ]; then
+            # Install gcc-14
+            sudo apt-get update
+            sudo apt-get install -y gcc-14 g++-14
+
+            sudo rm /usr/bin/gcc
+            sudo ln -s /usr/bin/gcc-14 /usr/bin/gcc
+
+            sudo rm /usr/bin/g++
+            sudo ln -s /usr/bin/g++-14 /usr/bin/g++
+          else
+            # Install llvm
+            sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+          fi
       - name: Print installed software
         run: |
           clang++ --version
