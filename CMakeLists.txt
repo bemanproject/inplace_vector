@@ -60,7 +60,6 @@ install(
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
     include(CTest)
-    
     enable_testing()
 
     # Fetch GoogleTest
