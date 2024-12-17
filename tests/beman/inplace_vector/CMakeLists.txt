@@ -32,3 +32,11 @@ target_link_libraries(
 )
 
 gtest_add_tests(beman.inplace_vector.tests.spec "" AUTO)
+
+add_executable(beman.inplace_vector.tests.spec2.experimental)
+target_sources(beman.inplace_vector.tests.spec2.experimental PRIVATE spec.test2.experimental.cpp)
+target_link_libraries(beman.inplace_vector.tests.spec2.experimental
+    PRIVATE beman.inplace_vector GTest::gtest GTest::gtest_main
+)
+
+gtest_add_tests(beman.inplace_vector.tests.spec2.experimental "" AUTO)
