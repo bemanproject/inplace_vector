@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <concepts>
 #include <iterator>
-#include <tuple>
 #include <type_traits>
 
 namespace {
@@ -959,8 +958,9 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 //
 // TODO: Test this.
 
-// 4 For any N > 0, if is_trivial_v<T> is false, then no inplace_vector<T, N>
-// member functions are usable in constant expressions.
+// 4 For any N > 0 , if T is not trivially copyable or
+// is_trivially_default_constructible_v<T> is false, then no inplace_vector<T,
+// N> member functions are usable in constant expressions.
 //
 // This would be tested in subsequent method tests.
 
@@ -969,13 +969,19 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 //
 // TODO: Test this.
 
-// 6 Let IV denote a specialization of inplace_vector<T, N>. If N is zero,
-// then IV is both trivial and empty. Otherwise: (6.1) — If
-// is_trivially_copy_constructible_v<T> is true, then IV has a trivial copy
-// constructor (6.2) — If is_trivially_move_constructible_v<T> is true, then
-// IV has a trivial move constructor. (6.3) — If
-// is_trivially_destructible_v<T> is true, then: (6.3.1) — IV has a trivial
-// destructor. (6.3.2) — If is_trivially_copy_constructible_v<T> &&
+// 6 Let IV denote a specialization of inplace_vector<T, N>.
+// If N is zero, then IV is trivially copyable and empty, and
+// std::is_trivially_default_constructible_v<IV> is true. Otherwise:
+//
+// (6.1) — If is_trivially_copy_constructible_v<T> is true, then IV has a
+// trivial copy constructor
+//
+// (6.2) — If is_trivially_move_constructible_v<T> is true, then
+// IV has a trivial move constructor.
+//
+// (6.3) — If is_trivially_destructible_v<T> is true, then:
+// (6.3.1) — IV has a trivial destructor.
+// (6.3.2) — If is_trivially_copy_constructible_v<T> &&
 // is_trivially_copy_assignable_v<T> is true, then IV has a trivial copy
 // assignment operator.
 // (6.3.3) — If is_trivially_move_constructible_v<T> &&
@@ -990,10 +996,12 @@ TYPED_TEST(Triviality, ZeroCapacity) {
   constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
-  SCOPED_TRACE("If N is zero, then IV is both trivial and empty.");
+  SCOPED_TRACE("If N is zero, then IV is trivially copyable and empty, and "
+               "std::is_trivially_default_constructible_v<IV> is true");
   if constexpr (N == 0) {
-    EXPECT_TRUE(std::is_trivial_v<IV>);
+    EXPECT_TRUE(std::is_trivially_copyable_v<IV>);
     EXPECT_TRUE(std::is_empty_v<IV>);
+    EXPECT_TRUE(std::is_trivially_default_constructible_v<IV>);
   }
 }
 
