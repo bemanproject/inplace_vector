@@ -982,38 +982,51 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 // is_trivially_move_assignable_v<T> is true, then IV has a trivial move
 // assignment operator.
 
-template <typename Param> class Overview : public BasicTest<Param> {};
-TYPED_TEST_SUITE(Overview, AllTypes);
+template <typename Param> class Triviality : public BasicTest<Param> {};
+TYPED_TEST_SUITE(Triviality, AllTypes);
 
-TYPED_TEST(Overview, Section6) {
+TYPED_TEST(Triviality, ZeroCapacity) {
   using T = TestFixture::T;
   constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
-  // Let IV denote a specialization of inplace_vector<T, N>.
-  {
-    SCOPED_TRACE("If N is zero, then IV is both trivial and empty.");
-    if constexpr (N == 0) {
-      EXPECT_TRUE(std::is_trivial_v<IV>);
-      EXPECT_TRUE(std::is_empty_v<IV>);
-    }
+  SCOPED_TRACE("If N is zero, then IV is both trivial and empty.");
+  if constexpr (N == 0) {
+    EXPECT_TRUE(std::is_trivial_v<IV>);
+    EXPECT_TRUE(std::is_empty_v<IV>);
   }
-  {
-    SCOPED_TRACE(
-        "(6.1) — If is_trivially_copy_constructible_v<T> is true, then "
-        "IV has a trivial copy constructor");
-    if constexpr (std::is_trivially_copy_constructible_v<T>) {
-      EXPECT_TRUE(std::is_trivially_copy_constructible_v<IV>);
-    }
+}
+
+TYPED_TEST(Triviality, CopyConstructor) {
+  using T = TestFixture::T;
+  constexpr auto N = TestFixture::N;
+  using IV = TestFixture::IV;
+
+  SCOPED_TRACE("(6.1) — If is_trivially_copy_constructible_v<T> is true, then "
+               "IV has a trivial copy constructor");
+  if constexpr (std::is_trivially_copy_constructible_v<T>) {
+    EXPECT_TRUE(std::is_trivially_copy_constructible_v<IV>);
   }
-  {
-    SCOPED_TRACE(
-        "(6.2) — If is_trivially_move_constructible_v<T> is true, then IV "
-        "has a trivial move constructor.");
-    if constexpr (std::is_trivially_move_constructible_v<T>) {
-      EXPECT_TRUE(std::is_trivially_move_constructible_v<IV>);
-    }
+}
+
+TYPED_TEST(Triviality, MoveConstructor) {
+  using T = TestFixture::T;
+  constexpr auto N = TestFixture::N;
+  using IV = TestFixture::IV;
+
+  SCOPED_TRACE(
+      "(6.2) — If is_trivially_move_constructible_v<T> is true, then IV "
+      "has a trivial move constructor.");
+  if constexpr (std::is_trivially_move_constructible_v<T>) {
+    EXPECT_TRUE(std::is_trivially_move_constructible_v<IV>);
   }
+}
+
+TYPED_TEST(Triviality, TriviallyDestructible) {
+  using T = TestFixture::T;
+  constexpr auto N = TestFixture::N;
+  using IV = TestFixture::IV;
+
   {
     SCOPED_TRACE("(6.3) — If is_trivially_destructible_v<T> is true, then:\n"
                  "(6.3.1) — IV has a trivial destructor.");
@@ -1021,6 +1034,7 @@ TYPED_TEST(Overview, Section6) {
       EXPECT_TRUE(std::is_trivially_destructible_v<IV>);
     }
   }
+
   {
     SCOPED_TRACE("(6.3) — If is_trivially_destructible_v<T> is true, then:\n"
                  "(6.3.2) — If is_trivially_copy_constructible_v<T> && "
@@ -1032,6 +1046,7 @@ TYPED_TEST(Overview, Section6) {
       EXPECT_TRUE(std::is_trivially_copy_assignable_v<IV>);
     }
   }
+
   {
     SCOPED_TRACE("(6.3) — If is_trivially_destructible_v<T> is true, then:\n"
                  "(6.3.3) — If is_trivially_move_constructible_v<T> && "
