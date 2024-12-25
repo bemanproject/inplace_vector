@@ -64,21 +64,21 @@ namespace {
 --------+--------------------+--------------+----------------+----------------+----------------+----------------+----------+----------------------------------
 Copy 	  | (YES)              | -            | YES            | -              | -              | -              | YES      | Trivial
 c'tor   | (NO)               | -            | YES            | -              | -              | -              | NO       | NonTriviallyDefaultConstructible
-	      | -                  | -            | NO             | -              | -              | -              | NO       | NonTrivial	
+	      | -                  | -            | NO             | -              | -              | -              | NO       | NonTrivial
 --------+--------------------+--------------+----------------+----------------+----------------+----------------+----------+----------------------------------
 Move    | (YES)              | -            | -              | YES            | -              | -              | YES      | Trivial
 c'tor		| (NO)               | -            | -              | YES            | -              | -              | NO       | NonTriviallyDefaultConstructible
-	      | -                  | -            | -              | NO             | -              | -              | NO       | NonTrivial	
+	      | -                  | -            | -              | NO             | -              | -              | NO       | NonTrivial
 --------+--------------------+--------------+----------------+----------------+----------------+----------------+----------+----------------------------------
      	  | (YES)              | YES          | -              | -              | -              | -              | YES      | Trivial
 D'tor   | (NO)               | YES          | -              | -              | -              | -              | NO       | NonTriviallyDefaultConstructible
-	      | -                  | NO           | -              | -              | -              | -              | NO       | NonTrivial	
+	      | -                  | NO           | -              | -              | -              | -              | NO       | NonTrivial
 --------+--------------------+--------------+----------------+----------------+----------------+----------------+----------+----------------------------------
      	  | (YES)              | YES          | YES            | -              | YES            | -              | YES      | Trivial
         | (NO)               | YES          | YES            | -              | YES            | -              | NO       | NonTriviallyDefaultConstructible
 Copy    | -                  | YES          | YES            | -              | NO             |                | NO       | NonTriviallyCopyAssignable
 assign- | -                  | YES          | NO             | -              | YES            |                | NO       | NonTriviallyCopyConstructible
-ment    | -                  | YES          | NO             | -              | NO             |                | NO       | TriviallyDestructible
+meant   | -                  | YES          | NO             | -              | NO             |                | NO       | TriviallyDestructible
         | -                  | NO           | NO**           | -              | YES            |                | NO       | TriviallyAssignable
         | -                  | NO           | NO**           | -              | NO             |                | NO       | NonTrivial
 --------+--------------------+--------------+----------------+----------------+----------------+----------------+----------+----------------------------------
@@ -86,7 +86,7 @@ ment    | -                  | YES          | NO             | -              | 
         | (NO)               | YES          | -              | YES            | -              | YES            | NO       | NonTriviallyDefaultConstructible
 Move    | -                  | YES          | -              | YES            | -              | NO             | NO       | NonTriviallyMoveAssignable
 assign- | -                  | YES          | -              | NO             | -              | YES            | NO       | NonTriviallyMoveConstructible
-ment    | -                  | YES          | -              | NO             | -              | NO             | NO       | TriviallyDestructible
+meant   | -                  | YES          | -              | NO             | -              | NO             | NO       | TriviallyDestructible
         | -                  | NO           | -              | NO**           | -              | YES            | NO       | TriviallyAssignable
         | -                  | NO           | -              | NO**           | -              | NO             | NO       | NonTrivial
 
@@ -263,7 +263,7 @@ static_assert(    std::is_move_assignable_v                <TriviallyDestructibl
 struct NonTrivial {
   static std::size_t num_objects;
   int value;
-  
+
   constexpr NonTrivial() noexcept : NonTrivial(int{}) {}
   constexpr NonTrivial(int v) noexcept : value(v) {
     if (not std::is_constant_evaluated()) {
