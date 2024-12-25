@@ -1095,13 +1095,208 @@ TYPED_TEST(Constructors, CopyRanges) {
 // TODO
 
 // 23.3.14.4 Data [inplace.vector.data]
-// TODO
+
+template <typename Param> class Data : public BasicTest<Param> {};
+TYPED_TEST_SUITE(Data, AllTypes);
+
+TYPED_TEST(Data, Test) {
+  // constexpr       T* data()       noexcept;
+  // constexpr const T* data() const noexcept;
+  //
+  // Returns: A pointer such that [data(), data() + size()) is a valid range.
+  // For a non-empty inplace_vector, data() == addressof(front()) is true.
+  // Complexity: Constant time.
+
+  // TODO
+  GTEST_SKIP();
+}
 
 // 23.3.14.5 Modifiers [inplace.vector.modifiers]
-// TODO
+template <typename Param> class Modifiers : public BasicTest<Param> {};
+TYPED_TEST_SUITE(Modifiers, AllTypes);
+
+TYPED_TEST(Modifiers, Insert) {
+  // constexpr iterator insert(const_iterator position, const T& x);
+  // constexpr iterator insert(const_iterator position, T&& x);
+  // constexpr iterator insert(const_iterator position, size_type n, const T&
+  // x);
+  // template<class InputIterator>
+  //   constexpr iterator insert(const_iterator position, InputIterator first,
+  //   InputIterator last);
+  // template<container-compatible-range<T> R>
+  //   constexpr iterator insert_range(const_iterator position, R&& rg);
+  // constexpr iterator insert(const_iterator position, initializer_list<T> il);
+  // template<class... Args>
+  //   constexpr iterator emplace(const_iterator position, Args&&... args);
+  // template<container-compatible-range<T> R>
+  //   constexpr void append_range(R&& rg);
+  //
+  // Let n be the value of size() before this call for the append_range
+  // overload, and distance(begin, position) otherwise.
+  // Complexity: Linear in the number of elements inserted plus the distance
+  // to the end of the vector.
+  // Remarks: If an exception is thrown other than by the copy constructor,
+  // move constructor, assignment operator, or move assignment operator of T or
+  // by any InputIterator operation, there are no effects. Otherwise, if an
+  // exception is thrown, then size()  ≥ n and elements in the range begin() +
+  // [0, n) are not modified.
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, PushBack) {
+  // constexpr reference push_back(const T& x);
+  // constexpr reference push_back(T&& x);
+  // template<class... Args>
+  //   constexpr reference emplace_back(Args&&... args);
+  //
+  // Returns: back().
+  // Throws: bad_alloc or any exception thrown by the initialization of the
+  // inserted element.
+  // Complexity: Constant.
+  // Remarks: If an exception is thrown, there are no effects on *this.
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, TryPushBack) {
+  // template<class... Args>
+  // constexpr pointer try_emplace_back(Args&&... args);
+  // constexpr pointer try_push_back(const T& x);
+  // constexpr pointer try_push_back(T&& x);
+  //
+  // Let vals denote a pack:
+  // (8.1) std::forward<Args>(args)... for the first overload,
+  // (8.2) x for the second overload,
+  // (8.3) std::move(x) for the third overload.
+  //
+  // Preconditions: value_type is Cpp17EmplaceConstructible into inplace_vector
+  // from vals....
+  // Effects: If size() < capacity() is true, appends an object of type T
+  // direct-non-list-initialized with vals.... Otherwise, there are no effects.
+  // Returns: nullptr if size() == capacity() is true, otherwise
+  // addressof(back()).
+  // Throws: Nothing unless an exception is thrown by the initialization of the
+  // inserted element.
+  // Complexity: Constant.
+  // Remarks: If an exception is thrown, there are no effects on *this.
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, TryAppendRanges) {
+  // template<container-compatible-range<T> R>
+  // constexpr ranges::borrowed_iterator_t<R> try_append_range(R&& rg);
+  //
+  // Preconditions: value_type is Cpp17EmplaceConstructible into inplace_vector
+  // from *ranges::begin(rg).
+  //
+  // Effects: Appends copies of initial elements
+  // in rg before end(), until all elements are inserted or size() == capacity()
+  // is true. Each iterator in the range rg is dereferenced at most once.
+  //
+  // Returns: An iterator pointing to the first element of rg that was not
+  // inserted into *this, or ranges::end(rg) if no such element exists.
+  // Complexity: Linear in the number of elements inserted.
+  //
+  // Remarks: Let n be the value of size() prior to this call. If an exception
+  // is thrown after the insertion of k elements, then size() equals n + k ,
+  // elements in the range begin() + [0, n) are not modified, and elements in
+  // the range begin() + [n, n + k) correspond to the inserted elements.
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
+  // template<class... Args>
+  // constexpr reference unchecked_emplace_back(Args&&... args);
+  //
+  // Preconditions: size() < capacity() is true.
+  // Effects: Equivalent to: return
+  // *try_emplace_back(std::forward<Args>(args)...);
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, UncheckedPushBack) {
+  // constexpr reference unchecked_push_back(const T& x);
+  // constexpr reference unchecked_push_back(T&& x);
+  // Preconditions: size() < capacity() is true.
+  // Effects: Equivalent to: return
+  // *try_push_back(std​::​forward<decltype(x)>(x));
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, ReserveShrink) {
+  // static constexpr void reserve(size_type n);
+  //
+  // Effects: None.
+  // Throws: bad_alloc if n > capacity() is true.
+  //
+  // static constexpr void shrink_to_fit() noexcept;
+  // Effects: None.
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, Erase) {
+  // constexpr iterator erase(const_iterator position);
+  // constexpr iterator erase(const_iterator first, const_iterator last);
+  // constexpr void pop_back();
+  //
+  // Effects: Invalidates iterators and references at or after the point of the
+  // erase.
+  // Throws: Nothing unless an exception is thrown by the assignment
+  // operator or move assignment operator of T.
+  // Complexity: The destructor of T is called the number of times equal to the
+  // number of the elements erased, but the assignment operator of T is called
+  // the number of times equal to the number of elements after the erased
+  // elements.
+
+  // TODO
+  GTEST_SKIP();
+}
 
 // 23.3.14.6 Erasure [inplace.vector.erasure]
-// TODO
+
+template <typename Param> class Erasure : public BasicTest<Param> {};
+TYPED_TEST_SUITE(Erasure, AllTypes);
+
+TYPED_TEST(Erasure, ByValue) {
+  // template<class T, size_t N, class U = T>
+  //   constexpr size_t erase(inplace_vector<T, N>& c, const U& value);
+  //
+  // Effects: Equivalent to:
+  // auto it = remove(c.begin(), c.end(), value);
+  // auto r = distance(it, c.end());
+  // c.erase(it, c.end());
+  // return r;
+
+  // TODO
+  GTEST_SKIP();
+}
+
+TYPED_TEST(Erasure, ByPred) {
+  // template<class T, size_t N, class Predicate>
+  // constexpr size_t erase_if(inplace_vector<T, N>& c, Predicate pred);
+  //
+  // Effects: Equivalent to:
+  // auto it = remove_if(c.begin(), c.end(), pred);
+  // auto r = distance(it, c.end());
+  // c.erase(it, c.end());
+  // return r;
+
+  // TODO
+  GTEST_SKIP();
+}
 
 #if 0
 
