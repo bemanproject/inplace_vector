@@ -1247,10 +1247,52 @@ TYPED_TEST(Modifiers, ReserveShrink) {
   GTEST_SKIP();
 }
 
-TYPED_TEST(Modifiers, Erase) {
+TYPED_TEST(Modifiers, EraseSingle) {
   // constexpr iterator erase(const_iterator position);
   // constexpr iterator erase(const_iterator first, const_iterator last);
   // constexpr void pop_back();
+  //
+  // Effects: Invalidates iterators and references at or after the point of the
+  // erase.Single
+  // Throws: Nothing unless an exception is thrown by the assignment
+  // operator or move assignment operator of T.
+  // Complexity: The destructor of T is called the number of times equal to the
+  // number of the elements erased, but the assignment operator of T is called
+  // the number of times equal to the number of elements after the erased
+  // elements.
+
+  auto device = this->unique();
+
+  if (device.empty())
+    return;
+
+  auto itr = device.erase(device.begin());
+  if (device.empty())
+    return;
+
+  EXPECT_EQ(itr, device.begin());
+
+  auto last_itr = device.end();
+  last_itr = --last_itr;
+
+  itr = device.erase(last_itr);
+  EXPECT_EQ(itr, device.end());
+
+  auto mid_idx = device.size() / 2;
+  auto mid_itr = device.begin() + mid_idx;
+  itr = device.erase(mid_itr);
+  EXPECT_EQ(itr, device.begin() + mid_idx);
+
+  auto size = device.size();
+  for (auto i = 0; i < size; ++i)
+    device.erase(device.begin());
+
+  EXPECT_TRUE(device.empty())
+      << "device still have " << device.size() << " elements";
+}
+
+TYPED_TEST(Modifiers, EraseRange) {
+  // constexpr iterator erase(const_iterator first, const_iterator last);
   //
   // Effects: Invalidates iterators and references at or after the point of the
   // erase.
@@ -1263,6 +1305,34 @@ TYPED_TEST(Modifiers, Erase) {
 
   // TODO
   GTEST_SKIP();
+}
+
+TYPED_TEST(Modifiers, PopBack) {
+  // constexpr void pop_back();
+  //
+  // Effects: Invalidates iterators and references at or after the point of the
+  // erase.
+  // Throws: Nothing unless an exception is thrown by the assignment
+  // operator or move assignment operator of T.
+  // Complexity: The destructor of T is called the number of times equal to the
+  // number of the elements erased, but the assignment operator of T is called
+  // the number of times equal to the number of elements after the erased
+  // elements.
+
+  using IV = TestFixture::IV;
+
+  auto reference = this->unique();
+  IV device(reference);
+
+  if (reference.capacity() == 0)
+    return;
+
+  for (auto i = int(reference.size()); i >= 0; --i) {
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i));
+    device.pop_back();
+  }
+
+  EXPECT_TRUE(device.size());
 }
 
 // 23.3.14.6 Erasure [inplace.vector.erasure]
