@@ -1298,8 +1298,27 @@ TYPED_TEST(Erasure, ByValue) {
   // c.erase(it, c.end());
   // return r;
 
-  // TODO
-  GTEST_SKIP();
+  using T = TestFixture::T;
+  using IV = TestFixture::IV;
+
+  IV device;
+  if constexpr (device.capacity() == 0)
+    return;
+
+  T duplicates{4612};
+  auto uniques = this->unique(device.capacity() / 2);
+
+  for (auto i = 0; i < uniques.size(); ++i) {
+    device.push_back(uniques[i]);
+    if (device.size() != device.capacity())
+      device.push_back(duplicates);
+  }
+
+  // TODO: uncomment this after erase is implemented
+  // beman::erase(device, uniques);
+  // EXPECT_EQ(uniques, device);
+
+  GTEST_SKIP() << "Not implemented";
 }
 
 TYPED_TEST(Erasure, ByPred) {
