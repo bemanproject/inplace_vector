@@ -1315,7 +1315,7 @@ TYPED_TEST(Erasure, ByValue) {
   }
 
   // TODO: uncomment this after erase is implemented
-  // beman::erase(device, uniques);
+  // beman::erase(device, duplicates);
   // EXPECT_EQ(uniques, device);
 
   GTEST_SKIP() << "Not implemented";
@@ -1331,7 +1331,21 @@ TYPED_TEST(Erasure, ByPred) {
   // c.erase(it, c.end());
   // return r;
 
-  // TODO
+  using T = TestFixture::T;
+  using IV = TestFixture::IV;
+
+  IV device;
+  if constexpr (device.capacity() == 0)
+    return;
+
+  for (auto i = 0; i < device.capacity(); ++i)
+    device.push_back(T{i});
+
+  // TODO: complete this when its implemented
+  // beman::erase_if(device,
+  //                 [&](auto &v) { return v.value > (device.capacity() / 2);
+  //                 });
+
   GTEST_SKIP();
 }
 
