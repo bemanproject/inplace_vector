@@ -1330,15 +1330,16 @@ TYPED_TEST(Modifiers, PopBack) {
   auto reference = this->unique();
   IV device(reference);
 
-  if (reference.capacity() == 0)
+  if (reference.size() == 0)
     return;
 
-  for (auto i = int(reference.size()); i >= 0; --i) {
+  for (auto i = int(reference.size()); i > 0; --i) {
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i));
     device.pop_back();
   }
 
-  EXPECT_TRUE(device.size());
+  EXPECT_TRUE(device.empty()) << "device still have " << device.size()
+                              << " elements";
 }
 
 // 23.3.14.6 Erasure [inplace.vector.erasure]
