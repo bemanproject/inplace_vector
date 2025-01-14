@@ -1166,6 +1166,27 @@ TYPED_TEST(Modifiers, Insert) {
 TYPED_TEST(Modifiers, PushBack) {
   // constexpr reference push_back(const T& x);
   // constexpr reference push_back(T&& x);
+  //
+  // Returns: back().
+  // Throws: bad_alloc or any exception thrown by the initialization of the
+  // inserted element.
+  // Complexity: Constant.
+  // Remarks: If an exception is thrown, there are no effects on *this.
+
+  using IV = TestFixture::IV;
+
+  const auto reference = this->unique();
+
+  IV device;
+  for (int i = 0; i < reference.size(); ++i) {
+    EXPECT_EQ(device.push_back(reference[i]), device.back());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+  }
+}
+
+// TODO: Check if there's extra copies
+
+TYPED_TEST(Modifiers, EmplaceBack) {
   // template<class... Args>
   //   constexpr reference emplace_back(Args&&... args);
   //
@@ -1175,11 +1196,18 @@ TYPED_TEST(Modifiers, PushBack) {
   // Complexity: Constant.
   // Remarks: If an exception is thrown, there are no effects on *this.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  const auto reference = this->unique();
+
+  IV device;
+  for (int i = 0; i < reference.size(); ++i) {
+    EXPECT_EQ(device.emplace_back(reference[i].value), device.back());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+  }
 }
 
-TYPED_TEST(Modifiers, TryPushBack) {
+TYPED_TEST(Modifiers, TryEmplaceBack) {
   // template<class... Args>
   // constexpr pointer try_emplace_back(Args&&... args);
   // constexpr pointer try_push_back(const T& x);
@@ -1201,8 +1229,113 @@ TYPED_TEST(Modifiers, TryPushBack) {
   // Complexity: Constant.
   // Remarks: If an exception is thrown, there are no effects on *this.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  const auto reference = this->unique();
+  IV device;
+  if (!reference.empty()) {
+    for (int i = 0; i < reference.size(); ++i) {
+      EXPECT_EQ(device.try_emplace_back(reference[i].value),
+                std::addressof(device.back()));
+      EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+    }
+
+    EXPECT_EQ(device.try_emplace_back(reference[0].value), nullptr);
+    EXPECT_EQ(device, reference);
+  } else {
+    EXPECT_EQ(device.try_emplace_back(0), nullptr);
+    EXPECT_EQ(device, IV());
+  }
+}
+
+TYPED_TEST(Modifiers, TryPushBackConstRef) {
+  // template<class... Args>
+  // constexpr pointer try_emplace_back(Args&&... args);
+  // constexpr pointer try_push_back(const T& x);
+  // constexpr pointer try_push_back(T&& x);
+  //
+  // Let vals denote a pack:
+  // (8.1) std::forward<Args>(args)... for the first overload,
+  // (8.2) x for the second overload,
+  // (8.3) std::move(x) for the third overload.
+  //
+  // Preconditions: value_type is Cpp17EmplaceConstructible into inplace_vector
+  // from vals....
+  // Effects: If size() < capacity() is true, appends an object of type T
+  // direct-non-list-initialized with vals.... Otherwise, there are no effects.
+  // Returns: nullptr if size() == capacity() is true, otherwise
+  // addressof(back()).
+  // Throws: Nothing unless an exception is thrown by the initialization of the
+  // inserted element.
+  // Complexity: Constant.
+  // Remarks: If an exception is thrown, there are no effects on *this.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  const auto reference = this->unique();
+  IV device;
+
+  if (!reference.empty()) {
+    for (int i = 0; i < reference.size(); ++i) {
+      EXPECT_EQ(device.try_push_back(reference[i]),
+                std::addressof(device.back()));
+      EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+    }
+
+    EXPECT_EQ(device.try_push_back(reference[0]), nullptr);
+    EXPECT_EQ(device, reference);
+  } else {
+    T val{0};
+    EXPECT_EQ(device.try_push_back(val), nullptr);
+    EXPECT_EQ(device, IV());
+  }
+}
+
+TYPED_TEST(Modifiers, TryPushBackRV) {
+  // template<class... Args>
+  // constexpr pointer try_emplace_back(Args&&... args);
+  // constexpr pointer try_push_back(const T& x);
+  // constexpr pointer try_push_back(T&& x);
+  //
+  // Let vals denote a pack:
+  // (8.1) std::forward<Args>(args)... for the first overload,
+  // (8.2) x for the second overload,
+  // (8.3) std::move(x) for the third overload.
+  //
+  // Preconditions: value_type is Cpp17EmplaceConstructible into inplace_vector
+  // from vals....
+  // Effects: If size() < capacity() is true, appends an object of type T
+  // direct-non-list-initialized with vals.... Otherwise, there are no effects.
+  // Returns: nullptr if size() == capacity() is true, otherwise
+  // addressof(back()).
+  // Throws: Nothing unless an exception is thrown by the initialization of the
+  // inserted element.
+  // Complexity: Constant.
+  // Remarks: If an exception is thrown, there are no effects on *this.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  const auto reference = this->unique();
+
+  IV device;
+
+  if (!reference.empty()) {
+    for (int i = 0; i < reference.size(); ++i) {
+      T val{reference[i].value};
+      EXPECT_EQ(device.try_push_back(std::move(val)),
+                std::addressof(device.back()));
+      EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+    }
+
+    EXPECT_EQ(device.try_push_back(reference[0]), nullptr);
+    EXPECT_EQ(device, reference);
+  } else {
+    T val{0};
+    EXPECT_EQ(device.try_push_back(std::move(val)), nullptr);
+    EXPECT_EQ(device, IV());
+  }
 }
 
 TYPED_TEST(Modifiers, TryAppendRanges) {
@@ -1237,19 +1370,53 @@ TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
   // Effects: Equivalent to: return
   // *try_emplace_back(std::forward<Args>(args)...);
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  const auto reference = this->unique();
+
+  IV device;
+  for (int i = 0; i < reference.size(); ++i) {
+    EXPECT_EQ(device.unchecked_emplace_back(reference[i].value), device.back());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+  }
 }
 
-TYPED_TEST(Modifiers, UncheckedPushBack) {
+TYPED_TEST(Modifiers, UncheckedPushBackConstRef) {
   // constexpr reference unchecked_push_back(const T& x);
   // constexpr reference unchecked_push_back(T&& x);
   // Preconditions: size() < capacity() is true.
   // Effects: Equivalent to: return
   // *try_push_back(std​::​forward<decltype(x)>(x));
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  const auto reference = this->unique();
+
+  IV device;
+  for (int i = 0; i < reference.size(); ++i) {
+    EXPECT_EQ(device.unchecked_push_back(reference[i]), device.back());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+  }
+}
+
+TYPED_TEST(Modifiers, UncheckedPushBackRV) {
+  // constexpr reference unchecked_push_back(const T& x);
+  // constexpr reference unchecked_push_back(T&& x);
+  // Preconditions: size() < capacity() is true.
+  // Effects: Equivalent to: return
+  // *try_push_back(std​::​forward<decltype(x)>(x));
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  const auto reference = this->unique();
+
+  IV device;
+  for (int i = 0; i < reference.size(); ++i) {
+    T val{reference[i].value};
+    EXPECT_EQ(device.unchecked_push_back(std::move(val)), device.back());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+  }
 }
 
 TYPED_TEST(Modifiers, ReserveNonEmpty) {
@@ -1260,7 +1427,7 @@ TYPED_TEST(Modifiers, ReserveNonEmpty) {
 
   using IV = TestFixture::IV;
 
-  auto reference = this->unique();
+  const auto reference = this->unique();
 
   IV device(reference);
 
