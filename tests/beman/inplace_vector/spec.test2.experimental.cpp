@@ -1266,10 +1266,10 @@ TYPED_TEST(Modifiers, ReserveNonEmpty) {
 
   device.reserve(device.size());
   EXPECT_EQ(device, reference);
-  
+
   device.reserve(0);
   EXPECT_EQ(device, reference);
-  
+
   device.reserve(device.capacity());
   EXPECT_EQ(device, reference);
 
@@ -1288,16 +1288,15 @@ TYPED_TEST(Modifiers, ReserveEmpty) {
 
   device.reserve(device.size());
   EXPECT_EQ(device, IV());
-  
+
   device.reserve(0);
   EXPECT_EQ(device, IV());
-  
+
   device.reserve(device.capacity());
   EXPECT_EQ(device, IV());
 
   EXPECT_THROW(device.reserve(device.capacity() + 1), beman::bad_alloc);
 }
-
 
 TYPED_TEST(Modifiers, ShrinkToFitNonEmpty) {
   // static constexpr void shrink_to_fit() noexcept;
@@ -1410,8 +1409,8 @@ TYPED_TEST(Modifiers, PopBack) {
     device.pop_back();
   }
 
-  EXPECT_TRUE(device.empty()) << "device still have " << device.size()
-                              << " elements";
+  EXPECT_TRUE(device.empty())
+      << "device still have " << device.size() << " elements";
 }
 
 // 23.3.14.6 Erasure [inplace.vector.erasure]
