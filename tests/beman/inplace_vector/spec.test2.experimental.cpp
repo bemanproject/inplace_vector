@@ -1368,6 +1368,50 @@ TYPED_TEST(Modifiers, EraseSingle) {
       << "device still have " << device.size() << " elements";
 }
 
+TYPED_TEST(Modifiers, EraseSingleConst) {
+  // constexpr iterator erase(const_iterator position);
+  // constexpr iterator erase(const_iterator first, const_iterator last);
+  // constexpr void pop_back();
+  //
+  // Effects: Invalidates iterators and references at or after the point of the
+  // erase.
+  // Throws: Nothing unless an exception is thrown by the assignment
+  // operator or move assignment operator of T.
+  // Complexity: The destructor of T is called the number of times equal to the
+  // number of the elements erased, but the assignment operator of T is called
+  // the number of times equal to the number of elements after the erased
+  // elements.
+
+  auto device = this->unique();
+
+  if (device.empty())
+    return;
+
+  auto itr = device.erase(device.cbegin());
+  if (device.empty())
+    return;
+
+  EXPECT_EQ(itr, device.cbegin());
+
+  auto last_itr = device.cend();
+  last_itr = --last_itr;
+
+  itr = device.erase(last_itr);
+  EXPECT_EQ(itr, device.cend());
+
+  auto mid_idx = device.size() / 2;
+  auto mid_itr = device.cbegin() + mid_idx;
+  itr = device.erase(mid_itr);
+  EXPECT_EQ(itr, device.cbegin() + mid_idx);
+
+  auto size = device.size();
+  for (auto i = 0; i < size; ++i)
+    device.erase(device.cbegin());
+
+  EXPECT_TRUE(device.empty())
+      << "device still have " << device.size() << " elements";
+}
+
 TYPED_TEST(Modifiers, EraseRange) {
   // constexpr iterator erase(const_iterator first, const_iterator last);
   //
@@ -1380,8 +1424,61 @@ TYPED_TEST(Modifiers, EraseRange) {
   // the number of times equal to the number of elements after the erased
   // elements.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  auto reference = this->unique();
+  IV device(reference);
+
+  auto itr = device.erase(device.begin(), device.begin());
+  EXPECT_EQ(itr, device.begin());
+  EXPECT_EQ(device, IV(reference));
+
+  if (device.empty())
+    return;
+
+  itr = device.erase(device.begin(), device.begin() + 1);
+  EXPECT_EQ(itr, device.begin());
+  EXPECT_EQ(device, IV(reference.begin() + 1, reference.end()));
+
+  if (device.empty())
+    return;
+
+  reference = IV(device);
+
+  auto last_itr = device.end() - 1;
+
+  itr = device.erase(last_itr, device.end());
+  EXPECT_EQ(itr, device.end());
+  EXPECT_EQ(device, IV(reference.begin(), reference.end() - 1));
+
+  if (device.size() >= 4) {
+    reference = IV(device);
+
+    auto from_itr = device.begin() + 1;
+    auto to_itr = device.end() - 1;
+
+    itr = device.erase(from_itr, to_itr);
+    EXPECT_EQ(itr, device.begin() + 1);
+    EXPECT_EQ(device, IV({reference[0], reference.back()}));
+  }
+}
+
+TYPED_TEST(Modifiers, EraseRangeAll) {
+  // constexpr iterator erase(const_iterator first, const_iterator last);
+  //
+  // Effects: Invalidates iterators and references at or after the point of the
+  // erase.
+  // Throws: Nothing unless an exception is thrown by the assignment
+  // operator or move assignment operator of T.
+  // Complexity: The destructor of T is called the number of times equal to the
+  // number of the elements erased, but the assignment operator of T is called
+  // the number of times equal to the number of elements after the erased
+  // elements.
+
+  auto device = this->unique();
+  auto itr = device.erase(device.begin(), device.end());
+  EXPECT_EQ(itr, device.end());
+  EXPECT_TRUE(device.empty());
 }
 
 TYPED_TEST(Modifiers, PopBack) {
