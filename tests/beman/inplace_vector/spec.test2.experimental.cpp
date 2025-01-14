@@ -1261,8 +1261,14 @@ TYPED_TEST(Modifiers, ReserveShrink) {
   // static constexpr void shrink_to_fit() noexcept;
   // Effects: None.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  auto reference = this->unique();
+
+  IV device(reference);
+  device.reserve(device.size());
+
+  EXPECT_EQ(device, reference);
 }
 
 TYPED_TEST(Modifiers, EraseSingle) {
@@ -1271,7 +1277,7 @@ TYPED_TEST(Modifiers, EraseSingle) {
   // constexpr void pop_back();
   //
   // Effects: Invalidates iterators and references at or after the point of the
-  // erase.Single
+  // erase.
   // Throws: Nothing unless an exception is thrown by the assignment
   // operator or move assignment operator of T.
   // Complexity: The destructor of T is called the number of times equal to the
