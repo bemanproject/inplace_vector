@@ -1234,12 +1234,54 @@ TYPED_TEST(Modifiers, UncheckedPushBack) {
   GTEST_SKIP();
 }
 
-TYPED_TEST(Modifiers, ReserveShrink) {
+TYPED_TEST(Modifiers, ReserveNonEmpty) {
   // static constexpr void reserve(size_type n);
   //
   // Effects: None.
   // Throws: bad_alloc if n > capacity() is true.
+
+  using IV = TestFixture::IV;
+
+  auto reference = this->unique();
+
+  IV device(reference);
+
+  device.reserve(device.size());
+  EXPECT_EQ(device, reference);
+  
+  device.reserve(0);
+  EXPECT_EQ(device, reference);
+  
+  device.reserve(device.capacity());
+  EXPECT_EQ(device, reference);
+
+  EXPECT_THROW(device.reserve(device.capacity() + 1), beman::bad_alloc);
+}
+
+TYPED_TEST(Modifiers, ReserveEmpty) {
+  // static constexpr void reserve(size_type n);
   //
+  // Effects: None.
+  // Throws: bad_alloc if n > capacity() is true.
+
+  using IV = TestFixture::IV;
+
+  IV device;
+
+  device.reserve(device.size());
+  EXPECT_EQ(device, IV());
+  
+  device.reserve(0);
+  EXPECT_EQ(device, IV());
+  
+  device.reserve(device.capacity());
+  EXPECT_EQ(device, IV());
+
+  EXPECT_THROW(device.reserve(device.capacity() + 1), beman::bad_alloc);
+}
+
+
+TYPED_TEST(Modifiers, ShrinkToFitNonEmpty) {
   // static constexpr void shrink_to_fit() noexcept;
   // Effects: None.
 
@@ -1248,9 +1290,21 @@ TYPED_TEST(Modifiers, ReserveShrink) {
   auto reference = this->unique();
 
   IV device(reference);
-  device.reserve(device.size());
+  reference.shrink_to_fit();
 
   EXPECT_EQ(device, reference);
+}
+
+TYPED_TEST(Modifiers, ShrinkToFitEmpty) {
+  // static constexpr void shrink_to_fit() noexcept;
+  // Effects: None.
+
+  using IV = TestFixture::IV;
+
+  IV device;
+  device.shrink_to_fit();
+
+  EXPECT_EQ(device, IV());
 }
 
 TYPED_TEST(Modifiers, EraseSingle) {
