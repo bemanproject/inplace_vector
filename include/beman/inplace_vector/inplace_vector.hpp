@@ -504,7 +504,7 @@ public:
   using const_reverse_iterator = ::std::reverse_iterator<const_iterator>;
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
-  constexpr inplace_vector() noexcept { __unsafe_set_size(0); }
+  constexpr inplace_vector() noexcept = default;
   // constexpr explicit inplace_vector(size_type __n);
   // constexpr inplace_vector(size_type __n, const __T& __value);
   // template <class __InputIterator>  // BUGBUG: why not model input_iterator?
@@ -938,28 +938,35 @@ public:
     __unsafe_set_size(size() - 1);
   }
 
+  constexpr inplace_vector(const inplace_vector &__x) requires(__N == 0) = default;
   constexpr inplace_vector(const inplace_vector &__x)
-    requires(copyable<__T>)
+    requires(__N != 0 && copyable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(__e);
   }
+
+  constexpr inplace_vector(inplace_vector &&__x) requires(__N == 0) = default;
   constexpr inplace_vector(inplace_vector &&__x)
-    requires(movable<__T>)
+    requires(__N != 0 && movable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(::std::move(__e));
   }
+
+  constexpr inplace_vector &operator=(const inplace_vector &__x) requires(__N == 0) = default;
   constexpr inplace_vector &operator=(const inplace_vector &__x)
-    requires(copyable<__T>)
+    requires(__N != 0 && copyable<__T>)
   {
     clear();
     for (auto &&__e : __x)
       emplace_back(__e);
     return *this;
   }
+
+  constexpr inplace_vector &operator=(inplace_vector &&__x) requires(__N == 0) = default;
   constexpr inplace_vector &operator=(inplace_vector &&__x)
-    requires(movable<__T>)
+    requires(__N != 0 && movable<__T>)
   {
     clear();
     for (auto &&__e : __x)

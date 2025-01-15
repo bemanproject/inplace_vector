@@ -991,9 +991,10 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 template <typename Param> class Triviality : public BasicTest<Param> {};
 TYPED_TEST_SUITE(Triviality, AllTypes);
 
-TYPED_TEST(Triviality, TrivialDefaultConstructible) {
-  // (6.1) — If is_trivially_copy_constructible_v<T> is true, then IV has a
-  // trivial copy constructor
+TYPED_TEST(Triviality, ZeroSized) {
+  // 6 Let IV denote a specialization of inplace_vector<T, N>.
+  // If N is zero, then IV is trivially copyable and empty, and
+  // std::is_trivially_default_constructible_v<IV> is true.
 
   using T = TestFixture::T;
   constexpr auto N = TestFixture::N;
