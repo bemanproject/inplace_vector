@@ -459,7 +459,11 @@ public:
   constexpr __non_trivial &operator=(__non_trivial const &) noexcept = default;
   constexpr __non_trivial(__non_trivial &&) noexcept = default;
   constexpr __non_trivial &operator=(__non_trivial &&) noexcept = default;
-  constexpr ~__non_trivial() = default;
+  
+  constexpr ~__non_trivial() requires(is_trivially_destructible_v<__T>) = default;
+  constexpr ~__non_trivial() {
+      destroy(__data(), __data() + __size());
+  }
 };
 
 // Selects the vector storage.
