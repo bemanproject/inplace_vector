@@ -459,11 +459,11 @@ public:
   constexpr __non_trivial &operator=(__non_trivial const &) noexcept = default;
   constexpr __non_trivial(__non_trivial &&) noexcept = default;
   constexpr __non_trivial &operator=(__non_trivial &&) noexcept = default;
-  
-  constexpr ~__non_trivial() requires(is_trivially_destructible_v<__T>) = default;
-  constexpr ~__non_trivial() {
-      destroy(__data(), __data() + __size());
-  }
+
+  constexpr ~__non_trivial()
+    requires(is_trivially_destructible_v<__T>)
+  = default;
+  constexpr ~__non_trivial() { destroy(__data(), __data() + __size()); }
 };
 
 // Selects the vector storage.
@@ -938,7 +938,9 @@ public:
     __unsafe_set_size(size() - 1);
   }
 
-  constexpr inplace_vector(const inplace_vector &__x) requires(__N == 0) = default;
+  constexpr inplace_vector(const inplace_vector &__x)
+    requires(__N == 0)
+  = default;
   constexpr inplace_vector(const inplace_vector &__x)
     requires(__N != 0 && copyable<__T>)
   {
@@ -946,7 +948,9 @@ public:
       emplace_back(__e);
   }
 
-  constexpr inplace_vector(inplace_vector &&__x) requires(__N == 0) = default;
+  constexpr inplace_vector(inplace_vector &&__x)
+    requires(__N == 0)
+  = default;
   constexpr inplace_vector(inplace_vector &&__x)
     requires(__N != 0 && movable<__T>)
   {
@@ -954,7 +958,9 @@ public:
       emplace_back(::std::move(__e));
   }
 
-  constexpr inplace_vector &operator=(const inplace_vector &__x) requires(__N == 0) = default;
+  constexpr inplace_vector &operator=(const inplace_vector &__x)
+    requires(__N == 0)
+  = default;
   constexpr inplace_vector &operator=(const inplace_vector &__x)
     requires(__N != 0 && copyable<__T>)
   {
@@ -964,7 +970,9 @@ public:
     return *this;
   }
 
-  constexpr inplace_vector &operator=(inplace_vector &&__x) requires(__N == 0) = default;
+  constexpr inplace_vector &operator=(inplace_vector &&__x)
+    requires(__N == 0)
+  = default;
   constexpr inplace_vector &operator=(inplace_vector &&__x)
     requires(__N != 0 && movable<__T>)
   {
