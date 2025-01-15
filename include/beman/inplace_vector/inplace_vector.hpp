@@ -694,11 +694,12 @@ public:
   }
 
   template <class... __Args>
-  constexpr void emplace_back(__Args &&...__args)
+  constexpr __T &emplace_back(__Args &&...__args)
     requires(constructible_from<__T, __Args...>)
   {
     if (!try_emplace_back(::std::forward<__Args>(__args)...)) [[unlikely]]
       throw bad_alloc();
+    return back();
   }
   constexpr __T &push_back(const __T &__x)
     requires(constructible_from<__T, const __T &>)
