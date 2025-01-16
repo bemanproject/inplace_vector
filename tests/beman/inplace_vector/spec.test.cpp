@@ -996,7 +996,6 @@ TYPED_TEST(Triviality, ZeroSized) {
   // If N is zero, then IV is trivially copyable and empty, and
   // std::is_trivially_default_constructible_v<IV> is true.
 
-  using T = TestFixture::T;
   constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
@@ -1012,7 +1011,6 @@ TYPED_TEST(Triviality, TrivialCopyConstructible) {
   // trivial copy constructor
 
   using T = TestFixture::T;
-  constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
   if constexpr (std::is_trivially_copy_constructible_v<T>) {
@@ -1025,7 +1023,6 @@ TYPED_TEST(Triviality, TrivialMoveConstructible) {
   // trivial move constructor.
 
   using T = TestFixture::T;
-  constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
   if constexpr (std::is_trivially_move_constructible_v<T>) {
@@ -1038,7 +1035,6 @@ TYPED_TEST(Triviality, TrivialDestructor) {
   // (6.3.1) — IV has a trivial destructor.
 
   using T = TestFixture::T;
-  constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
   if constexpr (std::is_trivially_destructible_v<T>) {
@@ -1053,7 +1049,6 @@ TYPED_TEST(Triviality, TrivialCopyAssignment) {
   // assignment operator.
 
   using T = TestFixture::T;
-  constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
   if constexpr (std::is_trivially_destructible_v<T> &&
@@ -1070,7 +1065,6 @@ TYPED_TEST(Triviality, TrivialMoveAssignment) {
   // assignment operator.
 
   using T = TestFixture::T;
-  constexpr auto N = TestFixture::N;
   using IV = TestFixture::IV;
 
   if constexpr (std::is_trivially_destructible_v<T> &&
@@ -1191,7 +1185,7 @@ TYPED_TEST(Modifiers, PushBackConstRef) {
   const auto reference = this->unique();
 
   IV device;
-  for (int i = 0; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto val = reference[i];
     auto res = device.push_back(val);
     EXPECT_EQ(res, device.back());
@@ -1218,7 +1212,7 @@ TYPED_TEST(Modifiers, PushBackRV) {
   const auto reference = this->unique();
 
   IV device;
-  for (int i = 0; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     T val{reference[i]};
     auto res = device.push_back(std::move(val));
     EXPECT_EQ(res, device.back());
@@ -1246,7 +1240,7 @@ TYPED_TEST(Modifiers, EmplaceBackRV) {
   const auto reference = this->unique();
 
   IV device;
-  for (int i = 0; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.emplace_back(reference[i].value);
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -1282,7 +1276,7 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
   const auto reference = this->unique();
   IV device;
   if (!reference.empty()) {
-    for (int i = 0; i < reference.size(); ++i) {
+    for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_emplace_back(reference[i].value);
       EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -1327,7 +1321,7 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
   IV device;
 
   if (!reference.empty()) {
-    for (int i = 0; i < reference.size(); ++i) {
+    for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_push_back(reference[i]);
       EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -1375,7 +1369,7 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
   IV device;
 
   if (!reference.empty()) {
-    for (int i = 0; i < reference.size(); ++i) {
+    for (auto i = 0ul; i < reference.size(); ++i) {
       T val{reference[i].value};
 
       auto res = device.try_push_back(std::move(val));
@@ -1432,7 +1426,7 @@ TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
   const auto reference = this->unique();
 
   IV device;
-  for (int i = 0; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.unchecked_emplace_back(reference[i].value);
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -1451,7 +1445,7 @@ TYPED_TEST(Modifiers, UncheckedPushBackConstRef) {
   const auto reference = this->unique();
 
   IV device;
-  for (int i = 0; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.unchecked_push_back(reference[i]);
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -1471,7 +1465,7 @@ TYPED_TEST(Modifiers, UncheckedPushBackRV) {
   const auto reference = this->unique();
 
   IV device;
-  for (int i = 0; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     T val{reference[i].value};
 
     auto res = device.unchecked_push_back(std::move(val));
@@ -1577,8 +1571,7 @@ TYPED_TEST(Modifiers, EraseSingle) {
 
   EXPECT_EQ(itr, device.begin());
 
-  auto last_itr = device.end();
-  last_itr = --last_itr;
+  auto last_itr = device.end() - 1;
 
   itr = device.erase(last_itr);
   EXPECT_EQ(itr, device.end());
@@ -1589,7 +1582,7 @@ TYPED_TEST(Modifiers, EraseSingle) {
   EXPECT_EQ(itr, device.begin() + mid_idx);
 
   auto size = device.size();
-  for (auto i = 0; i < size; ++i)
+  for (auto i = 0ul; i < size; ++i)
     device.erase(device.begin());
 
   EXPECT_TRUE(device.empty())
@@ -1621,8 +1614,7 @@ TYPED_TEST(Modifiers, EraseSingleConst) {
 
   EXPECT_EQ(itr, device.cbegin());
 
-  auto last_itr = device.cend();
-  last_itr = --last_itr;
+  auto last_itr = device.cend() - 1;
 
   itr = device.erase(last_itr);
   EXPECT_EQ(itr, device.cend());
@@ -1633,7 +1625,7 @@ TYPED_TEST(Modifiers, EraseSingleConst) {
   EXPECT_EQ(itr, device.cbegin() + mid_idx);
 
   auto size = device.size();
-  for (auto i = 0; i < size; ++i)
+  for (auto i = 0ul; i < size; ++i)
     device.erase(device.cbegin());
 
   EXPECT_TRUE(device.empty())
@@ -1763,7 +1755,7 @@ TYPED_TEST(Erasure, ByValue) {
   T duplicates{4612};
   auto uniques = this->unique(device.capacity() / 2);
 
-  for (auto i = 0; i < uniques.size(); ++i) {
+  for (auto i = 0ul; i < uniques.size(); ++i) {
     device.push_back(uniques[i]);
     if (device.size() != device.capacity())
       device.push_back(duplicates);
@@ -1793,7 +1785,7 @@ TYPED_TEST(Erasure, ByPred) {
   if constexpr (device.capacity() == 0)
     return;
 
-  for (auto i = 0; i < device.capacity(); ++i)
+  for (auto i = 0; i < static_cast<int>(device.capacity()); ++i)
     device.push_back(T{i});
 
   // TODO: complete this when its implemented
@@ -1801,7 +1793,7 @@ TYPED_TEST(Erasure, ByPred) {
   //                 [&](auto &v) { return v.value > (device.capacity() / 2);
   //                 });
 
-  GTEST_SKIP();
+  GTEST_SKIP() << "Not implemented";
 }
 
 #if 0
@@ -2004,7 +1996,7 @@ TYPED_TEST(InplaceVectorSMFs, ConsRange) {
   IV0 v0(std::from_range, r0);
   EXPECT_EQ(v0.size(), 0u);
 
-  if constexpr (/*false && /* TODO */ std::is_trivial_v<TypeParam>) {
+  if constexpr (/*false && TODO */ std::is_trivial_v<TypeParam>) {
     constexpr Range cr{42, 99, 3, 4, 7, 1024};
     constexpr IV cv(std::from_range, r);
     static_assert(v.size() == r.size());
