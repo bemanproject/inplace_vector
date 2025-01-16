@@ -969,9 +969,11 @@ public:
   = default;
 
   constexpr inplace_vector &operator=(const inplace_vector &__x)
-    requires(__N != 0 && !(std::is_trivially_destructible_v<__T> &&
-                          std::is_trivially_copy_constructible_v<__T> &&
-                          std::is_trivially_copy_assignable_v<__T>) && copyable<__T>)
+    requires(__N != 0 &&
+             !(std::is_trivially_destructible_v<__T> &&
+               std::is_trivially_copy_constructible_v<__T> &&
+               std::is_trivially_copy_assignable_v<__T>) &&
+             copyable<__T>)
   {
     clear();
     for (auto &&__e : __x)
@@ -986,9 +988,11 @@ public:
   = default;
 
   constexpr inplace_vector &operator=(inplace_vector &&__x)
-    requires(__N != 0 && !(std::is_trivially_destructible_v<__T> &&
-                          std::is_trivially_move_constructible_v<__T> &&
-                          std::is_trivially_move_assignable_v<__T>) && movable<__T>)
+    requires(__N != 0 &&
+             !(std::is_trivially_destructible_v<__T> &&
+               std::is_trivially_move_constructible_v<__T> &&
+               std::is_trivially_move_assignable_v<__T>) &&
+             movable<__T>)
   {
     clear();
     for (auto &&__e : __x)
