@@ -323,6 +323,18 @@ static constexpr void __assert_failure(char const *__file, int __line,
 using namespace std;
 using namespace beman::__iv_detail;
 
+template <typename __T>
+concept __trivial_copy_assignment =
+    (std::is_trivially_destructible_v<__T> &&
+     std::is_trivially_copy_constructible_v<__T> &&
+     std::is_trivially_copy_assignable_v<__T>);
+
+template <typename __T>
+concept __trivial_move_assignment =
+    (std::is_trivially_destructible_v<__T> &&
+     std::is_trivially_move_constructible_v<__T> &&
+     std::is_trivially_move_assignable_v<__T>);
+
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
 template <size_t __N>
@@ -939,30 +951,36 @@ public:
   }
 
   constexpr inplace_vector(const inplace_vector &__x)
-    requires(__N == 0)
+    requires(__N == 0 || is_trivially_copy_constructible_v<__T>)
   = default;
+
   constexpr inplace_vector(const inplace_vector &__x)
-    requires(__N != 0 && copyable<__T>)
+    requires(__N != 0 && !is_trivially_copy_constructible_v<__T> &&
+             copyable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(__e);
   }
 
   constexpr inplace_vector(inplace_vector &&__x)
-    requires(__N == 0)
+    requires(__N == 0 || is_trivially_move_constructible_v<__T>)
   = default;
+
   constexpr inplace_vector(inplace_vector &&__x)
-    requires(__N != 0 && movable<__T>)
+    requires(__N != 0 && !is_trivially_move_constructible_v<__T> &&
+             movable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(::std::move(__e));
   }
 
   constexpr inplace_vector &operator=(const inplace_vector &__x)
-    requires(__N == 0)
+    requires(__N == 0 || __iv_detail::__trivial_copy_assignment<__T>)
   = default;
+
   constexpr inplace_vector &operator=(const inplace_vector &__x)
-    requires(__N != 0 && copyable<__T>)
+    requires(__N != 0 && !__iv_detail::__trivial_copy_assignment<__T> &&
+             copyable<__T>)
   {
     clear();
     for (auto &&__e : __x)
@@ -971,10 +989,12 @@ public:
   }
 
   constexpr inplace_vector &operator=(inplace_vector &&__x)
-    requires(__N == 0)
+    requires(__N == 0 || __iv_detail::__trivial_move_assignment<__T>)
   = default;
+
   constexpr inplace_vector &operator=(inplace_vector &&__x)
-    requires(__N != 0 && movable<__T>)
+    requires(__N != 0 && !__iv_detail::__trivial_move_assignment<__T> &&
+             movable<__T>)
   {
     clear();
     for (auto &&__e : __x)
