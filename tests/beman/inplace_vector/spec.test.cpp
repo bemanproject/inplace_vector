@@ -1284,8 +1284,7 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
   if (!reference.empty()) {
     for (int i = 0; i < reference.size(); ++i) {
       auto res = device.try_emplace_back(reference[i].value);
-      EXPECT_EQ(res,
-                std::addressof(device.back()));
+      EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
@@ -1330,8 +1329,7 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
   if (!reference.empty()) {
     for (int i = 0; i < reference.size(); ++i) {
       auto res = device.try_push_back(reference[i]);
-      EXPECT_EQ(res,
-                std::addressof(device.back()));
+      EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
@@ -1381,8 +1379,7 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
       T val{reference[i].value};
 
       auto res = device.try_push_back(std::move(val));
-      EXPECT_EQ(res,
-                std::addressof(device.back()));
+      EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
@@ -1476,7 +1473,7 @@ TYPED_TEST(Modifiers, UncheckedPushBackRV) {
   IV device;
   for (int i = 0; i < reference.size(); ++i) {
     T val{reference[i].value};
-    
+
     auto res = device.unchecked_push_back(std::move(val));
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
