@@ -1175,7 +1175,7 @@ TYPED_TEST(Modifiers, Insert) {
   GTEST_SKIP();
 }
 
-TYPED_TEST(Modifiers, PushBack) {
+TYPED_TEST(Modifiers, PushBackConstRef) {
   // constexpr reference push_back(const T& x);
   // constexpr reference push_back(T&& x);
   //
@@ -1186,19 +1186,52 @@ TYPED_TEST(Modifiers, PushBack) {
   // Remarks: If an exception is thrown, there are no effects on *this.
 
   using IV = TestFixture::IV;
+  using T = TestFixture::T;
 
   const auto reference = this->unique();
 
   IV device;
   for (int i = 0; i < reference.size(); ++i) {
-    EXPECT_EQ(device.push_back(reference[i]), device.back());
+    auto val = reference[i];
+    auto res = device.push_back(val);
+    EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
   }
+
+  T val{0};
+  EXPECT_THROW(device.push_back(val), beman::bad_alloc);
+}
+
+TYPED_TEST(Modifiers, PushBackRV) {
+  // constexpr reference push_back(const T& x);
+  // constexpr reference push_back(T&& x);
+  //
+  // Returns: back().
+  // Throws: bad_alloc or any exception thrown by the initialization of the
+  // inserted element.
+  // Complexity: Constant.
+  // Remarks: If an exception is thrown, there are no effects on *this.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  const auto reference = this->unique();
+
+  IV device;
+  for (int i = 0; i < reference.size(); ++i) {
+    T val{reference[i]};
+    auto res = device.push_back(std::move(val));
+    EXPECT_EQ(res, device.back());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+  }
+
+  T val{0};
+  EXPECT_THROW(device.push_back(val), beman::bad_alloc);
 }
 
 // TODO: Check if there's extra copies
 
-TYPED_TEST(Modifiers, EmplaceBack) {
+TYPED_TEST(Modifiers, EmplaceBackRV) {
   // template<class... Args>
   //   constexpr reference emplace_back(Args&&... args);
   //
@@ -1214,9 +1247,12 @@ TYPED_TEST(Modifiers, EmplaceBack) {
 
   IV device;
   for (int i = 0; i < reference.size(); ++i) {
-    EXPECT_EQ(device.emplace_back(reference[i].value), device.back());
+    auto res = device.emplace_back(reference[i].value);
+    EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
   }
+
+  EXPECT_THROW(device.emplace_back(0), beman::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, TryEmplaceBack) {
@@ -1247,15 +1283,18 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
   IV device;
   if (!reference.empty()) {
     for (int i = 0; i < reference.size(); ++i) {
-      EXPECT_EQ(device.try_emplace_back(reference[i].value),
+      auto res = device.try_emplace_back(reference[i].value);
+      EXPECT_EQ(res,
                 std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
-    EXPECT_EQ(device.try_emplace_back(reference[0].value), nullptr);
+    auto res = device.try_emplace_back(reference[0].value);
+    EXPECT_EQ(res, nullptr);
     EXPECT_EQ(device, reference);
   } else {
-    EXPECT_EQ(device.try_emplace_back(0), nullptr);
+    auto res = device.try_emplace_back(0);
+    EXPECT_EQ(res, nullptr);
     EXPECT_EQ(device, IV());
   }
 }
@@ -1290,16 +1329,20 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
 
   if (!reference.empty()) {
     for (int i = 0; i < reference.size(); ++i) {
-      EXPECT_EQ(device.try_push_back(reference[i]),
+      auto res = device.try_push_back(reference[i]);
+      EXPECT_EQ(res,
                 std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
-    EXPECT_EQ(device.try_push_back(reference[0]), nullptr);
+    auto res = device.try_push_back(reference[0]);
+    EXPECT_EQ(res, nullptr);
     EXPECT_EQ(device, reference);
   } else {
     T val{0};
-    EXPECT_EQ(device.try_push_back(val), nullptr);
+
+    auto res = device.try_push_back(val);
+    EXPECT_EQ(res, nullptr);
     EXPECT_EQ(device, IV());
   }
 }
@@ -1336,16 +1379,21 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
   if (!reference.empty()) {
     for (int i = 0; i < reference.size(); ++i) {
       T val{reference[i].value};
-      EXPECT_EQ(device.try_push_back(std::move(val)),
+
+      auto res = device.try_push_back(std::move(val));
+      EXPECT_EQ(res,
                 std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
-    EXPECT_EQ(device.try_push_back(reference[0]), nullptr);
+    auto res = device.try_push_back(reference[0]);
+    EXPECT_EQ(res, nullptr);
     EXPECT_EQ(device, reference);
   } else {
     T val{0};
-    EXPECT_EQ(device.try_push_back(std::move(val)), nullptr);
+
+    auto res = device.try_push_back(std::move(val));
+    EXPECT_EQ(res, nullptr);
     EXPECT_EQ(device, IV());
   }
 }
@@ -1388,7 +1436,8 @@ TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
 
   IV device;
   for (int i = 0; i < reference.size(); ++i) {
-    EXPECT_EQ(device.unchecked_emplace_back(reference[i].value), device.back());
+    auto res = device.unchecked_emplace_back(reference[i].value);
+    EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
   }
 }
@@ -1406,7 +1455,8 @@ TYPED_TEST(Modifiers, UncheckedPushBackConstRef) {
 
   IV device;
   for (int i = 0; i < reference.size(); ++i) {
-    EXPECT_EQ(device.unchecked_push_back(reference[i]), device.back());
+    auto res = device.unchecked_push_back(reference[i]);
+    EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
   }
 }
@@ -1426,7 +1476,9 @@ TYPED_TEST(Modifiers, UncheckedPushBackRV) {
   IV device;
   for (int i = 0; i < reference.size(); ++i) {
     T val{reference[i].value};
-    EXPECT_EQ(device.unchecked_push_back(std::move(val)), device.back());
+    
+    auto res = device.unchecked_push_back(std::move(val));
+    EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
   }
 }
