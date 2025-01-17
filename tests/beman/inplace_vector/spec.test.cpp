@@ -1201,7 +1201,7 @@ TYPED_TEST(SizeNCapacity, ResizeUp) {
   }
 
   IV before_resize(device);
-  EXPECT_THROW(device.resize(device.capacity() + 1), bemman::bad_alloc);
+  EXPECT_THROW(device.resize(device.capacity() + 1), beman::bad_alloc);
   EXPECT_EQ(device, before_resize);
 }
 
