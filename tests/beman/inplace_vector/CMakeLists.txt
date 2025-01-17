@@ -21,14 +21,22 @@ add_test(
     COMMAND beman.inplace_vector.ref-test
 )
 
-# GoogleTest based tests
+#GoogleTest based tests
 include(GoogleTest)
 
-add_executable(beman.inplace_vector.tests.spec)
-target_sources(beman.inplace_vector.tests.spec PRIVATE spec.test.cpp)
-target_link_libraries(
-    beman.inplace_vector.tests.spec
-    PRIVATE beman.inplace_vector GTest::gtest GTest::gtest_main
-)
+function(add_gtest NAME)
+    add_executable(beman.inplace_vector.tests.${NAME})
+    target_sources(beman.inplace_vector.tests.${NAME} PRIVATE ${NAME}.test.cpp)
+    target_link_libraries(
+        beman.inplace_vector.tests.${NAME}
+        PRIVATE beman.inplace_vector GTest::gtest GTest::gtest_main
+    )
+    gtest_add_tests(beman.inplace_vector.tests.${NAME} "" AUTO)
+endfunction()
 
-gtest_add_tests(beman.inplace_vector.tests.spec "" AUTO)
+#Tests for official specs
+add_gtest(container_requirements)
+add_gtest(triviality)
+add_gtest(constructors)
+add_gtest(size_n_data)
+add_gtest(erasure)
