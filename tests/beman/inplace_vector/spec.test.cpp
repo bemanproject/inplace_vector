@@ -1199,6 +1199,10 @@ TYPED_TEST(SizeNCapacity, ResizeUp) {
     expected[0] = front;
     EXPECT_EQ(device, expected);
   }
+
+  IV before_resize(device);
+  EXPECT_THROW(device.resize(device.capacity() + 1), bemman::bad_alloc);
+  EXPECT_EQ(device, before_resize);
 }
 
 // 23.3.14.4 Data [inplace.vector.data]
