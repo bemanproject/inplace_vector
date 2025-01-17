@@ -1139,7 +1139,127 @@ TYPED_TEST(Data, Test) {
 template <typename Param> class Modifiers : public BasicTest<Param> {};
 TYPED_TEST_SUITE(Modifiers, AllTypes);
 
-TYPED_TEST(Modifiers, Insert) {
+TYPED_TEST(Modifiers, InsertSingleConstRef) {
+  // constexpr iterator insert(const_iterator position, const T& x);
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV device;
+  IV reference;
+
+  if (device.capacity() > 0) {
+    reference = this->unique();
+
+    auto res = device.insert(device.begin(), reference[0]);
+    EXPECT_EQ(res, device.begin());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + 1));
+
+    if (device.capacity() > 1) {
+      res = device.insert(device.end(), reference.back());
+      EXPECT_EQ(res, device.end() - 1);
+      EXPECT_EQ(device, IV({reference[0], reference.back()}));
+
+      for (auto i = 1ul; i < (reference.size() - 1); ++i) {
+        res = device.insert(device.end() - 1, reference[i]);
+        EXPECT_EQ(res, device.begin() + i);
+
+        IV correct(reference.begin(), reference.begin() + i + 1);
+        correct.push_back(reference.back());
+
+        EXPECT_EQ(device, correct);
+      }
+    }
+  }
+
+  T val{272};
+  EXPECT_THROW(device.insert(device.begin(), val), beman::bad_alloc);
+  EXPECT_EQ(device, reference);
+
+  EXPECT_THROW(device.insert(device.begin(), val), beman::bad_alloc);
+  EXPECT_EQ(device, reference);
+}
+
+TYPED_TEST(Modifiers, InsertSingleRV) {
+  // constexpr iterator insert(const_iterator position, T&& x);
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV device;
+  IV reference;
+
+  if (device.capacity() > 0) {
+    reference = this->unique();
+
+    auto res = device.insert(device.begin(), T{reference[0]});
+    EXPECT_EQ(res, device.begin());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + 1));
+
+    if (device.capacity() > 1) {
+      res = device.insert(device.end(), T{reference.back()});
+      EXPECT_EQ(res, device.end() - 1);
+      EXPECT_EQ(device, IV({reference[0], reference.back()}));
+
+      for (auto i = 1ul; i < (reference.size() - 1); ++i) {
+        res = device.insert(device.end() - 1, T{reference[i]});
+        EXPECT_EQ(res, device.begin() + i);
+
+        IV correct(reference.begin(), reference.begin() + i + 1);
+        correct.push_back(reference.back());
+
+        EXPECT_EQ(device, correct);
+      }
+    }
+  }
+
+  EXPECT_THROW(device.insert(device.begin(), T{272}), beman::bad_alloc);
+  EXPECT_EQ(device, reference);
+
+  EXPECT_THROW(device.insert(device.begin(), T{272}), beman::bad_alloc);
+  EXPECT_EQ(device, reference);
+}
+
+TYPED_TEST(Modifiers, InsertEmplace) {
+  //   constexpr iterator emplace(const_iterator position, Args&&... args);
+
+  using IV = TestFixture::IV;
+
+  IV device;
+  IV reference;
+
+  if (device.capacity() > 0) {
+    reference = this->unique();
+
+    auto res = device.emplace(device.begin(), reference[0].value);
+    EXPECT_EQ(res, device.begin());
+    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + 1));
+
+    if (device.capacity() > 1) {
+      res = device.emplace(device.end(), reference.back().value);
+      EXPECT_EQ(res, device.end() - 1);
+      EXPECT_EQ(device, IV({reference[0], reference.back()}));
+
+      for (auto i = 1ul; i < (reference.size() - 1); ++i) {
+        res = device.emplace(device.end() - 1, reference[i].value);
+        EXPECT_EQ(res, device.begin() + i);
+
+        IV correct(reference.begin(), reference.begin() + i + 1);
+        correct.push_back(reference.back());
+
+        EXPECT_EQ(device, correct);
+      }
+    }
+  }
+
+  EXPECT_THROW(device.emplace(device.begin(), 272), beman::bad_alloc);
+  EXPECT_EQ(device, reference);
+
+  EXPECT_THROW(device.emplace(device.begin(), 272), beman::bad_alloc);
+  EXPECT_EQ(device, reference);
+}
+
+TYPED_TEST(Modifiers, InsertMulti) {
   // constexpr iterator insert(const_iterator position, const T& x);
   // constexpr iterator insert(const_iterator position, T&& x);
   // constexpr iterator insert(const_iterator position, size_type n, const T&
@@ -1165,8 +1285,28 @@ TYPED_TEST(Modifiers, Insert) {
   // exception is thrown, then size()  ≥ n and elements in the range begin() +
   // [0, n) are not modified.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+
+  IV device;
+
+  if (device.capacity() > 0) {
+    auto duplicate = this->unique(1)[0];
+    IV reference(device.capacity(), duplicate);
+
+    if (device.capacity() > 1) {
+      auto front = this->unique(1)[0];
+      reference[0] = front;
+      device.push_back(front);
+    }
+
+    auto num_fill = device.capacity() - device.size();
+    device.insert(device.end(), num_fill, duplicate);
+
+    EXPECT_EQ(device, IV(reference.begin(), reference.end()));
+  }
+
+  EXPECT_NO_THROW(device.insert(device.begin(), 0, {2538}));
+  EXPECT_THROW(device.insert(device.begin(), 1, {2538}), beman::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, PushBackConstRef) {
