@@ -74,7 +74,7 @@ TODO: tested platforms.
 
 ```text
 # Configure build
-$ cmake -S . -B build -DCMAKE_CXX_STANDARD=20
+$ cmake -S . -B build -DCMAKE_CXX_STANDARD=23
 -- The CXX compiler identification is GNU 11.4.0
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
