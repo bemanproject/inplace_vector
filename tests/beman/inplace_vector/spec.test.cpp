@@ -958,7 +958,8 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 }
 
 // [sequence.reqmts]
-template <typename Param> class Constructors : public BasicTest<Param> {};
+template <typename Param>
+class SequenceContainerRequirments : public BasicTest<Param> {};
 TYPED_TEST_SUITE(SequenceContainerRequirments, AllTypes);
 
 // X u(n, t);
