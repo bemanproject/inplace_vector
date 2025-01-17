@@ -959,18 +959,16 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 // 3 For any N, inplace_vector<T, N>::iterator and inplace_vector<T,
 // N>::const_iterator meet the constexpr iterator requirements.
 //
-// TODO: Test this.
-
 // 4 For any N > 0 , if T is not trivially copyable or
 // is_trivially_default_constructible_v<T> is false, then no inplace_vector<T,
 // N> member functions are usable in constant expressions.
 //
-// This would be tested in subsequent method tests.
+// TODO: This would be tested in another test suite.
 
 // 5 Any member function of inplace_vector<T, N> that would cause the size to
 // exceed N throws an exception of type bad_alloc.
 //
-// TODO: Test this.
+// This is tested in individual function tests.
 
 // 6 Let IV denote a specialization of inplace_vector<T, N>.
 // If N is zero, then IV is trivially copyable and empty, and
@@ -1134,8 +1132,12 @@ TYPED_TEST(Data, Test) {
   // For a non-empty inplace_vector, data() == addressof(front()) is true.
   // Complexity: Constant time.
 
-  // TODO
-  GTEST_SKIP();
+  auto device = this->unique();
+  device.data();
+  if (device.capacity() == 0)
+    return;
+
+  EXPECT_EQ(device.data(), std::addressof(device.front()));
 }
 
 // 23.3.14.5 Modifiers [inplace.vector.modifiers]
