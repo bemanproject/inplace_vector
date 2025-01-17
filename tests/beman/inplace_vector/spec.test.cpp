@@ -8,6 +8,9 @@
 #include <ranges>
 #include <type_traits>
 
+// TODO: Not tested in this test suite:
+// constexpr, emplace (ensure only one copy made), exception safety on mutation
+
 namespace {
 
 // We run the tests on various element types with the help of GoogleTest's
@@ -267,7 +270,7 @@ struct NonTrivial {
   static std::size_t num_objects;
   int value;
 
-  constexpr NonTrivial() noexcept : NonTrivial(int{}) {}
+  constexpr NonTrivial() noexcept : NonTrivial(0) {}
   constexpr NonTrivial(int v) noexcept : value(v) {
     if (not std::is_constant_evaluated()) {
       ++num_objects;
@@ -1117,7 +1120,86 @@ TYPED_TEST(Constructors, CopyRanges) {
 }
 
 // 23.3.14.3 Size and capacity [inplace.vector.capacity]
-// TODO
+
+template <typename Param> class SizeNCapacity : public BasicTest<Param> {};
+TYPED_TEST_SUITE(SizeNCapacity, AllTypes);
+
+TYPED_TEST(SizeNCapacity, Capacity) {
+  // static constexpr size_type capacity() noexcept;
+  // static constexpr size_type max_size() noexcept;
+  // Returns: N.
+
+  using IV = TestFixture::IV;
+  constexpr auto N = TestFixture::N;
+
+  EXPECT_EQ(IV::capacity(), N);
+  IV device;
+  EXPECT_EQ(device.max_size(), N);
+}
+
+TYPED_TEST(SizeNCapacity, ResizeDown) {
+  // constexpr void resize(size_type sz);
+  // Preconditions: T is Cpp17DefaultInsertable into inplace_vector.
+  // Effects: If sz < size(), erases the last size() - sz elements from the
+  // sequence. Otherwise, appends sz - size() default-inserted elements to the
+  // sequence. Remarks: If an exception is thrown, there are no effects on
+  // *this.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+
+  auto mid_size = std::midpoint(0ul, device.size());
+  device.resize(mid_size);
+  EXPECT_EQ(device, IV(device.begin(), device.begin() + mid_size));
+
+  device.resize(0);
+  EXPECT_EQ(device, IV{});
+}
+
+TYPED_TEST(SizeNCapacity, ResizeUp) {
+  // constexpr void resize(size_type sz);
+  // Preconditions: T is Cpp17DefaultInsertable into inplace_vector.
+  // Effects: If sz < size(), erases the last size() - sz elements from the
+  // sequence. Otherwise, appends sz - size() default-inserted elements to the
+  // sequence. Remarks: If an exception is thrown, there are no effects on
+  // *this.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV device;
+
+  EXPECT_THROW(device.resize(device.capacity() + 1), beman::bad_alloc);
+  EXPECT_EQ(device, IV{});
+
+  if (device.capacity() == 0)
+    return;
+
+  // Trying to pollute device[0]
+  device.push_back(T{255});
+  device.pop_back();
+  EXPECT_TRUE(device.empty());
+
+  device.resize(1);
+  EXPECT_EQ(device.size(), 1);
+  if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
+      std::is_same_v<T, NonTrivial>)
+    EXPECT_EQ(device, IV{T{0}});
+
+  T front{341};
+  device[0] = front;
+  device.resize(device.capacity());
+  EXPECT_EQ(device[0], front);
+
+  if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
+      std::is_same_v<T, NonTrivial>) {
+    IV expected(device.capacity(), T{0});
+    expected[0] = front;
+    EXPECT_EQ(device, expected);
+  }
+}
 
 // 23.3.14.4 Data [inplace.vector.data]
 
@@ -1857,17 +1939,11 @@ TYPED_TEST(Modifiers, ShrinkToFitEmpty) {
 
 TYPED_TEST(Modifiers, EraseSingle) {
   // constexpr iterator erase(const_iterator position);
-  // constexpr iterator erase(const_iterator first, const_iterator last);
-  // constexpr void pop_back();
   //
   // Effects: Invalidates iterators and references at or after the point of the
   // erase.
   // Throws: Nothing unless an exception is thrown by the assignment
   // operator or move assignment operator of T.
-  // Complexity: The destructor of T is called the number of times equal to the
-  // number of the elements erased, but the assignment operator of T is called
-  // the number of times equal to the number of elements after the erased
-  // elements.
 
   auto device = this->unique();
 
@@ -1900,17 +1976,11 @@ TYPED_TEST(Modifiers, EraseSingle) {
 
 TYPED_TEST(Modifiers, EraseSingleConst) {
   // constexpr iterator erase(const_iterator position);
-  // constexpr iterator erase(const_iterator first, const_iterator last);
-  // constexpr void pop_back();
   //
   // Effects: Invalidates iterators and references at or after the point of the
   // erase.
   // Throws: Nothing unless an exception is thrown by the assignment
   // operator or move assignment operator of T.
-  // Complexity: The destructor of T is called the number of times equal to the
-  // number of the elements erased, but the assignment operator of T is called
-  // the number of times equal to the number of elements after the erased
-  // elements.
 
   auto device = this->unique();
 
