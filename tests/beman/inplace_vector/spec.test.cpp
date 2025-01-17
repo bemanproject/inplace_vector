@@ -1296,8 +1296,39 @@ TYPED_TEST(Constructors, SizedDefault) {
   // Preconditions: T is Cpp17DefaultInsertable into inplace_vector.
   // Effects: Constructs an inplace_vector with n default-inserted elements.
   // Complexity : Linear in n.
-  // TODO
-  GTEST_SKIP();
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV zero(0);
+  EXPECT_EQ(zero, IV{});
+
+  EXPECT_THROW(IV(IV::capacity() + 1), beman::bad_alloc);
+
+  constexpr auto mid_size = std::midpoint(0ul, IV::capacity());
+  IV mid(mid_size);
+  EXPECT_EQ(mid.size(), mid_size);
+  if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
+      std::is_same_v<T, NonTrivial>) {
+
+    IV mid_correct;
+    for (auto i = 0ul; i < mid_size; ++i)
+      mid_correct.emplace_back();
+
+    EXPECT_EQ(mid, mid_correct);
+  }
+
+  IV full(IV::capacity());
+  EXPECT_EQ(full.size(), IV::capacity());
+  if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
+      std::is_same_v<T, NonTrivial>) {
+
+    IV full_correct;
+    for (auto i = 0ul; i < full.size(); ++i)
+      full_correct.emplace_back();
+
+    EXPECT_EQ(full, full_correct);
+  }
 }
 
 TYPED_TEST(Constructors, SizedValue) {
