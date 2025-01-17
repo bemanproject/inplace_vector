@@ -957,7 +957,214 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
   }
 }
 
-// TODO: Test sequence container reqs.
+// [sequence.reqmts]
+template <typename Param> class Constructors : public BasicTest<Param> {};
+TYPED_TEST_SUITE(SequenceContainerRequirments, AllTypes);
+
+// X u(n, t);
+// Preconditions: T is Cpp17CopyInsertable into X.
+// Effects: Constructs a sequence container with n copies of t.
+// Postconditions: distance(u.begin(), u.end()) == n is true.
+
+// X u(i, j);
+// Preconditions: T is Cpp17EmplaceConstructible into X from *i. For vector, if
+// the iterator does not meet the Cpp17ForwardIterator requirements
+// ([forward.iterators]), T is also Cpp17MoveInsertable into X. Effects:
+// Constructs a sequence container equal to the range [i, j). Each iterator in
+// the range [i, j) is dereferenced exactly once. Postconditions:
+// distance(u.begin(), u.end()) == distance(i, j) is true.
+
+// X(from_range, rg)
+// Preconditions: T is Cpp17EmplaceConstructible into X from
+// *ranges​::​begin(rg). For vector, if R models neither
+// ranges​::​sized_range nor ranges​::​forward_range, T is also
+// Cpp17MoveInsertable into X. Effects: Constructs a sequence container equal to
+// the range rg. Each iterator in the range rg is dereferenced exactly once.
+// Postconditions: distance(begin(), end()) == ranges​::​distance(rg) is
+// true.
+
+// X(il)
+// Effects: Equivalent to X(il.begin(), il.end()).
+
+// a = il
+// Result: X&.
+// Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable.
+// Effects: Assigns the range [il.begin(), il.end()) into a. All existing
+// elements of a are either assigned to or destroyed. Returns: *this.
+
+// a.emplace(p, args)
+// Result: iterator.
+// Preconditions: T is Cpp17EmplaceConstructible into X from args. For vector,
+// inplace_vector, and deque, T is also Cpp17MoveInsertable into X and
+// Cpp17MoveAssignable. Effects: Inserts an object of type T constructed with
+// std​::​forward<Args>(args)... before p. [Note 1: args can directly or
+// indirectly refer to a value in a. — end note] Returns: An iterator that
+// points to the new element.
+
+// a.insert(p, t)
+// Result: iterator.
+// Preconditions: T is Cpp17CopyInsertable into X. For vector, inplace_vector,
+// and deque, T is also Cpp17CopyAssignable. Effects: Inserts a copy of t before
+// p. Returns: An iterator that points to the copy of t inserted into a.
+
+// a.insert(p, rv)
+// Result: iterator.
+// Preconditions: T is Cpp17MoveInsertable into X. For vector, inplace_vector,
+// and deque, T is also Cpp17MoveAssignable. Effects: Inserts a copy of rv
+// before p. Returns: An iterator that points to the copy of rv inserted into a.
+
+// a.insert(p, n, t)
+// Result: iterator.
+// Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable.
+// Effects: Inserts n copies of t before p.
+// Returns: An iterator that points to the copy of the first element inserted
+// into a, or p if n == 0.
+
+// a.insert(p, i, j)
+// Result: iterator.
+// Preconditions: T is Cpp17EmplaceConstructible into X from *i. For vector,
+// inplace_vector, and deque, T is also Cpp17MoveInsertable into X, and T meets
+// the Cpp17MoveConstructible, Cpp17MoveAssignable, and Cpp17Swappable
+// ([swappable.requirements]) requirements. Neither i nor j are iterators into
+// a. Effects: Inserts copies of elements in [i, j) before p. Each iterator in
+// the range [i, j) shall be dereferenced exactly once. Returns: An iterator
+// that points to the copy of the first element inserted into a, or p if i == j.
+
+// a.insert_range(p, rg)
+// Result: iterator.
+// Preconditions: T is Cpp17EmplaceConstructible into X from
+// *ranges​::​begin(rg). For vector, inplace_vector, and deque, T is also
+// Cpp17MoveInsertable into X, and T meets the Cpp17MoveConstructible,
+// Cpp17MoveAssignable, and Cpp17Swappable ([swappable.requirements])
+// requirements. rg and a do not overlap. Effects: Inserts copies of elements in
+// rg before p. Each iterator in the range rg is dereferenced exactly once.
+// Returns: An iterator that points to the copy of the first element inserted
+// into a, or p if rg is empty.
+
+// a.insert(p, il)
+// Effects: Equivalent to a.insert(p, il.begin(), il.end()).
+// a.erase(q)
+// Result: iterator.
+// Preconditions: For vector, inplace_vector, and deque, T is
+// Cpp17MoveAssignable. Effects: Erases the element pointed to by q. Returns: An
+// iterator that points to the element immediately following q prior to the
+// element being erased. If no such element exists, a.end() is returned.
+
+// a.erase(q1, q2)
+// Result: iterator.
+// Preconditions: For vector, inplace_vector, and deque, T is
+// Cpp17MoveAssignable. Effects: Erases the elements in the range [q1, q2).
+// Returns: An iterator that points to the element pointed to by q2 prior to any
+// elements being erased. If no such element exists, a.end() is returned.
+
+// a.clear()
+// Result: void
+// Effects: Destroys all elements in a. Invalidates all references, pointers,
+// and iterators referring to the elements of a and may invalidate the
+// past-the-end iterator. Postconditions: a.empty() is true. Complexity: Linear.
+
+// a.assign(i, j)
+// Result: void
+// Preconditions: T is Cpp17EmplaceConstructible into X from *i and assignable
+// from *i. For vector, if the iterator does not meet the forward iterator
+// requirements ([forward.iterators]), T is also Cpp17MoveInsertable into X.
+// Neither i nor j are iterators into a. Effects: Replaces elements in a with a
+// copy of [i, j). Invalidates all references, pointers and iterators referring
+// to the elements of a. For vector and deque, also invalidates the past-the-end
+// iterator. Each iterator in the range [i, j) is dereferenced exactly once.
+
+// a.assign_range(rg)
+// Result: void
+// Mandates: assignable_from<T&, ranges​::​range_reference_t<R>> is modeled.
+// Preconditions: T is Cpp17EmplaceConstructible into X from
+// *ranges​::​begin(rg). For vector, if R models neither
+// ranges​::​sized_range nor ranges​::​forward_range, T is also
+// Cpp17MoveInsertable into X. rg and a do not overlap. Effects: Replaces
+// elements in a with a copy of each element in rg. Invalidates all references,
+// pointers, and iterators referring to the elements of a. For vector and deque,
+// also invalidates the past-the-end iterator. Each iterator in the range rg is
+// dereferenced exactly once.
+
+// a.assign(il)
+// Effects: Equivalent to a.assign(il.begin(), il.end()).
+
+// a.assign(n, t)
+// Result: void
+// Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable. t is
+// not a reference into a. Effects: Replaces elements in a with n copies of t.
+// Invalidates all references, pointers and iterators referring to the elements
+// of a. For vector and deque, also invalidates the past-the-end iterator. For
+// every sequence container defined in this Clause and in [strings]:
+//
+// If the constructor
+// template<class InputIterator>
+//   X(InputIterator first, InputIterator last,
+//     const allocator_type& alloc = allocator_type());
+//
+// is called with a type InputIterator that does not qualify as an input
+// iterator, then the constructor shall not participate in overload resolution.
+//
+// If the member functions of the forms:
+// template<class InputIterator>
+//   return-type F(const_iterator p,
+//                 InputIterator first, InputIterator last);       // such as
+//                 insert
+//
+// template<class InputIterator>
+//   return-type F(InputIterator first, InputIterator last);       // such as
+//   append, assign
+//
+// template<class InputIterator>
+//   return-type F(const_iterator i1, const_iterator i2,
+//                 InputIterator first, InputIterator last);       // such as
+//                 replace
+//
+// are called with a type InputIterator that does not qualify as an input
+// iterator, then these functions shall not participate in overload resolution.
+// A deduction guide for a sequence container shall not participate in overload
+// resolution if it has an InputIterator template parameter and a type that does
+// not qualify as an input iterator is deduced for that parameter, or if it has
+// an Allocator template parameter and a type that does not qualify as an
+// allocator is deduced for that parameter. The following operations are
+// provided for some types of sequence containers but not others. Operations
+// other than prepend_range and append_range are implemented so as to take
+// amortized constant time. Result: reference; const_reference for constant a.
+// Returns: *a.begin()
+// a.back()
+// Result: reference; const_reference for constant a.
+// Effects: Equivalent to:
+// auto tmp = a.end();
+// --tmp;
+// return *tmp;
+// Remarks: Required for basic_string, array, deque, inplace_vector, list, and
+// vector.
+
+// a.emplace_back(args)
+// Returns: a.back().
+
+// a.push_back(t)
+// Result: void
+// Preconditions: T is Cpp17CopyInsertable into X.
+// Effects: Appends a copy of t.
+
+// a.push_back(rv)
+// Result: void
+// Preconditions: T is Cpp17MoveInsertable into X.
+// Effects: Appends a copy of rv.
+
+// a.pop_back()
+// Result: void
+// Preconditions: a.empty() is false.
+// Effects: Destroys the last element.
+
+// a[n]
+// Result: reference; const_reference for constant
+// Effects: Equivalent to: return *(a.begin() + n);
+
+// a.at(n)
+// Result: reference; const_reference for constant a
+// Returns: *(a.begin() + n)
+// Throws: out_of_range if n >= a.size().
 
 // 3 For any N, inplace_vector<T, N>::iterator and inplace_vector<T,
 // N>::const_iterator meet the constexpr iterator requirements.
