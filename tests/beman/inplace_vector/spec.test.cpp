@@ -1,8 +1,11 @@
 #include "beman/inplace_vector/inplace_vector.hpp"
 #include "gtest/gtest.h"
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <iterator>
+#include <numeric>
+#include <ranges>
 #include <type_traits>
 
 namespace {
@@ -1260,23 +1263,9 @@ TYPED_TEST(Modifiers, InsertEmplace) {
 }
 
 TYPED_TEST(Modifiers, InsertMulti) {
-  // constexpr iterator insert(const_iterator position, const T& x);
-  // constexpr iterator insert(const_iterator position, T&& x);
   // constexpr iterator insert(const_iterator position, size_type n, const T&
   // x);
-  // template<class InputIterator>
-  //   constexpr iterator insert(const_iterator position, InputIterator first,
-  //   InputIterator last);
-  // template<container-compatible-range<T> R>
-  //   constexpr iterator insert_range(const_iterator position, R&& rg);
-  // constexpr iterator insert(const_iterator position, initializer_list<T> il);
-  // template<class... Args>
-  //   constexpr iterator emplace(const_iterator position, Args&&... args);
-  // template<container-compatible-range<T> R>
-  //   constexpr void append_range(R&& rg);
   //
-  // Let n be the value of size() before this call for the append_range
-  // overload, and distance(begin, position) otherwise.
   // Complexity: Linear in the number of elements inserted plus the distance
   // to the end of the vector.
   // Remarks: If an exception is thrown other than by the copy constructor,
@@ -1309,9 +1298,196 @@ TYPED_TEST(Modifiers, InsertMulti) {
   EXPECT_THROW(device.insert(device.begin(), 1, {2538}), beman::bad_alloc);
 }
 
+TYPED_TEST(Modifiers, InsertInitList) {
+  // constexpr iterator insert(const_iterator position, initializer_list<T> il);
+  //
+  // Let n be the value of size() before this call for the append_range
+  // overload, and distance(begin, position) otherwise.
+  // Complexity: Linear in the number of elements inserted plus the distance
+  // to the end of the vector.
+  // Remarks: If an exception is thrown other than by the copy constructor,
+  // move constructor, assignment operator, or move assignment operator of T or
+  // by any InputIterator operation, there are no effects. Otherwise, if an
+  // exception is thrown, then size()  ≥ n and elements in the range begin() +
+  // [0, n) are not modified.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV device;
+  auto res = device.insert(device.end(), {});
+  EXPECT_EQ(res, device.end());
+  EXPECT_EQ(device, IV());
+
+  if (device.capacity() > 0) {
+    res = device.insert(device.begin(), {T{0}});
+    EXPECT_EQ(res, device.begin());
+    EXPECT_EQ(device, IV{T{0}});
+
+    if (device.capacity() >= 3) {
+      res = device.insert(device.begin(), {T{1}, T{2}});
+      EXPECT_EQ(res, device.begin());
+
+      IV expected{T{1}, T{2}, T{0}};
+      EXPECT_EQ(device, expected);
+    }
+  }
+
+  auto full = this->unique();
+  EXPECT_NO_THROW(full.insert(full.begin(), {}));
+  EXPECT_THROW(full.insert(full.begin(), {T{25}}), beman::bad_alloc);
+}
+
+TYPED_TEST(Modifiers, InsertRange) {
+  // template<container-compatible-range<T> R>
+  //   constexpr iterator insert_range(const_iterator position, R&& rg);
+  //
+  // Let n be the value of size() before this call for the append_range
+  // overload, and distance(begin, position) otherwise.
+  // Complexity: Linear in the number of elements inserted plus the distance
+  // to the end of the vector.
+  // Remarks: If an exception is thrown other than by the copy constructor,
+  // move constructor, assignment operator, or move assignment operator of T or
+  // by any InputIterator operation, there are no effects. Otherwise, if an
+  // exception is thrown, then size()  ≥ n and elements in the range begin() +
+  // [0, n) are not modified.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV device;
+  auto reference = this->unique();
+
+  auto res = device.insert_range(device.end(), reference | std::views::take(0));
+  EXPECT_EQ(res, device.end());
+
+  res = device.insert_range(device.end(), reference);
+  EXPECT_EQ(res, device.begin());
+  EXPECT_EQ(device, reference);
+  device.clear();
+
+  if (device.capacity() > 0) {
+    res = device.insert_range(device.end(), reference | std::views::take(1));
+    EXPECT_EQ(res, device.begin());
+    EXPECT_EQ(device, IV({reference.front()}));
+
+    if (device.capacity() > 1) {
+      res = device.insert_range(
+          device.begin() + 1,
+          std::ranges::subrange(reference.end() - 1, reference.end()));
+      EXPECT_EQ(res, device.begin() + 1);
+      EXPECT_EQ(device, IV({reference.front(), reference.back()}));
+
+      if (device.capacity() > 2) {
+        res = device.insert_range(device.begin() + 1,
+                                  reference | std::views::drop(1) |
+                                      std::views::take(reference.size() - 2));
+        EXPECT_EQ(res, device.begin() + 1);
+        EXPECT_EQ(device, reference);
+      }
+    }
+  }
+
+  EXPECT_NO_THROW(device.insert_range(device.begin(), std::array<T, 0>{}));
+  EXPECT_EQ(device, reference);
+
+  EXPECT_THROW(device.insert_range(device.begin(), std::array<T, 1>{T{25}}),
+               beman::bad_alloc);
+}
+
+TYPED_TEST(Modifiers, InsertItrRange) {
+  //   constexpr iterator emplace(const_iterator position, Args&&... args);
+  // template<container-compatible-range<T> R>
+  //   constexpr void append_range(R&& rg);
+  //
+  // Let n be the value of size() before this call for the append_range
+  // overload, and distance(begin, position) otherwise.
+  // Complexity: Linear in the number of elements inserted plus the distance
+  // to the end of the vector.
+  // Remarks: If an exception is thrown other than by the copy constructor,
+  // move constructor, assignment operator, or move assignment operator of T or
+  // by any InputIterator operation, there are no effects. Otherwise, if an
+  // exception is thrown, then size()  ≥ n and elements in the range begin() +
+  // [0, n) are not modified.
+
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  IV device;
+  auto reference = this->unique();
+
+  auto res = device.insert(device.end(), reference.end(), reference.end());
+  EXPECT_EQ(res, device.end());
+
+  res = device.insert(device.end(), reference.begin(), reference.end());
+  EXPECT_EQ(res, device.begin());
+  EXPECT_EQ(device, reference);
+  device.clear();
+
+  if (device.capacity() > 0) {
+    res = device.insert(device.end(), reference.begin(), reference.begin() + 1);
+    EXPECT_EQ(res, device.begin());
+    EXPECT_EQ(device, IV({reference.front()}));
+
+    if (device.capacity() > 1) {
+      res = device.insert(device.begin() + 1, reference.end() - 1,
+                          reference.end());
+      EXPECT_EQ(res, device.begin() + 1);
+      EXPECT_EQ(device, IV({reference.front(), reference.back()}));
+
+      if (device.capacity() > 2) {
+        res = device.insert(device.begin() + 1, reference.begin() + 1,
+                            reference.end() - 1);
+        EXPECT_EQ(res, device.begin() + 1);
+        EXPECT_EQ(device, reference);
+      }
+    }
+  }
+
+  EXPECT_NO_THROW(
+      device.insert(device.begin(), reference.end(), reference.end()));
+  EXPECT_EQ(device, reference);
+
+  std::array<T, 1> single_array{T{25}};
+  EXPECT_THROW(
+      device.insert(device.begin(), single_array.begin(), single_array.end()),
+      beman::bad_alloc);
+}
+
+TYPED_TEST(Modifiers, InsertAppendRange) {
+  // template<container-compatible-range<T> R>
+  //   constexpr void append_range(R&& rg);
+  //
+  // Let n be the value of size() before this call for the append_range
+  // overload, and distance(begin, position) otherwise.
+  // Complexity: Linear in the number of elements inserted plus the distance
+  // to the end of the vector.
+  // Remarks: If an exception is thrown other than by the copy constructor,
+  // move constructor, assignment operator, or move assignment operator of T or
+  // by any InputIterator operation, there are no effects. Otherwise, if an
+  // exception is thrown, then size()  ≥ n and elements in the range begin() +
+  // [0, n) are not modified.
+
+  using IV = TestFixture::IV;
+
+  IV device;
+  auto reference = this->unique();
+
+  device.append_range(reference | std::views::take(0));
+  EXPECT_EQ(device, IV());
+
+  device.append_range(reference);
+  EXPECT_EQ(device, reference);
+  device.clear();
+
+  auto half_size = std::midpoint(0ul, reference.size());
+  device.append_range(reference | std::views::take(half_size));
+  device.append_range(reference | std::views::drop(half_size));
+  EXPECT_EQ(device, reference);
+}
+
 TYPED_TEST(Modifiers, PushBackConstRef) {
   // constexpr reference push_back(const T& x);
-  // constexpr reference push_back(T&& x);
   //
   // Returns: back().
   // Throws: bad_alloc or any exception thrown by the initialization of the
@@ -1337,7 +1513,6 @@ TYPED_TEST(Modifiers, PushBackConstRef) {
 }
 
 TYPED_TEST(Modifiers, PushBackRV) {
-  // constexpr reference push_back(const T& x);
   // constexpr reference push_back(T&& x);
   //
   // Returns: back().
@@ -1365,7 +1540,7 @@ TYPED_TEST(Modifiers, PushBackRV) {
 
 // TODO: Check if there's extra copies
 
-TYPED_TEST(Modifiers, EmplaceBackRV) {
+TYPED_TEST(Modifiers, EmplaceBack) {
   // template<class... Args>
   //   constexpr reference emplace_back(Args&&... args);
   //
@@ -1392,8 +1567,6 @@ TYPED_TEST(Modifiers, EmplaceBackRV) {
 TYPED_TEST(Modifiers, TryEmplaceBack) {
   // template<class... Args>
   // constexpr pointer try_emplace_back(Args&&... args);
-  // constexpr pointer try_push_back(const T& x);
-  // constexpr pointer try_push_back(T&& x);
   //
   // Let vals denote a pack:
   // (8.1) std::forward<Args>(args)... for the first overload,
@@ -1433,10 +1606,7 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
 }
 
 TYPED_TEST(Modifiers, TryPushBackConstRef) {
-  // template<class... Args>
-  // constexpr pointer try_emplace_back(Args&&... args);
   // constexpr pointer try_push_back(const T& x);
-  // constexpr pointer try_push_back(T&& x);
   //
   // Let vals denote a pack:
   // (8.1) std::forward<Args>(args)... for the first overload,
@@ -1480,9 +1650,6 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
 }
 
 TYPED_TEST(Modifiers, TryPushBackRV) {
-  // template<class... Args>
-  // constexpr pointer try_emplace_back(Args&&... args);
-  // constexpr pointer try_push_back(const T& x);
   // constexpr pointer try_push_back(T&& x);
   //
   // Let vals denote a pack:
