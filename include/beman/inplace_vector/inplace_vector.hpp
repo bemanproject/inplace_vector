@@ -257,13 +257,14 @@ Software.
 #include <concepts>   // for lots...
 #include <cstddef>    // for size_t
 #include <cstdint>    // for fixed-width integer types
+#include <cstdio>     // for assertion diagnostics
+#include <cstdlib>    // for abort
 #include <functional> // for less and equal_to
 #include <iterator>   // for reverse_iterator and iterator traits
 #include <limits>     // for numeric_limits
 #include <new>        // for operator new
 #include <ranges>
 #include <stdexcept>   // for length_error
-#include <stdio.h>     // for assertion diagnostics
 #include <type_traits> // for aligned_storage and all meta-functions
 
 // Optimizer allowed to assume that EXPR evaluates to true
@@ -315,8 +316,8 @@ static constexpr void __assert_failure(char const *__file, int __line,
   if consteval {
     throw __msg; // TODO: std lib implementer, do better here
   } else {
-    fprintf(stderr, "%s(%d): %s\n", __file, __line, __msg);
-    abort();
+    std::fprintf(stderr, "%s(%d): %s\n", __file, __line, __msg);
+    std::abort();
   }
 }
 
