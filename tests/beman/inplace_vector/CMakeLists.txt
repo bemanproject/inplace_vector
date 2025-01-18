@@ -21,7 +21,7 @@ add_test(
     COMMAND beman.inplace_vector.ref-test
 )
 
-#GoogleTest based tests
+# GoogleTest based tests
 include(GoogleTest)
 
 function(add_gtest NAME)
@@ -34,7 +34,7 @@ function(add_gtest NAME)
     gtest_add_tests(beman.inplace_vector.tests.${NAME} "" AUTO)
 endfunction()
 
-#Tests for official specs
+# Tests for official specs
 add_gtest(container_requirements)
 add_gtest(triviality)
 add_gtest(constructors)
