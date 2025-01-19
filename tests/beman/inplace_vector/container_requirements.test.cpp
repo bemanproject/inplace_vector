@@ -1,4 +1,8 @@
+#include "gtest/gtest.h"
+#include <algorithm>
+#include <array>
 #include <gtest/gtest.h>
+#include <new>
 
 #include "gtest_setup.hpp"
 
@@ -591,6 +595,8 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // Effects: Constructs a sequence container with n copies of t.
 // Postconditions: distance(u.begin(), u.end()) == n is true.
 
+// See: Constructors/SizedValue
+
 // X u(i, j);
 // Preconditions: T is Cpp17EmplaceConstructible into X from *i. For vector, if
 // the iterator does not meet the Cpp17ForwardIterator requirements
@@ -598,6 +604,8 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // Constructs a sequence container equal to the range [i, j). Each iterator in
 // the range [i, j) is dereferenced exactly once. Postconditions:
 // distance(u.begin(), u.end()) == distance(i, j) is true.
+
+// See: Constructors/CopyIter
 
 // X(from_range, rg)
 // Preconditions: T is Cpp17EmplaceConstructible into X from
@@ -608,14 +616,55 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // Postconditions: distance(begin(), end()) == ranges​::​distance(rg) is
 // true.
 
+// See: Constructors/CopyRanges
+
 // X(il)
 // Effects: Equivalent to X(il.begin(), il.end()).
+
+TYPED_TEST(SequenceContainerRequirments, ConstructorInitializerList) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  if (IV::capacity() == 0) {
+    EXPECT_THROW(IV({T{20}}), beman::bad_alloc);
+    return;
+  }
+
+  IV device({T{20}});
+
+  IV correct;
+  correct.emplace_back(20);
+  EXPECT_EQ(device, correct);
+
+  if (IV::capacity() == 1)
+    return;
+
+  device = IV({T{20}, T{21}});
+  correct.emplace_back(21);
+
+  EXPECT_EQ(device, correct);
+}
 
 // a = il
 // Result: X&.
 // Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable.
 // Effects: Assigns the range [il.begin(), il.end()) into a. All existing
 // elements of a are either assigned to or destroyed. Returns: *this.
+
+TYPED_TEST(SequenceContainerRequirments, AssignInitializerList) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  if (IV::capacity() == 0) {
+    IV device;
+    EXPECT_THROW(device = {T{52}}, beman::bad_alloc);
+    return;
+  }
+
+  IV device;
+  device = {T{20}};
+  EXPECT_EQ(device, IV{T{20}});
+}
 
 // a.emplace(p, args)
 // Result: iterator.
@@ -626,11 +675,15 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // indirectly refer to a value in a. — end note] Returns: An iterator that
 // points to the new element.
 
+// See Modifiers/InsertEmplace
+
 // a.insert(p, t)
 // Result: iterator.
 // Preconditions: T is Cpp17CopyInsertable into X. For vector, inplace_vector,
 // and deque, T is also Cpp17CopyAssignable. Effects: Inserts a copy of t before
 // p. Returns: An iterator that points to the copy of t inserted into a.
+
+// See Modifiers/InsertSingleConstRef
 
 // a.insert(p, rv)
 // Result: iterator.
@@ -638,12 +691,16 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // and deque, T is also Cpp17MoveAssignable. Effects: Inserts a copy of rv
 // before p. Returns: An iterator that points to the copy of rv inserted into a.
 
+// See Modifiers/InsertSingleRV
+
 // a.insert(p, n, t)
 // Result: iterator.
 // Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable.
 // Effects: Inserts n copies of t before p.
 // Returns: An iterator that points to the copy of the first element inserted
 // into a, or p if n == 0.
+
+// See Modifiers/InsertMulti
 
 // a.insert(p, i, j)
 // Result: iterator.
@@ -654,6 +711,8 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // a. Effects: Inserts copies of elements in [i, j) before p. Each iterator in
 // the range [i, j) shall be dereferenced exactly once. Returns: An iterator
 // that points to the copy of the first element inserted into a, or p if i == j.
+
+// See Modifiere/InsertItrRange
 
 // a.insert_range(p, rg)
 // Result: iterator.
@@ -666,6 +725,8 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // Returns: An iterator that points to the copy of the first element inserted
 // into a, or p if rg is empty.
 
+// See Modifiers/InsertRange
+
 // a.insert(p, il)
 // Effects: Equivalent to a.insert(p, il.begin(), il.end()).
 // a.erase(q)
@@ -675,6 +736,8 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // iterator that points to the element immediately following q prior to the
 // element being erased. If no such element exists, a.end() is returned.
 
+// See Modifiers/InsertInitList
+
 // a.erase(q1, q2)
 // Result: iterator.
 // Preconditions: For vector, inplace_vector, and deque, T is
@@ -682,21 +745,49 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // Returns: An iterator that points to the element pointed to by q2 prior to any
 // elements being erased. If no such element exists, a.end() is returned.
 
+// See Modifiers/EraseRange
+
 // a.clear()
 // Result: void
 // Effects: Destroys all elements in a. Invalidates all references, pointers,
 // and iterators referring to the elements of a and may invalidate the
 // past-the-end iterator. Postconditions: a.empty() is true. Complexity: Linear.
 
+TYPED_TEST(SequenceContainerRequirments, Clear) {
+  using IV = TestFixture::IV;
+
+  auto device = this->unique();
+  device.clear();
+  EXPECT_EQ(device, IV{});
+}
+
 // a.assign(i, j)
 // Result: void
 // Preconditions: T is Cpp17EmplaceConstructible into X from *i and assignable
 // from *i. For vector, if the iterator does not meet the forward iterator
 // requirements ([forward.iterators]), T is also Cpp17MoveInsertable into X.
-// Neither i nor j are iterators into a. Effects: Replaces elements in a with a
-// copy of [i, j). Invalidates all references, pointers and iterators referring
-// to the elements of a. For vector and deque, also invalidates the past-the-end
-// iterator. Each iterator in the range [i, j) is dereferenced exactly once.
+// Neither i nor j are iterators into a.
+// Effects: Replaces elements in a with a copy of [i, j). Invalidates all
+// references, pointers and iterators referring to the elements of a. For vector
+// and deque, also invalidates the past-the-end iterator. Each iterator in the
+// range [i, j) is dereferenced exactly once.
+
+TYPED_TEST(SequenceContainerRequirments, AssignIterRange) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+
+  const auto correct = this->unique();
+
+  device.assign(correct.begin(), correct.end());
+  EXPECT_EQ(device, correct);
+
+  std::array<T, IV::capacity() + 1> ref;
+  std::copy(correct.begin(), correct.end(), ref.begin());
+  ref.back() = T{5};
+  EXPECT_THROW(device.assign(ref.begin(), ref.end()), beman::bad_alloc);
+}
 
 // a.assign_range(rg)
 // Result: void
@@ -710,13 +801,45 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // also invalidates the past-the-end iterator. Each iterator in the range rg is
 // dereferenced exactly once.
 
+TYPED_TEST(SequenceContainerRequirments, AssignRange) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+  auto correct = this->unique();
+
+  device.assign_range(correct);
+  EXPECT_EQ(device, correct);
+
+  std::array<T, IV::capacity() + 1> ref;
+  std::copy(correct.begin(), correct.end(), ref.begin());
+  ref.back() = T{5};
+  EXPECT_THROW(device.assign_range(ref), beman::bad_alloc);
+}
+
 // a.assign(il)
 // Effects: Equivalent to a.assign(il.begin(), il.end()).
+
+TYPED_TEST(SequenceContainerRequirments, AssignFuncInitializerList) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+
+  if (device.capacity() == 0) {
+    EXPECT_THROW(device.assign({T{50}}), beman::bad_alloc);
+    return;
+  }
+
+  device.assign({T{50}});
+  EXPECT_EQ(device, IV{T{50}});
+}
 
 // a.assign(n, t)
 // Result: void
 // Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable. t is
-// not a reference into a. Effects: Replaces elements in a with n copies of t.
+// not a reference into a.
+// Effects: Replaces elements in a with n copies of t.
 // Invalidates all references, pointers and iterators referring to the elements
 // of a. For vector and deque, also invalidates the past-the-end iterator. For
 // every sequence container defined in this Clause and in [strings]:
@@ -753,42 +876,115 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // allocator is deduced for that parameter. The following operations are
 // provided for some types of sequence containers but not others. Operations
 // other than prepend_range and append_range are implemented so as to take
-// amortized constant time. Result: reference; const_reference for constant a.
+// amortized constant time.
+
+TYPED_TEST(SequenceContainerRequirments, AssignMulti) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+  device.assign(0, T{6312});
+
+  EXPECT_EQ(device, IV());
+
+  if (device.capacity() > 0) {
+    device.assign(1, T{6312});
+
+    EXPECT_EQ(device, IV{T{6312}});
+
+    device.assign(device.capacity(), T{5972});
+    EXPECT_EQ(device, IV(IV::capacity(), T{5972}));
+  }
+
+  device.clear();
+  EXPECT_THROW(device.assign(device.capacity() + 1, T{12}), beman::bad_alloc);
+  // TODO: Is this defined?
+  // EXPECT_EQ(device, IV());
+}
+
+// a.front()
+// Result: reference; const_reference for constant a.
 // Returns: *a.begin()
+
+TYPED_TEST(SequenceContainerRequirments, Front) {
+  auto device = this->unique();
+  if (device.capacity() == 0)
+    return;
+
+  EXPECT_EQ(device.front(), *device.begin());
+}
+
 // a.back()
 // Result: reference; const_reference for constant a.
 // Effects: Equivalent to:
 // auto tmp = a.end();
 // --tmp;
 // return *tmp;
-// Remarks: Required for basic_string, array, deque, inplace_vector, list, and
-// vector.
+
+TYPED_TEST(SequenceContainerRequirments, Back) {
+  auto device = this->unique();
+  if (device.capacity() == 0)
+    return;
+
+  EXPECT_EQ(device.back(), *(device.end() - 1));
+}
 
 // a.emplace_back(args)
 // Returns: a.back().
+
+// See: Modifiers/EmplaceBack
 
 // a.push_back(t)
 // Result: void
 // Preconditions: T is Cpp17CopyInsertable into X.
 // Effects: Appends a copy of t.
 
+// See: Modifiers/EmplaceBack
+
 // a.push_back(rv)
 // Result: void
 // Preconditions: T is Cpp17MoveInsertable into X.
 // Effects: Appends a copy of rv.
+
+// See: Modifiers/PushBackRV
 
 // a.pop_back()
 // Result: void
 // Preconditions: a.empty() is false.
 // Effects: Destroys the last element.
 
+// See: Modifiers/PopBack
+
 // a[n]
 // Result: reference; const_reference for constant
 // Effects: Equivalent to: return *(a.begin() + n);
+
+TYPED_TEST(SequenceContainerRequirments, ElementAccess) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+
+  for (auto i = 0ul; i < device.size(); ++i)
+    EXPECT_EQ(device[i], *(device.begin() + i));
+}
 
 // a.at(n)
 // Result: reference; const_reference for constant a
 // Returns: *(a.begin() + n)
 // Throws: out_of_range if n >= a.size().
+
+TYPED_TEST(SequenceContainerRequirments, ElementAccessAt) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  auto device = this->unique();
+
+  for (auto i = 0ul; i < device.size(); ++i) {
+    EXPECT_EQ(device.at(i), *(device.begin() + i));
+  }
+
+  EXPECT_THROW(device.at(IV::capacity()), std::out_of_range);
+}
 
 }; // namespace

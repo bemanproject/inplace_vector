@@ -1023,7 +1023,7 @@ public:
     requires(constructible_from<__T, ranges::range_reference_t<__R>> &&
              movable<__T>)
   {
-    assign(begin(__rg), end(__rg));
+    assign(std::begin(__rg), std::end(__rg));
   }
   constexpr void assign(size_type __n, const __T &__u)
     requires(constructible_from<__T, const __T &> && movable<__T>)
