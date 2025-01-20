@@ -312,7 +312,7 @@ template <class = void>
 [[noreturn]]
 static constexpr void __assert_failure(char const *__file, int __line,
                                        char const *__msg) {
-  if consteval {
+  if (std::is_constant_evaluated()) {
     throw __msg; // TODO: std lib implementer, do better here
   } else {
     fprintf(stderr, "%s(%d): %s\n", __file, __line, __msg);

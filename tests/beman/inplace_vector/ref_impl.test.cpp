@@ -20,6 +20,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #define CHECK(...)                                                             \
@@ -183,7 +184,7 @@ template <typename T, std::size_t N> constexpr void test_il_constructor() {
   for (size_t i = 0; i < N; ++i)
     CHECK(v[i] == T(i));
   CHECK(11 > N);
-  if !consteval {
+  if (!std::is_constant_evaluated()) {
     CHECK_THROWS(
         ([&] { const vector<T, N> x({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}); }()),
         std::bad_alloc);
@@ -212,7 +213,7 @@ template <typename T, std::size_t N> constexpr void test_il_assignment() {
   CHECK(v.size() == N);
   for (size_t i = 0; i < N; ++i)
     CHECK(v[i] == T(i));
-  if !consteval {
+  if (!std::is_constant_evaluated()) {
     CHECK_THROWS(([&] {
                    [[maybe_unused]] const vector<T, N> x = {0, 1, 2, 3, 4, 5,
                                                             6, 7, 8, 9, 10};
