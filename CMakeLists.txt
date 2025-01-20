@@ -27,6 +27,12 @@ option(
     ${PROJECT_IS_TOP_LEVEL}
 )
 
+option(
+    BEMAN_INPLACE_VECTOR_BUILD_BENCHMARKS
+    "Enable building benchmarks. Default: ON. Values: { ON, OFF }."
+    ${PROJECT_IS_TOP_LEVEL}
+)
+
 include(FetchContent)
 include(GNUInstallDirs)
 
@@ -81,4 +87,8 @@ endif()
 
 if(BEMAN_EXEMPLAR_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(BEMAN_INPLACE_VECTOR_BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
 endif()
