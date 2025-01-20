@@ -495,7 +495,7 @@ public:
   using reference = value_type &;
   using const_reference = const value_type &;
   using size_type = size_t;
-  using difference_type = ptrdiff_t;
+  using difference_type = std::ptrdiff_t;
   using iterator = pointer;
   using const_iterator = const_pointer;
   using reverse_iterator = std::reverse_iterator<iterator>;
