@@ -345,7 +345,7 @@ TYPED_TEST(Modifiers, InsertAppendRange) {
   EXPECT_EQ(device, reference);
   device.clear();
 
-  auto half_size = std::midpoint(0uz, reference.size());
+  auto half_size = std::midpoint(0ul, reference.size());
   device.append_range(reference | std::views::take(half_size));
   device.append_range(reference | std::views::drop(half_size));
   EXPECT_EQ(device, reference);
@@ -366,7 +366,7 @@ TYPED_TEST(Modifiers, PushBackConstRef) {
   const auto reference = this->unique();
 
   IV device;
-  for (auto i = 0uz; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto val = reference[i];
     auto res = device.push_back(val);
     EXPECT_EQ(res, device.back());
@@ -392,7 +392,7 @@ TYPED_TEST(Modifiers, PushBackRV) {
   const auto reference = this->unique();
 
   IV device;
-  for (auto i = 0uz; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     T val{reference[i]};
     auto res = device.push_back(std::move(val));
     EXPECT_EQ(res, device.back());
@@ -420,7 +420,7 @@ TYPED_TEST(Modifiers, EmplaceBack) {
   const auto reference = this->unique();
 
   IV device;
-  for (auto i = 0uz; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.emplace_back(reference[i].value);
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -454,7 +454,7 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
   const auto reference = this->unique();
   IV device;
   if (!reference.empty()) {
-    for (auto i = 0uz; i < reference.size(); ++i) {
+    for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_emplace_back(reference[i].value);
       EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -496,7 +496,7 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
   IV device;
 
   if (!reference.empty()) {
-    for (auto i = 0uz; i < reference.size(); ++i) {
+    for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_push_back(reference[i]);
       EXPECT_EQ(res, std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -541,7 +541,7 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
   IV device;
 
   if (!reference.empty()) {
-    for (auto i = 0uz; i < reference.size(); ++i) {
+    for (auto i = 0ul; i < reference.size(); ++i) {
       T val{reference[i].value};
 
       auto res = device.try_push_back(std::move(val));
@@ -598,7 +598,7 @@ TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
   const auto reference = this->unique();
 
   IV device;
-  for (auto i = 0uz; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.unchecked_emplace_back(reference[i].value);
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -617,7 +617,7 @@ TYPED_TEST(Modifiers, UncheckedPushBackConstRef) {
   const auto reference = this->unique();
 
   IV device;
-  for (auto i = 0uz; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.unchecked_push_back(reference[i]);
     EXPECT_EQ(res, device.back());
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
@@ -637,7 +637,7 @@ TYPED_TEST(Modifiers, UncheckedPushBackRV) {
   const auto reference = this->unique();
 
   IV device;
-  for (auto i = 0uz; i < reference.size(); ++i) {
+  for (auto i = 0ul; i < reference.size(); ++i) {
     T val{reference[i].value};
 
     auto res = device.unchecked_push_back(std::move(val));
@@ -748,7 +748,7 @@ TYPED_TEST(Modifiers, EraseSingle) {
   EXPECT_EQ(itr, device.begin() + mid_idx);
 
   auto size = device.size();
-  for (auto i = 0uz; i < size; ++i)
+  for (auto i = 0ul; i < size; ++i)
     device.erase(device.begin());
 
   EXPECT_TRUE(device.empty())
@@ -785,7 +785,7 @@ TYPED_TEST(Modifiers, EraseSingleConst) {
   EXPECT_EQ(itr, device.cbegin() + mid_idx);
 
   auto size = device.size();
-  for (auto i = 0uz; i < size; ++i)
+  for (auto i = 0ul; i < size; ++i)
     device.erase(device.cbegin());
 
   EXPECT_TRUE(device.empty())

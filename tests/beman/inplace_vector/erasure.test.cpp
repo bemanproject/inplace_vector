@@ -28,7 +28,7 @@ TYPED_TEST(Erasure, ByValue) {
   T duplicates{4612};
   auto uniques = this->unique(device.capacity() / 2);
 
-  for (auto i = 0uz; i < uniques.size(); ++i) {
+  for (auto i = 0ul; i < uniques.size(); ++i) {
     device.push_back(uniques[i]);
     if (device.size() != device.capacity())
       device.push_back(duplicates);
