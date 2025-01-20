@@ -22,14 +22,14 @@ TYPED_TEST(Constructors, SizedDefault) {
 
   EXPECT_THROW(IV(IV::capacity() + 1), beman::bad_alloc);
 
-  constexpr auto mid_size = std::midpoint(0ul, IV::capacity());
+  constexpr auto mid_size = std::midpoint(0uz, IV::capacity());
   IV mid(mid_size);
   EXPECT_EQ(mid.size(), mid_size);
   if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
       std::is_same_v<T, NonTrivial>) {
 
     IV mid_correct;
-    for (auto i = 0ul; i < mid_size; ++i)
+    for (auto i = 0uz; i < mid_size; ++i)
       mid_correct.emplace_back();
 
     EXPECT_EQ(mid, mid_correct);
@@ -41,7 +41,7 @@ TYPED_TEST(Constructors, SizedDefault) {
       std::is_same_v<T, NonTrivial>) {
 
     IV full_correct;
-    for (auto i = 0ul; i < full.size(); ++i)
+    for (auto i = 0uz; i < full.size(); ++i)
       full_correct.emplace_back();
 
     EXPECT_EQ(full, full_correct);
@@ -79,7 +79,7 @@ TYPED_TEST(Constructors, SizedValue) {
     IV device(IV::capacity(), value);
 
     IV correct;
-    for (auto i = 0ul; i < device.size(); ++i)
+    for (auto i = 0uz; i < device.size(); ++i)
       correct.push_back(value);
 
     EXPECT_EQ(device, correct);
@@ -124,7 +124,7 @@ TYPED_TEST(Constructors, CopyRanges) {
   }
 
   {
-    auto mid = std::midpoint(0ul, reference.size());
+    auto mid = std::midpoint(0uz, reference.size());
     IV device(beman::from_range, reference | std::ranges::views::take(mid));
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + mid));
   }

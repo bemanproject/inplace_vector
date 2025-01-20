@@ -35,7 +35,7 @@ TYPED_TEST(SizeNCapacity, ResizeDown) {
 
   auto device = this->unique();
 
-  auto mid_size = std::midpoint(0ul, device.size());
+  auto mid_size = std::midpoint(0uz, device.size());
   device.resize(mid_size);
   EXPECT_EQ(device, IV(device.begin(), device.begin() + mid_size));
 
