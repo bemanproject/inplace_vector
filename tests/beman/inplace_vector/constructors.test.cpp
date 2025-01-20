@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -82,7 +83,7 @@ TYPED_TEST(Constructors, SizedValue) {
     for (auto i = 0uz; i < device.size(); ++i)
       correct.push_back(value);
 
-    EXPECT_EQ(device, correct);
+    EXPECT_EQ(std::count(device.begin(), device.end(), value), IV::capacity());
   }
 }
 
