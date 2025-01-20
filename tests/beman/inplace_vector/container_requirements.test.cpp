@@ -626,7 +626,7 @@ TYPED_TEST(SequenceContainerRequirments, ConstructorInitializerList) {
   using T = TestFixture::T;
 
   if (IV::capacity() == 0) {
-    EXPECT_THROW(IV({T{20}}), beman::bad_alloc);
+    EXPECT_THROW(IV({T{20}}), std::bad_alloc);
     return;
   }
 
@@ -657,7 +657,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignInitializerList) {
 
   if (IV::capacity() == 0) {
     IV device;
-    EXPECT_THROW(device = {T{52}}, beman::bad_alloc);
+    EXPECT_THROW(device = {T{52}}, std::bad_alloc);
     return;
   }
 
@@ -786,7 +786,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignIterRange) {
   std::array<T, IV::capacity() + 1> ref;
   std::copy(correct.begin(), correct.end(), ref.begin());
   ref.back() = T{5};
-  EXPECT_THROW(device.assign(ref.begin(), ref.end()), beman::bad_alloc);
+  EXPECT_THROW(device.assign(ref.begin(), ref.end()), std::bad_alloc);
 }
 
 // a.assign_range(rg)
@@ -814,7 +814,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignRange) {
   std::array<T, IV::capacity() + 1> ref;
   std::copy(correct.begin(), correct.end(), ref.begin());
   ref.back() = T{5};
-  EXPECT_THROW(device.assign_range(ref), beman::bad_alloc);
+  EXPECT_THROW(device.assign_range(ref), std::bad_alloc);
 }
 
 // a.assign(il)
@@ -827,7 +827,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignFuncInitializerList) {
   auto device = this->unique();
 
   if (device.capacity() == 0) {
-    EXPECT_THROW(device.assign({T{50}}), beman::bad_alloc);
+    EXPECT_THROW(device.assign({T{50}}), std::bad_alloc);
     return;
   }
 
@@ -897,7 +897,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignMulti) {
   }
 
   device.clear();
-  EXPECT_THROW(device.assign(device.capacity() + 1, T{12}), beman::bad_alloc);
+  EXPECT_THROW(device.assign(device.capacity() + 1, T{12}), std::bad_alloc);
   // TODO: Is this defined?
   // EXPECT_EQ(device, IV());
 }
