@@ -774,7 +774,8 @@ public:
              movable<__T>)
   {
     __assert_iterator_in_range(__position);
-    __assert_valid_iterator_pair(__first, __last);
+    // __assert_valid_iterator_pair(__first, __last); // does not work with
+    // arbitrary InputIterators
     if constexpr (random_access_iterator<__InputIterator>) {
       if (size() + static_cast<size_type>(distance(__first, __last)) >
           capacity()) [[unlikely]]

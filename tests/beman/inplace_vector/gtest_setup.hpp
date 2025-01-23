@@ -362,4 +362,26 @@ public:
     }
     return res;
   }
+
+  struct InputIterator {
+    T value;
+    using difference_type = std::ptrdiff_t;
+    using value_type = T;
+
+    constexpr InputIterator() noexcept : value{0} {}
+    constexpr InputIterator(int i) noexcept : value{i} {}
+
+    T operator*() const { return value; };
+
+    InputIterator &operator++() {
+      ++value.value;
+      return *this;
+    };
+    void operator++(int) { ++*this; }
+
+    constexpr bool operator==(InputIterator other) noexcept {
+      return value.value == other.value.value;
+    }
+  };
+  static_assert(std::input_iterator<InputIterator>);
 };

@@ -94,11 +94,16 @@ TYPED_TEST(Constructors, CopyIter) {
   // Complexity: Linear in distance(first, last).
 
   using IV = TestFixture::IV;
+  using InputIterator = TestFixture::InputIterator;
 
-  auto reference = this->unique();
-  IV device(reference.begin(), reference.end());
+  IV a(InputIterator{0}, InputIterator{IV::max_size() / 2});
+  EXPECT_EQ(a.size(), IV::max_size() / 2);
+  if (!a.empty()) {
+    EXPECT_EQ(a.back().value, IV::max_size() / 2 - 1);
+  }
 
-  EXPECT_EQ(device, reference);
+  IV b(a.begin(), a.end());
+  EXPECT_EQ(b, a);
 }
 
 TYPED_TEST(Constructors, CopyRanges) {

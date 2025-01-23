@@ -587,8 +587,8 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
 
 // [sequence.reqmts]
 template <typename Param>
-class SequenceContainerRequirments : public IVBasicTest<Param> {};
-TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
+class SequenceContainerRequirements : public IVBasicTest<Param> {};
+TYPED_TEST_SUITE(SequenceContainerRequirements, IVAllTypes);
 
 // X u(n, t);
 // Preconditions: T is Cpp17CopyInsertable into X.
@@ -621,7 +621,7 @@ TYPED_TEST_SUITE(SequenceContainerRequirments, IVAllTypes);
 // X(il)
 // Effects: Equivalent to X(il.begin(), il.end()).
 
-TYPED_TEST(SequenceContainerRequirments, ConstructorInitializerList) {
+TYPED_TEST(SequenceContainerRequirements, ConstructorInitializerList) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
@@ -651,7 +651,7 @@ TYPED_TEST(SequenceContainerRequirments, ConstructorInitializerList) {
 // Effects: Assigns the range [il.begin(), il.end()) into a. All existing
 // elements of a are either assigned to or destroyed. Returns: *this.
 
-TYPED_TEST(SequenceContainerRequirments, AssignInitializerList) {
+TYPED_TEST(SequenceContainerRequirements, AssignInitializerList) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
@@ -753,12 +753,13 @@ TYPED_TEST(SequenceContainerRequirments, AssignInitializerList) {
 // and iterators referring to the elements of a and may invalidate the
 // past-the-end iterator. Postconditions: a.empty() is true. Complexity: Linear.
 
-TYPED_TEST(SequenceContainerRequirments, Clear) {
+TYPED_TEST(SequenceContainerRequirements, Clear) {
   using IV = TestFixture::IV;
 
   auto device = this->unique();
   device.clear();
   EXPECT_EQ(device, IV{});
+  EXPECT_TRUE(device.empty());
 }
 
 // a.assign(i, j)
@@ -772,21 +773,39 @@ TYPED_TEST(SequenceContainerRequirments, Clear) {
 // and deque, also invalidates the past-the-end iterator. Each iterator in the
 // range [i, j) is dereferenced exactly once.
 
-TYPED_TEST(SequenceContainerRequirments, AssignIterRange) {
+TYPED_TEST(SequenceContainerRequirements, AssignIterRange) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
+  using InputIterator = TestFixture::InputIterator;
 
-  auto device = this->unique();
+  {
+    auto device = this->unique();
 
-  const auto correct = this->unique();
+    const auto correct = this->unique();
 
-  device.assign(correct.begin(), correct.end());
-  EXPECT_EQ(device, correct);
+    device.assign(correct.begin(), correct.end());
+    EXPECT_EQ(device, correct);
 
-  std::array<T, IV::capacity() + 1> ref;
-  std::copy(correct.begin(), correct.end(), ref.begin());
-  ref.back() = T{5};
-  EXPECT_THROW(device.assign(ref.begin(), ref.end()), std::bad_alloc);
+    std::array<T, IV::capacity() + 1> ref{};
+    EXPECT_THROW(device.assign(ref.begin(), ref.end()), std::bad_alloc);
+  }
+
+  {
+    IV device;
+    device.assign(InputIterator{0}, InputIterator{IV::max_size()});
+    EXPECT_EQ(device.size(), IV::max_size());
+    // Each iterator in the range [i, j) is dereferenced exactly once.
+    if (!device.empty()) {
+      EXPECT_EQ(device.back(), T{static_cast<int>(IV::max_size() - 1)});
+    }
+
+    // [containers.sequences.inplace.vector.overview]
+    // 5. Any member function of inplace_vector<T, N> that would cause the size
+    // to exceed N throws an exception of type bad_alloc.
+    EXPECT_THROW(
+        device.assign(InputIterator{0}, InputIterator{IV::max_size() + 1}),
+        std::bad_alloc);
+  }
 }
 
 // a.assign_range(rg)
@@ -801,7 +820,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignIterRange) {
 // also invalidates the past-the-end iterator. Each iterator in the range rg is
 // dereferenced exactly once.
 
-TYPED_TEST(SequenceContainerRequirments, AssignRange) {
+TYPED_TEST(SequenceContainerRequirements, AssignRange) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
@@ -820,7 +839,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignRange) {
 // a.assign(il)
 // Effects: Equivalent to a.assign(il.begin(), il.end()).
 
-TYPED_TEST(SequenceContainerRequirments, AssignFuncInitializerList) {
+TYPED_TEST(SequenceContainerRequirements, AssignFuncInitializerList) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
@@ -878,7 +897,7 @@ TYPED_TEST(SequenceContainerRequirments, AssignFuncInitializerList) {
 // other than prepend_range and append_range are implemented so as to take
 // amortized constant time.
 
-TYPED_TEST(SequenceContainerRequirments, AssignMulti) {
+TYPED_TEST(SequenceContainerRequirements, AssignMulti) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
@@ -898,20 +917,26 @@ TYPED_TEST(SequenceContainerRequirments, AssignMulti) {
 
   device.clear();
   EXPECT_THROW(device.assign(device.capacity() + 1, T{12}), std::bad_alloc);
-  // TODO: Is this defined?
-  // EXPECT_EQ(device, IV());
 }
 
 // a.front()
 // Result: reference; const_reference for constant a.
 // Returns: *a.begin()
 
-TYPED_TEST(SequenceContainerRequirments, Front) {
-  auto device = this->unique();
-  if (device.capacity() == 0)
+TYPED_TEST(SequenceContainerRequirements, Front) {
+  using X = TestFixture::X;
+  if constexpr (X::capacity() == 0) {
     return;
+  }
 
-  EXPECT_EQ(device.front(), *device.begin());
+  auto a = this->unique();
+  auto const ca = this->unique();
+
+  EXPECT_TRUE((std::is_same_v<decltype(a.front()), typename X::reference>));
+  EXPECT_TRUE(
+      (std::is_same_v<decltype(ca.front()), typename X::const_reference>));
+  EXPECT_EQ(a.front(), *a.begin());
+  EXPECT_EQ(ca.front(), *ca.begin());
 }
 
 // a.back()
@@ -921,12 +946,20 @@ TYPED_TEST(SequenceContainerRequirments, Front) {
 // --tmp;
 // return *tmp;
 
-TYPED_TEST(SequenceContainerRequirments, Back) {
-  auto device = this->unique();
-  if (device.capacity() == 0)
+TYPED_TEST(SequenceContainerRequirements, Back) {
+  using X = TestFixture::X;
+  if constexpr (X::capacity() == 0) {
     return;
+  }
 
-  EXPECT_EQ(device.back(), *(device.end() - 1));
+  auto a = this->unique();
+  auto const ca = this->unique();
+
+  EXPECT_TRUE((std::is_same_v<decltype(a.back()), typename X::reference>));
+  EXPECT_TRUE(
+      (std::is_same_v<decltype(ca.back()), typename X::const_reference>));
+  EXPECT_EQ(a.back(), *(a.end() - 1));
+  EXPECT_EQ(ca.back(), *(ca.end() - 1));
 }
 
 // a.emplace_back(args)
@@ -959,13 +992,13 @@ TYPED_TEST(SequenceContainerRequirments, Back) {
 // Result: reference; const_reference for constant
 // Effects: Equivalent to: return *(a.begin() + n);
 
-TYPED_TEST(SequenceContainerRequirments, ElementAccess) {
+TYPED_TEST(SequenceContainerRequirements, ElementAccess) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
   auto device = this->unique();
 
-  for (auto i = 0ul; i < device.size(); ++i)
+  for (auto i = 0uz; i < device.size(); ++i)
     EXPECT_EQ(device[i], *(device.begin() + i));
 }
 
@@ -974,7 +1007,7 @@ TYPED_TEST(SequenceContainerRequirments, ElementAccess) {
 // Returns: *(a.begin() + n)
 // Throws: out_of_range if n >= a.size().
 
-TYPED_TEST(SequenceContainerRequirments, ElementAccessAt) {
+TYPED_TEST(SequenceContainerRequirements, ElementAccessAt) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
