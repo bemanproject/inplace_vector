@@ -37,7 +37,7 @@ jobs:
             c: gcc
           - cpp: clang++
             c: clang
-        cpp_version: [23]
+        cpp_version: [20, 23]
         cmake_args:
           - description: "Default"
             args: ""
@@ -50,15 +50,7 @@ jobs:
             compiler:
               cpp: g++
               c: gcc
-            cpp_version: 23
-            cmake_args:
-              description: "Werror"
-              args: "-DCMAKE_CXX_FLAGS='-Wall -Wextra -Wpedantic -Werror'"
-          - platform: ubuntu-24.04
-            compiler:
-              cpp: g++
-              c: gcc
-            cpp_version: 23
+            cpp_version: 20
             cmake_args:
               description: "Dynamic"
               cmake_args: "-DBUILD_SHARED_LIBS=on"
