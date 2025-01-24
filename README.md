@@ -27,6 +27,18 @@ making it easy to teach and learn,
 and the inplace storage guarantee makes it useful in environments in
 which dynamic memory allocations are undesired.
 
+#### Note on implementation progress
+
+Current implementation implements all public interfaces defined in the paper.
+However constexpr related functionalities are not tested and maybe broken.
+
+There have been minor updates to the wording after the paper is accepted, notably [P3247](wg21.link/P3247).
+Which changes the requirements for constexpr support.
+This will likely be preceded with [P3074](wg21.link/P3074).
+These has not been implemented yet.
+
+Contributions are welcome.
+
 ### Code example
 
 ```cpp
@@ -60,7 +72,7 @@ template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
 
 ### Compiler support
 
-Building this repository requires **C++23** or later.
+Building this repository requires **C++20** or later.
 
 ### Dependencies
 
@@ -74,7 +86,7 @@ TODO: tested platforms.
 
 ```text
 # Configure build
-$ cmake -S . -B build -DCMAKE_CXX_STANDARD=23
+$ cmake -S . -B build -DCMAKE_CXX_STANDARD=20
 -- The CXX compiler identification is GNU 11.4.0
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
