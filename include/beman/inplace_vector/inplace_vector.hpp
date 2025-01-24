@@ -313,7 +313,7 @@ template <class = void>
 [[noreturn]]
 static constexpr void __assert_failure(char const *__file, int __line,
                                        char const *__msg) {
-  if consteval {
+  if (std::is_constant_evaluated()) {
     throw __msg; // TODO: std lib implementer, do better here
   } else {
     std::fprintf(stderr, "%s(%d): %s\n", __file, __line, __msg);
@@ -460,7 +460,11 @@ public:
   constexpr __non_trivial &operator=(__non_trivial const &) noexcept = default;
   constexpr __non_trivial(__non_trivial &&) noexcept = default;
   constexpr __non_trivial &operator=(__non_trivial &&) noexcept = default;
-  constexpr ~__non_trivial() = default;
+
+  constexpr ~__non_trivial()
+    requires(is_trivially_destructible_v<__T>)
+  = default;
+  constexpr ~__non_trivial() { destroy(__data(), __data() + __size()); }
 };
 
 // Selects the vector storage.
@@ -501,7 +505,7 @@ public:
   using const_reverse_iterator = ::std::reverse_iterator<const_iterator>;
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
-  constexpr inplace_vector() noexcept { __unsafe_set_size(0); }
+  constexpr inplace_vector() noexcept = default;
   // constexpr explicit inplace_vector(size_type __n);
   // constexpr inplace_vector(size_type __n, const __T& __value);
   // template <class __InputIterator>  // BUGBUG: why not model input_iterator?
@@ -695,11 +699,12 @@ public:
   }
 
   template <class... __Args>
-  constexpr void emplace_back(__Args &&...__args)
+  constexpr __T &emplace_back(__Args &&...__args)
     requires(constructible_from<__T, __Args...>)
   {
     if (!try_emplace_back(::std::forward<__Args>(__args)...)) [[unlikely]]
       throw bad_alloc();
+    return back();
   }
   constexpr __T &push_back(const __T &__x)
     requires(constructible_from<__T, const __T &>)
@@ -770,7 +775,8 @@ public:
              movable<__T>)
   {
     __assert_iterator_in_range(__position);
-    __assert_valid_iterator_pair(__first, __last);
+    // __assert_valid_iterator_pair(__first, __last); // does not work with
+    // arbitrary InputIterators
     if constexpr (random_access_iterator<__InputIterator>) {
       if (size() + static_cast<size_type>(distance(__first, __last)) >
           capacity()) [[unlikely]]
@@ -935,27 +941,60 @@ public:
   }
 
   constexpr inplace_vector(const inplace_vector &__x)
-    requires(copyable<__T>)
+    requires(__N == 0 || is_trivially_copy_constructible_v<__T>)
+  = default;
+
+  constexpr inplace_vector(const inplace_vector &__x)
+    requires(__N != 0 && !is_trivially_copy_constructible_v<__T> &&
+             copyable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(__e);
   }
+
   constexpr inplace_vector(inplace_vector &&__x)
-    requires(movable<__T>)
+    requires(__N == 0 || is_trivially_move_constructible_v<__T>)
+  = default;
+
+  constexpr inplace_vector(inplace_vector &&__x)
+    requires(__N != 0 && !is_trivially_move_constructible_v<__T> &&
+             movable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(::std::move(__e));
   }
+
   constexpr inplace_vector &operator=(const inplace_vector &__x)
-    requires(copyable<__T>)
+    requires(__N == 0 || (std::is_trivially_destructible_v<__T> &&
+                          std::is_trivially_copy_constructible_v<__T> &&
+                          std::is_trivially_copy_assignable_v<__T>))
+  = default;
+
+  constexpr inplace_vector &operator=(const inplace_vector &__x)
+    requires(__N != 0 &&
+             !(std::is_trivially_destructible_v<__T> &&
+               std::is_trivially_copy_constructible_v<__T> &&
+               std::is_trivially_copy_assignable_v<__T>) &&
+             copyable<__T>)
   {
     clear();
     for (auto &&__e : __x)
       emplace_back(__e);
     return *this;
   }
+
   constexpr inplace_vector &operator=(inplace_vector &&__x)
-    requires(movable<__T>)
+    requires(__N == 0 || (std::is_trivially_destructible_v<__T> &&
+                          std::is_trivially_move_constructible_v<__T> &&
+                          std::is_trivially_move_assignable_v<__T>))
+  = default;
+
+  constexpr inplace_vector &operator=(inplace_vector &&__x)
+    requires(__N != 0 &&
+             !(std::is_trivially_destructible_v<__T> &&
+               std::is_trivially_move_constructible_v<__T> &&
+               std::is_trivially_move_assignable_v<__T>) &&
+             movable<__T>)
   {
     clear();
     for (auto &&__e : __x)
@@ -986,7 +1025,7 @@ public:
     requires(constructible_from<__T, ranges::range_reference_t<__R>> &&
              movable<__T>)
   {
-    assign(begin(__rg), end(__rg));
+    assign(std::begin(__rg), std::end(__rg));
   }
   constexpr void assign(size_type __n, const __T &__u)
     requires(constructible_from<__T, const __T &> && movable<__T>)
