@@ -262,6 +262,7 @@ Software.
 #include <functional> // for less and equal_to
 #include <iterator>   // for reverse_iterator and iterator traits
 #include <limits>     // for numeric_limits
+#include <memory>     // for destroy
 #include <new>        // for operator new
 #include <ranges>
 #include <stdexcept>   // for length_error
