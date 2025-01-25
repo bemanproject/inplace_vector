@@ -464,9 +464,9 @@ public:
   constexpr __non_trivial &operator=(__non_trivial &&) noexcept = default;
 
   constexpr ~__non_trivial()
-    requires(is_trivially_destructible_v<__T>)
+    requires(std::is_trivially_destructible_v<__T>)
   = default;
-  constexpr ~__non_trivial() { destroy(__data(), __data() + __size()); }
+  constexpr ~__non_trivial() { std::destroy(__data(), __data() + __size()); }
 };
 
 // Selects the vector storage.
@@ -701,7 +701,7 @@ public:
   }
 
   template <class... __Args>
-  constexpr T &emplace_back(__Args &&...__args)
+  constexpr __T &emplace_back(__Args &&...__args)
     requires(std::constructible_from<__T, __Args...>)
   {
     if (!try_emplace_back(std::forward<__Args>(__args)...)) [[unlikely]]
@@ -954,7 +954,7 @@ public:
 
   constexpr inplace_vector(const inplace_vector &__x)
     requires(__N != 0 && !std::is_trivially_copy_constructible_v<__T> &&
-             copyable<__T>)
+             std::copyable<__T>)
   {
     for (auto &&__e : __x)
       emplace_back(__e);

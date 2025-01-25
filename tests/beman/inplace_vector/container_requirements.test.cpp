@@ -998,7 +998,7 @@ TYPED_TEST(SequenceContainerRequirements, ElementAccess) {
 
   auto device = this->unique();
 
-  for (auto i = 0uz; i < device.size(); ++i)
+  for (auto i = 0ul; i < device.size(); ++i)
     EXPECT_EQ(device[i], *(device.begin() + i));
 }
 
