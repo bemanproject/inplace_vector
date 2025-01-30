@@ -344,19 +344,6 @@ concept __container_compatible_range =
 // Types implementing the `inplace_vector`'s storage
 namespace beman::details::inplace_vector::storage {
 
-// TODO: flesh out
-template <class __T, size_t __N> struct __aligned_storage2 {
-  alignas(__T) std::byte __d[sizeof(__T) * __N];
-  constexpr __T *__data(size_t __i) noexcept {
-    __IV_EXPECT(__i < __N);
-    return reinterpret_cast<__T *>(__d) + __i;
-  }
-  constexpr const __T *__data(size_t __i) const noexcept {
-    __IV_EXPECT(__i < __N);
-    return reinterpret_cast<const __T *>(__d) + __i;
-  }
-};
-
 // Storage for zero elements.
 template <class __T> struct __zero_sized {
 protected:
@@ -388,10 +375,10 @@ protected:
 
 private:
   // If value_type is const, then const std::array of non-const elements:
-  using __data_t =
+  using array_based_storage =
       std::conditional_t<!std::is_const_v<__T>, std::array<__T, __N>,
                          const std::array<std::remove_const_t<__T>, __N>>;
-  alignas(alignof(__T)) __data_t __data_{};
+  alignas(alignof(__T)) array_based_storage __data_{};
   __size_type __size_ = 0;
 
 protected:
@@ -413,6 +400,18 @@ public:
   constexpr ~__trivial() = default;
 };
 
+template <class __T, size_t __N> struct raw_byte_based_storage {
+  alignas(__T) std::byte __d[sizeof(__T) * __N];
+  constexpr __T *__data(size_t __i) noexcept {
+    __IV_EXPECT(__i < __N);
+    return reinterpret_cast<__T *>(__d) + __i;
+  }
+  constexpr const __T *__data(size_t __i) const noexcept {
+    __IV_EXPECT(__i < __N);
+    return reinterpret_cast<const __T *>(__d) + __i;
+  }
+};
+
 /// Storage for non-trivial elements.
 template <class __T, size_t __N> struct __non_trivial {
   static_assert(!std::is_trivial_v<__T>,
@@ -423,10 +422,10 @@ protected:
   using __size_type = __smallest_size_t<__N>;
 
 private:
-  using __data_t = std::conditional_t<
-      !std::is_const_v<__T>, __aligned_storage2<__T, __N>,
-      const __aligned_storage2<std::remove_const_t<__T>, __N>>;
-  __data_t __data_{}; // BUGBUG: test SIMD types
+  using byte_based_storage = std::conditional_t<
+      !std::is_const_v<__T>, raw_byte_based_storage<__T, __N>,
+      const raw_byte_based_storage<std::remove_const_t<__T>, __N>>;
+  byte_based_storage __data_{}; // BUGBUG: test SIMD types
   __size_type __size_ = 0;
 
 protected:
