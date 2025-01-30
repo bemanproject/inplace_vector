@@ -148,7 +148,7 @@ jobs:
       - name: Install Compiler
         id: install-compiler
         run: |
-          if [ "${{ matrix.compilers.class }}" = "GNU" ]; then
+          if [ "${{ matrix.compilers.class }}" = "gnu" ]; then
             CC=gcc-${{ matrix.compilers.version }}
             CXX=g++-${{ matrix.compilers.version }}
           else
