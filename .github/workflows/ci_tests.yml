@@ -141,7 +141,7 @@ jobs:
           - class: llvm
             version: 17
     container:
-      image: ghcr.io/wusatosi/cpp-docker:${{ compilers.class }}-${{ compilers.version }}
+      image: ghcr.io/wusatosi/cpp-docker:${{ matrix.compilers.class }}-${{ matrix.compilers.version }}
     name: "Compiler: ${{ matrix.compilers.class }} ${{ matrix.compilers.version }}"
     steps:
       - uses: actions/checkout@v4
