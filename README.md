@@ -74,7 +74,7 @@ template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
 
 Building this repository requires **C++20** or later.
 
-We aim to bring the compiler requirement down to C++17
+We will evaluate the possibility of partial support for C++17
 when constexpr is fully supported and tested.
 
 ### Dependencies
