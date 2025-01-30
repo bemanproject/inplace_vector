@@ -478,13 +478,13 @@ public:
   //   constexpr ~inplace_vector();
   // from base-class, trivial if is_trivially_destructible_v<T> &&
   // is_trivially_copy_assignable_v<T>
-  //   constexpr inplace_vector& operator=(const inplace_vector& __other);
+  //   constexpr inplace_vector& operator=(const inplace_vector& other);
   // from base-class, trivial if is_trivially_destructible_v<T> &&
   // is_trivially_copy_assignable_v<T>
-  //   constexpr inplace_vector& operator=(inplace_vector&& __other)
+  //   constexpr inplace_vector& operator=(inplace_vector&& other)
   //   noexcept(N == 0 || is_nothrow_move_assignable_v<T>);
   // template <class InputIterator> // BUGBUG: why not model input_iterator
-  //  constexpr void assign(InputIterator first, InputIterator l__ast);
+  //  constexpr void assign(InputIterator first, InputIterator last);
   // template<details::inplace_vector::container_compatible_range<T> R>
   //  constexpr void assign_range(R&& rg);
   // constexpr void assign(size_type n, const T& u);
