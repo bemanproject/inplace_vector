@@ -1078,6 +1078,22 @@ public:
   }
 };
 
+template <typename T, std::size_t N, typename U = T>
+constexpr std::size_t erase(inplace_vector<T, N> &c, const U &value) {
+  auto it = std::remove(c.begin(), c.end(), value);
+  auto r = std::distance(it, c.end());
+  c.erase(it, c.end());
+  return r;
+}
+
+template <typename T, std::size_t N, typename Predicate>
+constexpr std::size_t erase_if(inplace_vector<T, N> &c, Predicate pred) {
+  auto it = std::remove_if(c.begin(), c.end(), pred);
+  auto r = std::distance(it, c.end());
+  c.erase(it, c.end());
+  return r;
+}
+
 } // namespace beman
 
 // undefine all the internal macros

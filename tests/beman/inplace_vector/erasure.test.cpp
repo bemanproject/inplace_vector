@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <gtest/gtest.h>
 
 #include "gtest_setup.hpp"
@@ -34,11 +35,8 @@ TYPED_TEST(Erasure, ByValue) {
       device.push_back(duplicates);
   }
 
-  // TODO: uncomment this after erase is implemented
-  // beman::erase(device, duplicates);
-  // EXPECT_EQ(uniques, device);
-
-  GTEST_SKIP() << "Not implemented";
+  beman::erase(device, duplicates);
+  EXPECT_EQ(uniques, device);
 }
 
 TYPED_TEST(Erasure, ByPred) {
@@ -61,11 +59,10 @@ TYPED_TEST(Erasure, ByPred) {
   for (auto i = 0; i < static_cast<int>(device.capacity()); ++i)
     device.push_back(T{i});
 
-  // TODO: complete this when its implemented
-  // beman::erase_if(device,
-  //                 [&](auto &v) { return v.value > (device.capacity() / 2);
-  //                 });
-
-  GTEST_SKIP() << "Not implemented";
+  beman::erase_if(device,
+                  [&](auto &v) { return v.value > (device.capacity() / 2); });
+  EXPECT_TRUE(std::all_of(device.begin(), device.end(), [&](auto val) {
+    return val.value <= (device.capacity() / 2);
+  }));
 }
 }; // namespace
