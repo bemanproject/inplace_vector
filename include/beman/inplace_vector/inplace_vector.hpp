@@ -280,8 +280,6 @@ inline constexpr from_range_t from_range;
 // Private utilities
 namespace beman::details::inplace_vector {
 
-using namespace beman::details::inplace_vector;
-
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
 template <size_t N>
