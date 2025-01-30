@@ -339,13 +339,6 @@ concept __container_compatible_range =
     std::ranges::input_range<__Rng> &&
     std::convertible_to<std::ranges::range_reference_t<__Rng>, __T>;
 
-template <class __Ptr, class __T>
-concept __move_or_copy_insertable_from = requires(__Ptr __ptr, __T &&__value) {
-  {
-    std::construct_at(__ptr, std::forward<__T &&>(__value))
-  } -> std::same_as<__Ptr>;
-};
-
 } // namespace beman::details::inplace_vector
 
 // Types implementing the `inplace_vector`'s storage
@@ -859,7 +852,7 @@ public:
   }
 
   template <details::inplace_vector::__container_compatible_range<__T> __R>
-  constexpr inplace_vector(from_range_t, __R &&__rg)
+  constexpr inplace_vector(beman::from_range_t, __R &&__rg)
     requires(
         std::constructible_from<__T, std::ranges::range_reference_t<__R>> &&
         std::movable<__T>)
