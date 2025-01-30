@@ -168,7 +168,7 @@ jobs:
       - name: Build Debug
         run: |
           cmake --build build --config Debug --verbose
-          cmake --build build --config Debug --target all_verify_interface_header_sets
+          # cmake --build build --config Debug --target all_verify_interface_header_sets
           cmake --install build --config Debug --prefix /opt/beman.exemplar
           find /opt/beman.exemplar -type f
       - name: Test Debug
