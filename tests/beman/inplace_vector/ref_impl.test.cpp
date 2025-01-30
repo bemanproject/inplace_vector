@@ -347,14 +347,14 @@ template <typename T, std::size_t N> void test_all() {
 
 int main() {
   { // storage
-    using beman::details::inplace_vector::storage::_t;
     using beman::details::inplace_vector::storage::non_trivial;
+    using beman::details::inplace_vector::storage::storage_for;
     using beman::details::inplace_vector::storage::trivial;
     using beman::details::inplace_vector::storage::zero_sized;
 
-    static_assert(std::is_same<_t<int, 0>, zero_sized<int>>{});
-    static_assert(std::is_same<_t<int, 10>, trivial<int, 10>>{});
-    static_assert(std::is_same<_t<std::unique_ptr<int>, 10>,
+    static_assert(std::is_same<storage_for<int, 0>, zero_sized<int>>{});
+    static_assert(std::is_same<storage_for<int, 10>, trivial<int, 10>>{});
+    static_assert(std::is_same<storage_for<std::unique_ptr<int>, 10>,
                                non_trivial<std::unique_ptr<int>, 10>>{},
                   "");
   }

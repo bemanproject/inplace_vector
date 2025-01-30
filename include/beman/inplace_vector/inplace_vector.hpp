@@ -348,8 +348,8 @@ namespace beman::details::inplace_vector::storage {
 template <class T> struct zero_sized {
 protected:
   using size_type = uint8_t;
-  static constexpr T *__data() noexcept { return nullptr; }
-  static constexpr size_type __size() noexcept { return 0; }
+  static constexpr T *storage_data() noexcept { return nullptr; }
+  static constexpr size_type storage_size() noexcept { return 0; }
   static constexpr void unsafe_set_size(size_t new_size) noexcept {
     __IV_EXPECT(new_size == 0 &&
                 "tried to change size of empty storage to non-zero value");
@@ -382,9 +382,11 @@ private:
   size_type storage_size_ = 0;
 
 protected:
-  constexpr const T *__data() const noexcept { return storage_data_.data(); }
-  constexpr T *__data() noexcept { return storage_data_.data(); }
-  constexpr size_type __size() const noexcept { return storage_size_; }
+  constexpr const T *storage_data() const noexcept {
+    return storage_data_.data();
+  }
+  constexpr T *storage_data() noexcept { return storage_data_.data(); }
+  constexpr size_type storage_size() const noexcept { return storage_size_; }
   constexpr void unsafe_set_size(size_t new_size) noexcept {
     __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
     storage_size_ = size_type(new_size);
@@ -401,11 +403,11 @@ public:
 
 template <class T, size_t N> struct raw_byte_based_storage {
   alignas(T) std::byte _d[sizeof(T) * N];
-  constexpr T *__data(size_t i) noexcept {
+  constexpr T *storage_data(size_t i) noexcept {
     __IV_EXPECT(i < N);
     return reinterpret_cast<T *>(_d) + i;
   }
-  constexpr const T *__data(size_t i) const noexcept {
+  constexpr const T *storage_data(size_t i) const noexcept {
     __IV_EXPECT(i < N);
     return reinterpret_cast<const T *>(_d) + i;
   }
@@ -428,9 +430,11 @@ private:
   size_type storage_size_ = 0;
 
 protected:
-  constexpr const T *__data() const noexcept { return storage_data_.__data(0); }
-  constexpr T *__data() noexcept { return storage_data_.__data(0); }
-  constexpr size_type __size() const noexcept { return storage_size_; }
+  constexpr const T *storage_data() const noexcept {
+    return storage_data_.storage_data(0);
+  }
+  constexpr T *storage_data() noexcept { return storage_data_.storage_data(0); }
+  constexpr size_type storage_size() const noexcept { return storage_size_; }
   constexpr void unsafe_set_size(size_t new_size) noexcept {
     __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
     storage_size_ = size_type(new_size);
@@ -446,12 +450,14 @@ public:
   constexpr ~non_trivial()
     requires(std::is_trivially_destructible_v<T>)
   = default;
-  constexpr ~non_trivial() { std::destroy(__data(), __data() + __size()); }
+  constexpr ~non_trivial() {
+    std::destroy(storage_data(), storage_data() + storage_size());
+  }
 };
 
 // Selects the vector storage.
 template <class T, size_t N>
-using _t = std::conditional_t<
+using storage_for = std::conditional_t<
     N == 0, zero_sized<T>,
     std::conditional_t<std::is_trivial_v<T>, trivial<T, N>, non_trivial<T, N>>>;
 
@@ -461,14 +467,15 @@ namespace beman {
 
 /// Dynamically-resizable fixed-N vector with inplace storage.
 template <class T, size_t N>
-struct inplace_vector : private details::inplace_vector::storage::_t<T, N> {
+struct inplace_vector
+    : private details::inplace_vector::storage::storage_for<T, N> {
 private:
   static_assert(std::is_nothrow_destructible_v<T>,
                 "T must be nothrow destructible");
-  using __base_t = details::inplace_vector::storage::_t<T, N>;
-  using __base_t::__data;
-  using __base_t::__size;
-  using __base_t::unsafe_set_size;
+  using base_t = details::inplace_vector::storage::storage_for<T, N>;
+  using base_t::storage_data;
+  using base_t::storage_size;
+  using base_t::unsafe_set_size;
 
 public:
   using value_type = T;
@@ -515,8 +522,8 @@ public:
   // constexpr void assign(std::initializer_list<T> il);
 
   // iterators
-  constexpr iterator begin() noexcept { return __data(); }
-  constexpr const_iterator begin() const noexcept { return __data(); }
+  constexpr iterator begin() noexcept { return storage_data(); }
+  constexpr const_iterator begin() const noexcept { return storage_data(); }
   constexpr iterator end() noexcept { return begin() + size(); }
   constexpr const_iterator end() const noexcept { return begin() + size(); }
   constexpr reverse_iterator rbegin() noexcept {
@@ -532,7 +539,7 @@ public:
     return const_reverse_iterator(begin());
   }
 
-  constexpr const_iterator cbegin() const noexcept { return __data(); }
+  constexpr const_iterator cbegin() const noexcept { return storage_data(); }
   constexpr const_iterator cend() const noexcept { return cbegin() + size(); }
   constexpr const_reverse_iterator crbegin() const noexcept {
     return const_reverse_iterator(cend());
@@ -541,8 +548,10 @@ public:
     return const_reverse_iterator(cbegin());
   }
 
-  [[nodiscard]] constexpr bool empty() const noexcept { return __size() == 0; };
-  constexpr size_type size() const noexcept { return __size(); }
+  [[nodiscard]] constexpr bool empty() const noexcept {
+    return storage_size() == 0;
+  };
+  constexpr size_type size() const noexcept { return storage_size(); }
   static constexpr size_type max_size() noexcept { return N; }
   static constexpr size_type capacity() noexcept { return N; }
   // constexpr void resize(size_type sz);
@@ -576,8 +585,8 @@ public:
   }
 
   // [containers.sequences.inplace_vector.data], data access
-  constexpr T *data() noexcept { return __data(); }
-  constexpr const T *data() const noexcept { return __data(); }
+  constexpr T *data() noexcept { return storage_data(); }
+  constexpr const T *data() const noexcept { return storage_data(); }
 
   // [containers.sequences.inplace_vector.modifiers], modifiers
   // template <class... Args>
