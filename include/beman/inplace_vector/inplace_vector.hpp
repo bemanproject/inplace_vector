@@ -301,12 +301,12 @@ namespace beman::details::inplace_vector {
 
 template <class = void>
 [[noreturn]]
-static constexpr void __assert_failure(char const *__file, int __line,
+static constexpr void __assert_failure(char const *file, int __line,
                                        char const *__msg) {
   if (std::is_constant_evaluated()) {
     throw __msg; // TODO: std lib implementer, do better here
   } else {
-    std::fprintf(stderr, "%s(%d): %s\n", __file, __line, __msg);
+    std::fprintf(stderr, "%s(%d): %s\n", file, __line, __msg);
     std::abort();
   }
 }
@@ -316,7 +316,7 @@ using namespace beman::details::inplace_vector;
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
 template <size_t N>
-using __smallest_size_t
+using smallest_size_t
 = std::conditional_t<(N < std::numeric_limits<uint8_t>::max()),  uint8_t,
     std::conditional_t<(N < std::numeric_limits<uint16_t>::max()), uint16_t,
     std::conditional_t<(N < std::numeric_limits<uint32_t>::max()), uint32_t,
@@ -325,19 +325,19 @@ using __smallest_size_t
 // clang-format on
 
 // Index a random-access and sized range doing bound checks in debug builds
-template <std::ranges::random_access_range __Rng, std::integral __Index>
-static constexpr decltype(auto) __index(__Rng &&__rng, __Index __i) noexcept
-  requires(std::ranges::sized_range<__Rng>)
+template <std::ranges::random_access_range Rng, std::integral Index>
+static constexpr decltype(auto) index(Rng &&rng, Index i) noexcept
+  requires(std::ranges::sized_range<Rng>)
 {
-  __IV_EXPECT(static_cast<ptrdiff_t>(__i) < std::ranges::size(__rng));
-  return std::begin(std::forward<__Rng>(__rng))[std::forward<__Index>(__i)];
+  __IV_EXPECT(static_cast<ptrdiff_t>(i) < std::ranges::size(rng));
+  return std::begin(std::forward<Rng>(rng))[std::forward<Index>(i)];
 }
 
 // http://eel.is/c++draft/container.requirements.general#container.intro.reqmts-2
-template <class __Rng, class T>
-concept __container_compatible_range =
-    std::ranges::input_range<__Rng> &&
-    std::convertible_to<std::ranges::range_reference_t<__Rng>, T>;
+template <class Rng, class T>
+concept container_compatible_range =
+    std::ranges::input_range<Rng> &&
+    std::convertible_to<std::ranges::range_reference_t<Rng>, T>;
 
 } // namespace beman::details::inplace_vector
 
@@ -350,7 +350,7 @@ protected:
   using size_type = uint8_t;
   static constexpr T *__data() noexcept { return nullptr; }
   static constexpr size_type __size() noexcept { return 0; }
-  static constexpr void __unsafe_set_size(size_t new_size) noexcept {
+  static constexpr void unsafe_set_size(size_t new_size) noexcept {
     __IV_EXPECT(new_size == 0 &&
                 "tried to change size of empty storage to non-zero value");
   }
@@ -371,7 +371,7 @@ template <class T, size_t N> struct trivial {
   static_assert(N != size_t{0}, "N  == 0, use zero_sized");
 
 protected:
-  using size_type = __smallest_size_t<N>;
+  using size_type = smallest_size_t<N>;
 
 private:
   // If value_type is const, then const std::array of non-const elements:
@@ -385,7 +385,7 @@ protected:
   constexpr const T *__data() const noexcept { return storage_data_.data(); }
   constexpr T *__data() noexcept { return storage_data_.data(); }
   constexpr size_type __size() const noexcept { return storage_size_; }
-  constexpr void __unsafe_set_size(size_t new_size) noexcept {
+  constexpr void unsafe_set_size(size_t new_size) noexcept {
     __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
     storage_size_ = size_type(new_size);
   }
@@ -401,13 +401,13 @@ public:
 
 template <class T, size_t N> struct raw_byte_based_storage {
   alignas(T) std::byte _d[sizeof(T) * N];
-  constexpr T *__data(size_t __i) noexcept {
-    __IV_EXPECT(__i < N);
-    return reinterpret_cast<T *>(_d) + __i;
+  constexpr T *__data(size_t i) noexcept {
+    __IV_EXPECT(i < N);
+    return reinterpret_cast<T *>(_d) + i;
   }
-  constexpr const T *__data(size_t __i) const noexcept {
-    __IV_EXPECT(__i < N);
-    return reinterpret_cast<const T *>(_d) + __i;
+  constexpr const T *__data(size_t i) const noexcept {
+    __IV_EXPECT(i < N);
+    return reinterpret_cast<const T *>(_d) + i;
   }
 };
 
@@ -418,7 +418,7 @@ template <class T, size_t N> struct non_trivial {
   static_assert(N != size_t{0}, "use storage::zero for N==0");
 
 protected:
-  using size_type = __smallest_size_t<N>;
+  using size_type = smallest_size_t<N>;
 
 private:
   using byte_based_storage = std::conditional_t<
@@ -431,7 +431,7 @@ protected:
   constexpr const T *__data() const noexcept { return storage_data_.__data(0); }
   constexpr T *__data() noexcept { return storage_data_.__data(0); }
   constexpr size_type __size() const noexcept { return storage_size_; }
-  constexpr void __unsafe_set_size(size_t new_size) noexcept {
+  constexpr void unsafe_set_size(size_t new_size) noexcept {
     __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
     storage_size_ = size_type(new_size);
   }
@@ -466,10 +466,9 @@ private:
   static_assert(std::is_nothrow_destructible_v<T>,
                 "T must be nothrow destructible");
   using __base_t = details::inplace_vector::storage::_t<T, N>;
-  using __self = inplace_vector<T, N>;
   using __base_t::__data;
   using __base_t::__size;
-  using __base_t::__unsafe_set_size;
+  using __base_t::unsafe_set_size;
 
 public:
   using value_type = T;
@@ -486,19 +485,19 @@ public:
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
   constexpr inplace_vector() noexcept = default;
-  // constexpr explicit inplace_vector(size_type __n);
-  // constexpr inplace_vector(size_type __n, const T& __value);
-  // template <class __InputIterator>  // BUGBUG: why not model input_iterator?
-  //   constexpr inplace_vector(__InputIterator __first, __InputIterator
-  //   __last);
-  // template <details::inplace_vector::__container_compatible_range<T> __R>
-  //  constexpr inplace_vector(from_range_t, __R&& __rg);
+  // constexpr explicit inplace_vector(size_type n);
+  // constexpr inplace_vector(size_type n, const T& __value);
+  // template <class InputIterator>  // BUGBUG: why not model input_iterator?
+  //   constexpr inplace_vector(InputIterator first, InputIterator
+  //   last);
+  // template <details::inplace_vector::container_compatible_range<T> R>
+  //  constexpr inplace_vector(from_range_t, R&& rg);
   // from base-class, trivial if is_trivially_copy_constructible_v<T>:
   //   constexpr inplace_vector(const inplace_vector&);
   // from base-class, trivial if is_trivially_move_constructible_v<T>
   //   constexpr inplace_vector(inplace_vector&&) noexcept(N == 0 ||
   //   std::is_nothrow_move_constructible_v<T>);
-  // constexpr inplace_vector(std::initializer_list<T> __il);
+  // constexpr inplace_vector(std::initializer_list<T> il);
   // from base-class, trivial if is_trivially_destructible_v<T>
   //   constexpr ~inplace_vector();
   // from base-class, trivial if is_trivially_destructible_v<T> &&
@@ -508,12 +507,12 @@ public:
   // is_trivially_copy_assignable_v<T>
   //   constexpr inplace_vector& operator=(inplace_vector&& __other)
   //   noexcept(N == 0 || is_nothrow_move_assignable_v<T>);
-  // template <class __InputIterator> // BUGBUG: why not model input_iterator
-  //  constexpr void assign(__InputIterator __first, __InputIterator l__ast);
-  // template<details::inplace_vector::__container_compatible_range<T> __R>
-  //  constexpr void assign_range(__R&& __rg);
-  // constexpr void assign(size_type __n, const T& __u);
-  // constexpr void assign(std::initializer_list<T> __il);
+  // template <class InputIterator> // BUGBUG: why not model input_iterator
+  //  constexpr void assign(InputIterator first, InputIterator l__ast);
+  // template<details::inplace_vector::container_compatible_range<T> R>
+  //  constexpr void assign_range(R&& rg);
+  // constexpr void assign(size_type n, const T& u);
+  // constexpr void assign(std::initializer_list<T> il);
 
   // iterators
   constexpr iterator begin() noexcept { return __data(); }
@@ -546,34 +545,34 @@ public:
   constexpr size_type size() const noexcept { return __size(); }
   static constexpr size_type max_size() noexcept { return N; }
   static constexpr size_type capacity() noexcept { return N; }
-  // constexpr void resize(size_type __sz);
-  // constexpr void resize(size_type __sz, const T& __c);
-  constexpr void reserve(size_type __n) {
-    if (__n > N) [[unlikely]]
+  // constexpr void resize(size_type sz);
+  // constexpr void resize(size_type sz, const T& c);
+  constexpr void reserve(size_type n) {
+    if (n > N) [[unlikely]]
       throw std::bad_alloc();
   }
   constexpr void shrink_to_fit() {}
 
   // element access
-  constexpr reference operator[](size_type __n) {
-    return details::inplace_vector::__index(*this, __n);
+  constexpr reference operator[](size_type n) {
+    return details::inplace_vector::index(*this, n);
   }
-  constexpr const_reference operator[](size_type __n) const {
-    return details::inplace_vector::__index(*this, __n);
+  constexpr const_reference operator[](size_type n) const {
+    return details::inplace_vector::index(*this, n);
   }
-  // constexpr const_reference at(size_type __n) const;
-  // constexpr reference       at(size_type __n);
+  // constexpr const_reference at(size_type n) const;
+  // constexpr reference       at(size_type n);
   constexpr reference front() {
-    return details::inplace_vector::__index(*this, size_type(0));
+    return details::inplace_vector::index(*this, size_type(0));
   }
   constexpr const_reference front() const {
-    return details::inplace_vector::__index(*this, size_type(0));
+    return details::inplace_vector::index(*this, size_type(0));
   }
   constexpr reference back() {
-    return details::inplace_vector::__index(*this, size() - size_type(1));
+    return details::inplace_vector::index(*this, size() - size_type(1));
   }
   constexpr const_reference back() const {
-    return details::inplace_vector::__index(*this, size() - size_type(1));
+    return details::inplace_vector::index(*this, size() - size_type(1));
   }
 
   // [containers.sequences.inplace_vector.data], data access
@@ -581,79 +580,78 @@ public:
   constexpr const T *data() const noexcept { return __data(); }
 
   // [containers.sequences.inplace_vector.modifiers], modifiers
-  // template <class... __Args>
-  //  constexpr T& emplace_back(__Args&&... __args);
-  // constexpr T& push_back(const T& __x);
-  // constexpr T& push_back(T&& __x);
-  // template<details::inplace_vector::__container_compatible_range<T> __R>
-  //  constexpr void append_range(__R&& __rg);
+  // template <class... Args>
+  //  constexpr T& emplace_back(Args&&... __args);
+  // constexpr T& push_back(const T& x);
+  // constexpr T& push_back(T&& x);
+  // template<details::inplace_vector::container_compatible_range<T> R>
+  //  constexpr void append_range(R&& rg);
   // constexpr void pop_back();
 
-  // template<class... __Args>
-  //  constexpr T* try_emplace_back(__Args&&... __args);
+  // template<class... Args>
+  //  constexpr T* try_emplace_back(Args&&... __args);
   // constexpr T* try_push_back(const T& __value);
   // constexpr T* try_push_back(T&& __value);
 
-  // template<class... __Args>
-  //  constexpr T& unchecked_emplace_back(__Args&&... __args);
+  // template<class... Args>
+  //  constexpr T& unchecked_emplace_back(Args&&... __args);
   // constexpr T& unchecked_push_back(const T& __value);
   // constexpr T& unchecked_push_back(T&& __value);
 
-  // template <class... __Args>
-  //  constexpr iterator emplace(const_iterator __position, __Args&&... __args);
-  // constexpr iterator insert(const_iterator __position, const T& __x);
-  // constexpr iterator insert(const_iterator __position, T&& __x);
-  // constexpr iterator insert(const_iterator __position, size_type __n, const
-  // T& __x);
-  // template <class __InputIterator>
-  //  constexpr iterator insert(const_iterator __position, __InputIterator
-  //  __first, __InputIterator __last);
-  // template<details::inplace_vector::__container_compatible_range<T> __R>
-  //   constexpr iterator insert_range(const_iterator __position, __R&& __rg);
-  // constexpr iterator insert(const_iterator __position,
+  // template <class... Args>
+  //  constexpr iterator emplace(const_iterator position, Args&&... __args);
+  // constexpr iterator insert(const_iterator position, const T& x);
+  // constexpr iterator insert(const_iterator position, T&& x);
+  // constexpr iterator insert(const_iterator position, size_type n, const
+  // T& x);
+  // template <class InputIterator>
+  //  constexpr iterator insert(const_iterator position, InputIterator
+  //  first, InputIterator last);
+  // template<details::inplace_vector::container_compatible_range<T> R>
+  //   constexpr iterator insert_range(const_iterator position, R&& rg);
+  // constexpr iterator insert(const_iterator position,
   // std::initializer_list<T>
-  // __il); constexpr iterator erase(const_iterator __position); constexpr
-  // iterator erase(const_iterator __first, const_iterator __last); constexpr
-  // void swap(inplace_vector& __x)
+  // il); constexpr iterator erase(const_iterator position); constexpr
+  // iterator erase(const_iterator first, const_iterator last); constexpr
+  // void swap(inplace_vector& x)
   //  noexcept(N == 0 || (std::is_nothrow_swappable_v<T> &&
   //  std::is_nothrow_move_constructible_v<T>));
   // constexpr void clear() noexcept;
 
-  constexpr friend bool operator==(const inplace_vector &__x,
-                                   const inplace_vector &__y) {
-    return __x.size() == __y.size() && std::ranges::equal(__x, __y);
+  constexpr friend bool operator==(const inplace_vector &x,
+                                   const inplace_vector &y) {
+    return x.size() == y.size() && std::ranges::equal(x, y);
   }
   // constexpr friend auto /*synth-three-way-result<T>*/
-  //  operator<=>(const inplace_vector& __x, const inplace_vector& __y);
-  constexpr friend void swap(inplace_vector &__x, inplace_vector &__y) noexcept(
+  //  operator<=>(const inplace_vector& x, const inplace_vector& y);
+  constexpr friend void swap(inplace_vector &x, inplace_vector &y) noexcept(
       N == 0 || (std::is_nothrow_swappable_v<T> &&
                  std::is_nothrow_move_constructible_v<T>)) {
-    __x.swap(__y);
+    x.swap(y);
   }
 
 private: // Utilities
-  constexpr void __assert_iterator_in_range(const_iterator __it) noexcept {
-    __IV_EXPECT(begin() <= __it && "iterator not in range");
-    __IV_EXPECT(__it <= end() && "iterator not in range");
+  constexpr void __assert_iterator_in_range(const_iterator it) noexcept {
+    __IV_EXPECT(begin() <= it && "iterator not in range");
+    __IV_EXPECT(it <= end() && "iterator not in range");
   }
-  constexpr void __assert_valid_iterator_pair(const_iterator __first,
-                                              const_iterator __last) noexcept {
-    __IV_EXPECT(__first <= __last && "invalid iterator pair");
+  constexpr void __assert_valid_iterator_pair(const_iterator first,
+                                              const_iterator last) noexcept {
+    __IV_EXPECT(first <= last && "invalid iterator pair");
+  }
+  constexpr void __assert_iterator_pair_in_range(const_iterator first,
+                                                 const_iterator last) noexcept {
+    __assert_iterator_in_range(first);
+    __assert_iterator_in_range(last);
+    __assert_valid_iterator_pair(first, last);
   }
   constexpr void
-  __assert_iterator_pair_in_range(const_iterator __first,
-                                  const_iterator __last) noexcept {
-    __assert_iterator_in_range(__first);
-    __assert_iterator_in_range(__last);
-    __assert_valid_iterator_pair(__first, __last);
-  }
-  constexpr void
-  __unsafe_destroy(T *__first,
-                   T *__last) noexcept(std::is_nothrow_destructible_v<T>) {
-    __assert_iterator_pair_in_range(__first, __last);
+  unsafe_destroy(T *first,
+                 T *last) noexcept(std::is_nothrow_destructible_v<T>) {
+    __assert_iterator_pair_in_range(first, last);
     if constexpr (N > 0 && !std::is_trivial_v<T>) {
-      for (; __first != __last; ++__first)
-        __first->~T();
+      for (; first != last; ++first)
+        first->~T();
     }
   }
 
@@ -662,295 +660,291 @@ public:
 
   // [containers.sequences.inplace_vector.modifiers], modifiers
 
-  template <class... __Args>
-  constexpr T &unchecked_emplace_back(__Args &&...__args)
-    requires(std::constructible_from<T, __Args...>)
+  template <class... Args>
+  constexpr T &unchecked_emplace_back(Args &&...__args)
+    requires(std::constructible_from<T, Args...>)
   {
     __IV_EXPECT(size() < capacity() && "inplace_vector out-of-memory");
-    std::construct_at(end(), std::forward<__Args>(__args)...);
-    __unsafe_set_size(size() + size_type(1));
+    std::construct_at(end(), std::forward<Args>(__args)...);
+    unsafe_set_size(size() + size_type(1));
     return back();
   }
 
-  template <class... __Args> constexpr T *try_emplace_back(__Args &&...__args) {
+  template <class... Args> constexpr T *try_emplace_back(Args &&...__args) {
     if (size() == capacity()) [[unlikely]]
       return nullptr;
-    return &unchecked_emplace_back(std::forward<__Args>(__args)...);
+    return &unchecked_emplace_back(std::forward<Args>(__args)...);
   }
 
-  template <class... __Args>
-  constexpr T &emplace_back(__Args &&...__args)
-    requires(std::constructible_from<T, __Args...>)
+  template <class... Args>
+  constexpr T &emplace_back(Args &&...__args)
+    requires(std::constructible_from<T, Args...>)
   {
-    if (!try_emplace_back(std::forward<__Args>(__args)...)) [[unlikely]]
+    if (!try_emplace_back(std::forward<Args>(__args)...)) [[unlikely]]
       throw std::bad_alloc();
     return back();
   }
-  constexpr T &push_back(const T &__x)
+  constexpr T &push_back(const T &x)
     requires(std::constructible_from<T, const T &>)
   {
-    emplace_back(__x);
+    emplace_back(x);
     return back();
   }
-  constexpr T &push_back(T &&__x)
+  constexpr T &push_back(T &&x)
     requires(std::constructible_from<T, T &&>)
   {
-    emplace_back(std::forward<T &&>(__x));
+    emplace_back(std::forward<T &&>(x));
     return back();
   }
 
-  constexpr T *try_push_back(const T &__x)
+  constexpr T *try_push_back(const T &x)
     requires(std::constructible_from<T, const T &>)
   {
-    return try_emplace_back(__x);
+    return try_emplace_back(x);
   }
-  constexpr T *try_push_back(T &&__x)
+  constexpr T *try_push_back(T &&x)
     requires(std::constructible_from<T, T &&>)
   {
-    return try_emplace_back(std::forward<T &&>(__x));
+    return try_emplace_back(std::forward<T &&>(x));
   }
 
-  constexpr T &unchecked_push_back(const T &__x)
+  constexpr T &unchecked_push_back(const T &x)
     requires(std::constructible_from<T, const T &>)
   {
-    return unchecked_emplace_back(__x);
+    return unchecked_emplace_back(x);
   }
-  constexpr T &unchecked_push_back(T &&__x)
+  constexpr T &unchecked_push_back(T &&x)
     requires(std::constructible_from<T, T &&>)
   {
-    return unchecked_emplace_back(std::forward<T &&>(__x));
+    return unchecked_emplace_back(std::forward<T &&>(x));
   }
 
-  template <details::inplace_vector::__container_compatible_range<T> __R>
-  constexpr void append_range(__R &&__rg)
-    requires(std::constructible_from<T, std::ranges::range_reference_t<__R>>)
+  template <details::inplace_vector::container_compatible_range<T> R>
+  constexpr void append_range(R &&rg)
+    requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
   {
-    if constexpr (std::ranges::sized_range<__R>) {
-      if (size() + std::ranges::size(__rg) > capacity()) [[unlikely]]
+    if constexpr (std::ranges::sized_range<R>) {
+      if (size() + std::ranges::size(rg) > capacity()) [[unlikely]]
         throw std::bad_alloc();
     }
-    for (auto &&__e : __rg) {
+    for (auto &&e : rg) {
       if (size() == capacity()) [[unlikely]]
         throw std::bad_alloc();
-      emplace_back(std::forward<decltype(__e)>(__e));
+      emplace_back(std::forward<decltype(e)>(e));
     }
   }
 
-  template <class... __Args>
-  constexpr iterator emplace(const_iterator __position, __Args &&...__args)
-    requires(std::constructible_from<T, __Args...> && std::movable<T>)
+  template <class... Args>
+  constexpr iterator emplace(const_iterator position, Args &&...__args)
+    requires(std::constructible_from<T, Args...> && std::movable<T>)
   {
-    __assert_iterator_in_range(__position);
+    __assert_iterator_in_range(position);
     auto __b = end();
-    emplace_back(std::forward<__Args>(__args)...);
-    auto __pos = begin() + (__position - begin());
-    std::rotate(__pos, __b, end());
-    return __pos;
+    emplace_back(std::forward<Args>(__args)...);
+    auto pos = begin() + (position - begin());
+    std::rotate(pos, __b, end());
+    return pos;
   }
 
-  template <class __InputIterator>
-  constexpr iterator insert(const_iterator __position, __InputIterator __first,
-                            __InputIterator __last)
-    requires(
-        std::constructible_from<T, std::iter_reference_t<__InputIterator>> &&
-        std::movable<T>)
+  template <class InputIterator>
+  constexpr iterator insert(const_iterator position, InputIterator first,
+                            InputIterator last)
+    requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
+             std::movable<T>)
   {
-    __assert_iterator_in_range(__position);
-    if constexpr (std::random_access_iterator<__InputIterator>) {
-      if (size() + static_cast<size_type>(std::distance(__first, __last)) >
+    __assert_iterator_in_range(position);
+    if constexpr (std::random_access_iterator<InputIterator>) {
+      if (size() + static_cast<size_type>(std::distance(first, last)) >
           capacity()) [[unlikely]]
         throw std::bad_alloc{};
     }
     auto __b = end();
-    for (; __first != __last; ++__first)
-      emplace_back(std::move(*__first));
-    auto __pos = begin() + (__position - begin());
-    std::rotate(__pos, __b, end());
-    return __pos;
+    for (; first != last; ++first)
+      emplace_back(std::move(*first));
+    auto pos = begin() + (position - begin());
+    std::rotate(pos, __b, end());
+    return pos;
   }
 
-  template <details::inplace_vector::__container_compatible_range<T> __R>
-  constexpr iterator insert_range(const_iterator __position, __R &&__rg)
-    requires(std::constructible_from<T, std::ranges::range_reference_t<__R>> &&
+  template <details::inplace_vector::container_compatible_range<T> R>
+  constexpr iterator insert_range(const_iterator position, R &&rg)
+    requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
   {
-    return insert(__position, std::begin(__rg), std::end(__rg));
+    return insert(position, std::begin(rg), std::end(rg));
   }
 
-  constexpr iterator insert(const_iterator __position,
-                            std::initializer_list<T> __il)
+  constexpr iterator insert(const_iterator position,
+                            std::initializer_list<T> il)
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
   {
-    return insert_range(__position, __il);
+    return insert_range(position, il);
   }
 
-  constexpr iterator insert(const_iterator __position, size_type __n,
-                            const T &__x)
+  constexpr iterator insert(const_iterator position, size_type n, const T &x)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
   {
-    __assert_iterator_in_range(__position);
+    __assert_iterator_in_range(position);
     auto __b = end();
-    for (size_type __i = 0; __i < __n; ++__i)
-      emplace_back(__x);
-    auto __pos = begin() + (__position - begin());
-    std::rotate(__pos, __b, end());
-    return __pos;
+    for (size_type i = 0; i < n; ++i)
+      emplace_back(x);
+    auto pos = begin() + (position - begin());
+    std::rotate(pos, __b, end());
+    return pos;
   }
 
-  constexpr iterator insert(const_iterator __position, const T &__x)
+  constexpr iterator insert(const_iterator position, const T &x)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
   {
-    return insert(__position, 1, __x);
+    return insert(position, 1, x);
   }
 
-  constexpr iterator insert(const_iterator __position, T &&__x)
+  constexpr iterator insert(const_iterator position, T &&x)
     requires(std::constructible_from<T, T &&> && std::movable<T>)
   {
-    return emplace(__position, std::move(__x));
+    return emplace(position, std::move(x));
   }
 
-  constexpr inplace_vector(std::initializer_list<T> __il)
+  constexpr inplace_vector(std::initializer_list<T> il)
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
   {
-    insert(begin(), __il);
+    insert(begin(), il);
   }
 
-  constexpr inplace_vector(size_type __n, const T &__value)
+  constexpr inplace_vector(size_type n, const T &__value)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
   {
-    insert(begin(), __n, __value);
+    insert(begin(), n, __value);
   }
 
-  constexpr explicit inplace_vector(size_type __n)
+  constexpr explicit inplace_vector(size_type n)
     requires(std::constructible_from<T, T &&> && std::default_initializable<T>)
   {
-    for (size_type __i = 0; __i < __n; ++__i)
+    for (size_type i = 0; i < n; ++i)
       emplace_back(T{});
   }
 
-  template <
-      class __InputIterator> // BUGBUG: why not std::ranges::input_iterator?
-  constexpr inplace_vector(__InputIterator __first, __InputIterator __last)
-    requires(
-        std::constructible_from<T, std::iter_reference_t<__InputIterator>> &&
-        std::movable<T>)
-  {
-    insert(begin(), __first, __last);
-  }
-
-  template <details::inplace_vector::__container_compatible_range<T> __R>
-  constexpr inplace_vector(beman::from_range_t, __R &&__rg)
-    requires(std::constructible_from<T, std::ranges::range_reference_t<__R>> &&
+  template <class InputIterator> // BUGBUG: why not std::ranges::input_iterator?
+  constexpr inplace_vector(InputIterator first, InputIterator last)
+    requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
   {
-    insert_range(begin(), std::forward<__R &&>(__rg));
+    insert(begin(), first, last);
   }
 
-  constexpr iterator erase(const_iterator __first, const_iterator __last)
+  template <details::inplace_vector::container_compatible_range<T> R>
+  constexpr inplace_vector(beman::from_range_t, R &&rg)
+    requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
+             std::movable<T>)
+  {
+    insert_range(begin(), std::forward<R &&>(rg));
+  }
+
+  constexpr iterator erase(const_iterator first, const_iterator last)
     requires(std::movable<T>)
   {
-    __assert_iterator_pair_in_range(__first, __last);
-    iterator __f = begin() + (__first - begin());
-    if (__first != __last) {
-      __unsafe_destroy(std::move(__f + (__last - __first), end(), __f), end());
-      __unsafe_set_size(size() - static_cast<size_type>(__last - __first));
+    __assert_iterator_pair_in_range(first, last);
+    iterator f = begin() + (first - begin());
+    if (first != last) {
+      unsafe_destroy(std::move(f + (last - first), end(), f), end());
+      unsafe_set_size(size() - static_cast<size_type>(last - first));
     }
-    return __f;
+    return f;
   }
 
-  constexpr iterator erase(const_iterator __position)
+  constexpr iterator erase(const_iterator position)
     requires(std::movable<T>)
   {
-    return erase(__position, __position + 1);
+    return erase(position, position + 1);
   }
 
   constexpr void clear() noexcept {
-    __unsafe_destroy(begin(), end());
-    __unsafe_set_size(0);
+    unsafe_destroy(begin(), end());
+    unsafe_set_size(0);
   }
 
-  constexpr void resize(size_type __sz, const T &__c)
+  constexpr void resize(size_type sz, const T &c)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
   {
-    if (__sz == size())
+    if (sz == size())
       return;
-    else if (__sz > N) [[unlikely]]
+    else if (sz > N) [[unlikely]]
       throw std::bad_alloc{};
-    else if (__sz > size())
-      insert(end(), __sz - size(), __c);
+    else if (sz > size())
+      insert(end(), sz - size(), c);
     else {
-      __unsafe_destroy(begin() + __sz, end());
-      __unsafe_set_size(__sz);
+      unsafe_destroy(begin() + sz, end());
+      unsafe_set_size(sz);
     }
   }
-  constexpr void resize(size_type __sz)
+  constexpr void resize(size_type sz)
     requires(std::constructible_from<T, T &&> && std::default_initializable<T>)
   {
-    if (__sz == size())
+    if (sz == size())
       return;
-    else if (__sz > N) [[unlikely]]
+    else if (sz > N) [[unlikely]]
       throw std::bad_alloc{};
-    else if (__sz > size())
-      while (size() != __sz)
+    else if (sz > size())
+      while (size() != sz)
         emplace_back(T{});
     else {
-      __unsafe_destroy(begin() + __sz, end());
-      __unsafe_set_size(__sz);
+      unsafe_destroy(begin() + sz, end());
+      unsafe_set_size(sz);
     }
   }
 
-  constexpr reference at(size_type __pos) {
-    if (__pos >= size()) [[unlikely]]
+  constexpr reference at(size_type pos) {
+    if (pos >= size()) [[unlikely]]
       throw std::out_of_range("inplace_vector::at");
-    return details::inplace_vector::__index(*this, __pos);
+    return details::inplace_vector::index(*this, pos);
   }
-  constexpr const_reference at(size_type __pos) const {
-    if (__pos >= size()) [[unlikely]]
+  constexpr const_reference at(size_type pos) const {
+    if (pos >= size()) [[unlikely]]
       throw std::out_of_range("inplace_vector::at");
-    return details::inplace_vector::__index(*this, __pos);
+    return details::inplace_vector::index(*this, pos);
   }
 
   constexpr void pop_back() {
     __IV_EXPECT(size() > 0 && "pop_back from empty inplace_vector!");
-    __unsafe_destroy(end() - 1, end());
-    __unsafe_set_size(size() - 1);
+    unsafe_destroy(end() - 1, end());
+    unsafe_set_size(size() - 1);
   }
 
-  constexpr inplace_vector(const inplace_vector &__x)
+  constexpr inplace_vector(const inplace_vector &x)
     requires(N == 0 || std::is_trivially_copy_constructible_v<T>)
   = default;
 
-  constexpr inplace_vector(const inplace_vector &__x)
+  constexpr inplace_vector(const inplace_vector &x)
     requires(N != 0 && !std::is_trivially_copy_constructible_v<T> &&
              std::copyable<T>)
   {
-    for (auto &&__e : __x)
-      emplace_back(__e);
+    for (auto &&e : x)
+      emplace_back(e);
   }
 
-  constexpr inplace_vector(inplace_vector &&__x)
+  constexpr inplace_vector(inplace_vector &&x)
     requires(N == 0 || std::is_trivially_move_constructible_v<T>)
   = default;
 
-  constexpr inplace_vector(inplace_vector &&__x)
+  constexpr inplace_vector(inplace_vector &&x)
     requires(N != 0 && !std::is_trivially_move_constructible_v<T> &&
              std::movable<T>)
   {
-    for (auto &&__e : __x)
-      emplace_back(std::move(__e));
+    for (auto &&e : x)
+      emplace_back(std::move(e));
   }
 
-  constexpr inplace_vector &operator=(const inplace_vector &__x)
+  constexpr inplace_vector &operator=(const inplace_vector &x)
     requires(N == 0 || (std::is_trivially_destructible_v<T> &&
                         std::is_trivially_copy_constructible_v<T> &&
                         std::is_trivially_copy_assignable_v<T>))
   = default;
 
-  constexpr inplace_vector &operator=(const inplace_vector &__x)
+  constexpr inplace_vector &operator=(const inplace_vector &x)
     requires(N != 0 &&
              !(std::is_trivially_destructible_v<T> &&
                std::is_trivially_copy_constructible_v<T> &&
@@ -958,18 +952,18 @@ public:
              std::copyable<T>)
   {
     clear();
-    for (auto &&__e : __x)
-      emplace_back(__e);
+    for (auto &&e : x)
+      emplace_back(e);
     return *this;
   }
 
-  constexpr inplace_vector &operator=(inplace_vector &&__x)
+  constexpr inplace_vector &operator=(inplace_vector &&x)
     requires(N == 0 || (std::is_trivially_destructible_v<T> &&
                         std::is_trivially_move_constructible_v<T> &&
                         std::is_trivially_move_assignable_v<T>))
   = default;
 
-  constexpr inplace_vector &operator=(inplace_vector &&__x)
+  constexpr inplace_vector &operator=(inplace_vector &&x)
     requires(N != 0 &&
              !(std::is_trivially_destructible_v<T> &&
                std::is_trivially_move_constructible_v<T> &&
@@ -977,72 +971,71 @@ public:
              std::movable<T>)
   {
     clear();
-    for (auto &&__e : __x)
-      emplace_back(std::move(__e));
+    for (auto &&e : x)
+      emplace_back(std::move(e));
     return *this;
   }
 
   constexpr void
-  swap(inplace_vector &__x) noexcept(N == 0 ||
-                                     (std::is_nothrow_swappable_v<T> &&
-                                      std::is_nothrow_move_constructible_v<T>))
+  swap(inplace_vector &x) noexcept(N == 0 ||
+                                   (std::is_nothrow_swappable_v<T> &&
+                                    std::is_nothrow_move_constructible_v<T>))
     requires(std::movable<T>)
   {
-    auto tmp = std::move(__x);
-    __x = std::move(*this);
+    auto tmp = std::move(x);
+    x = std::move(*this);
     (*this) = std::move(tmp);
   }
 
-  template <class __InputIterator>
-  constexpr void assign(__InputIterator __first, __InputIterator __last)
-    requires(
-        std::constructible_from<T, std::iter_reference_t<__InputIterator>> &&
-        std::movable<T>)
-  {
-    clear();
-    insert(begin(), __first, __last);
-  }
-  template <details::inplace_vector::__container_compatible_range<T> __R>
-  constexpr void assign_range(__R &&__rg)
-    requires(std::constructible_from<T, std::ranges::range_reference_t<__R>> &&
+  template <class InputIterator>
+  constexpr void assign(InputIterator first, InputIterator last)
+    requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
   {
-    assign(std::begin(__rg), std::end(__rg));
+    clear();
+    insert(begin(), first, last);
   }
-  constexpr void assign(size_type __n, const T &__u)
+  template <details::inplace_vector::container_compatible_range<T> R>
+  constexpr void assign_range(R &&rg)
+    requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
+             std::movable<T>)
+  {
+    assign(std::begin(rg), std::end(rg));
+  }
+  constexpr void assign(size_type n, const T &u)
     requires(std::constructible_from<T, const T &> && std::movable<T>)
   {
     clear();
-    insert(begin(), __n, __u);
+    insert(begin(), n, u);
   }
-  constexpr void assign(std::initializer_list<T> __il)
+  constexpr void assign(std::initializer_list<T> il)
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
   {
     clear();
-    insert_range(begin(), __il);
+    insert_range(begin(), il);
   }
 
   constexpr friend int /*synth-three-way-result<T>*/
-  operator<=>(const inplace_vector & __x, const inplace_vector & __y) {
-    if (__x.size() < __y.size())
+  operator<=>(const inplace_vector & x, const inplace_vector & y) {
+    if (x.size() < y.size())
       return -1;
-    if (__x.size() > __y.size())
+    if (x.size() > y.size())
       return +1;
 
-    bool __all_equal = true;
-    bool __all_less = true;
-    for (size_type __i = 0; __i < __x.size(); ++__i) {
-      if (__x[__i] < __y[__i])
-        __all_equal = false;
-      if (__x[__i] == __y[__i])
-        __all_less = false;
+    bool all_equal = true;
+    bool all_less = true;
+    for (size_type i = 0; i < x.size(); ++i) {
+      if (x[i] < y[i])
+        all_equal = false;
+      if (x[i] == y[i])
+        all_less = false;
     }
 
-    if (__all_equal)
+    if (all_equal)
       return 0;
-    if (__all_less)
+    if (all_less)
       return -1;
     return 1;
   }
