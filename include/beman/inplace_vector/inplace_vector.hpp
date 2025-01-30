@@ -268,27 +268,8 @@ Software.
 #include <stdexcept>   // for length_error
 #include <type_traits> // for aligned_storage and all meta-functions
 
-// Optimizer allowed to assume that EXPR evaluates to true
-#define __IV_ASSUME(__EXPR)                                                    \
-  static_cast<void>((__EXPR) ? void(0) : builtin_unreachable)
-
-// Assert pretty printer
-#define __IV_ASSERT(...)                                                       \
-  static_cast<void>((__VA_ARGS__)                                              \
-                        ? void(0)                                              \
-                        : ::beman::details::inplace_vector::__assert_failure(  \
-                              static_cast<const char *>(__FILE__), __LINE__,   \
-                              "assertion failed: " #__VA_ARGS__))
-
-// Assert in debug, assume in release.
-// #ifdef NDEBUG
-// #define __IV_EXPECT(__EXPR) __IV_ASSUME(__EXPR)
-// #else
-// #define __IV_EXPECT(__EXPR) __IV_ASSERT(__EXPR)
-// #endif
-
-// TODO River: Disabled temporarily
-#define __IV_EXPECT(__EXPR)
+// Artifact from previous implementation, can be used as hints for optimizer
+#define IV_EXPECT(EXPR)
 
 // beman::from_range_t
 namespace beman {
@@ -298,18 +279,6 @@ inline constexpr from_range_t from_range;
 
 // Private utilities
 namespace beman::details::inplace_vector {
-
-template <class = void>
-[[noreturn]]
-static constexpr void __assert_failure(char const *file, int __line,
-                                       char const *__msg) {
-  if (std::is_constant_evaluated()) {
-    throw __msg; // TODO: std lib implementer, do better here
-  } else {
-    std::fprintf(stderr, "%s(%d): %s\n", file, __line, __msg);
-    std::abort();
-  }
-}
 
 using namespace beman::details::inplace_vector;
 
@@ -329,7 +298,7 @@ template <std::ranges::random_access_range Rng, std::integral Index>
 static constexpr decltype(auto) index(Rng &&rng, Index i) noexcept
   requires(std::ranges::sized_range<Rng>)
 {
-  __IV_EXPECT(static_cast<ptrdiff_t>(i) < std::ranges::size(rng));
+  IV_EXPECT(static_cast<ptrdiff_t>(i) < std::ranges::size(rng));
   return std::begin(std::forward<Rng>(rng))[std::forward<Index>(i)];
 }
 
@@ -351,8 +320,8 @@ protected:
   static constexpr T *storage_data() noexcept { return nullptr; }
   static constexpr size_type storage_size() noexcept { return 0; }
   static constexpr void unsafe_set_size(size_t new_size) noexcept {
-    __IV_EXPECT(new_size == 0 &&
-                "tried to change size of empty storage to non-zero value");
+    IV_EXPECT(new_size == 0 &&
+              "tried to change size of empty storage to non-zero value");
   }
 
 public:
@@ -388,7 +357,7 @@ protected:
   constexpr T *storage_data() noexcept { return storage_data_.data(); }
   constexpr size_type storage_size() const noexcept { return storage_size_; }
   constexpr void unsafe_set_size(size_t new_size) noexcept {
-    __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
+    IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
     storage_size_ = size_type(new_size);
   }
 
@@ -404,11 +373,11 @@ public:
 template <class T, size_t N> struct raw_byte_based_storage {
   alignas(T) std::byte _d[sizeof(T) * N];
   constexpr T *storage_data(size_t i) noexcept {
-    __IV_EXPECT(i < N);
+    IV_EXPECT(i < N);
     return reinterpret_cast<T *>(_d) + i;
   }
   constexpr const T *storage_data(size_t i) const noexcept {
-    __IV_EXPECT(i < N);
+    IV_EXPECT(i < N);
     return reinterpret_cast<const T *>(_d) + i;
   }
 };
@@ -436,7 +405,7 @@ protected:
   constexpr T *storage_data() noexcept { return storage_data_.storage_data(0); }
   constexpr size_type storage_size() const noexcept { return storage_size_; }
   constexpr void unsafe_set_size(size_t new_size) noexcept {
-    __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
+    IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
     storage_size_ = size_type(new_size);
   }
 
@@ -641,12 +610,12 @@ public:
 
 private: // Utilities
   constexpr void assert_iterator_in_range(const_iterator it) noexcept {
-    __IV_EXPECT(begin() <= it && "iterator not in range");
-    __IV_EXPECT(it <= end() && "iterator not in range");
+    IV_EXPECT(begin() <= it && "iterator not in range");
+    IV_EXPECT(it <= end() && "iterator not in range");
   }
   constexpr void assert_valid_iterator_pair(const_iterator first,
                                             const_iterator last) noexcept {
-    __IV_EXPECT(first <= last && "invalid iterator pair");
+    IV_EXPECT(first <= last && "invalid iterator pair");
   }
   constexpr void assert_iterator_pair_in_range(const_iterator first,
                                                const_iterator last) noexcept {
@@ -673,7 +642,7 @@ public:
   constexpr T &unchecked_emplace_back(Args &&...args)
     requires(std::constructible_from<T, Args...>)
   {
-    __IV_EXPECT(size() < capacity() && "inplace_vector out-of-memory");
+    IV_EXPECT(size() < capacity() && "inplace_vector out-of-memory");
     std::construct_at(end(), std::forward<Args>(args)...);
     unsafe_set_size(size() + size_type(1));
     return back();
@@ -918,7 +887,7 @@ public:
   }
 
   constexpr void pop_back() {
-    __IV_EXPECT(size() > 0 && "pop_back from empty inplace_vector!");
+    IV_EXPECT(size() > 0 && "pop_back from empty inplace_vector!");
     unsafe_destroy(end() - 1, end());
     unsafe_set_size(size() - 1);
   }
@@ -1052,7 +1021,4 @@ public:
 
 } // namespace beman
 
-// undefine all the internal macros
-#undef __IV_ASSUME
-#undef __IV_ASSERT
-#undef __IV_EXPECT
+#undef IV_EXPECT
