@@ -11,21 +11,31 @@ on:
     - cron: '30 15 * * *'
 
 jobs:
-  # preset-test:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       preset: []
-  #   name: "Preset Test: ${{ matrix.preset }}"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Setup build environment
-  #       uses: lukka/get-cmake@latest
-  #       with:
-  #         cmakeVersion: "~3.25.0"
-  #         ninjaVersion: "^1.11.1"
-  #     - name: Run preset
-  #       run: cmake --workflow --preset ${{ matrix.preset }}
+  preset-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        presets:
+          - preset: "gcc-debug"
+            platform: "ubuntu-latest"
+          - preset: "gcc-release"
+            platform: "ubuntu-latest"
+    name: "Preset: ${{ matrix.presets.preset }} on ${{ matrix.presets.platform }}"
+    runs-on: ${{ matrix.presets.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup build environment
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.25.0"
+          ninjaVersion: "^1.11.1"
+      - name: Setup MSVC
+        if: startsWith(matrix.presets.platform, 'windows')
+        uses: TheMrMilchmann/setup-msvc-dev@v3
+        with:
+          arch: x64
+      - name: Run preset
+        run: cmake --workflow --preset ${{ matrix.presets.preset }}
 
   test:
     strategy:
