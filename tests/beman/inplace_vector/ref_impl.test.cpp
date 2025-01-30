@@ -59,16 +59,14 @@ static constexpr void __assert_failure(char const *__file, int __line,
                      "expression failed to throw " #EXCEPT ": " #EXPR);        \
   }
 
-template struct beman::details::inplace_vector::storage::__zero_sized<int>;
-template struct beman::details::inplace_vector::storage::__trivial<int, 10>;
-template struct beman::details::inplace_vector::storage::__non_trivial<
+template struct beman::details::inplace_vector::storage::zero_sized<int>;
+template struct beman::details::inplace_vector::storage::trivial<int, 10>;
+template struct beman::details::inplace_vector::storage::non_trivial<
     std::unique_ptr<int>, 10>;
 
-template struct beman::details::inplace_vector::storage::__zero_sized<
-    const int>;
-template struct beman::details::inplace_vector::storage::__trivial<const int,
-                                                                   10>;
-template struct beman::details::inplace_vector::storage::__non_trivial<
+template struct beman::details::inplace_vector::storage::zero_sized<const int>;
+template struct beman::details::inplace_vector::storage::trivial<const int, 10>;
+template struct beman::details::inplace_vector::storage::non_trivial<
     const std::unique_ptr<int>, 10>;
 
 // empty:
@@ -349,15 +347,15 @@ template <typename T, std::size_t N> void test_all() {
 
 int main() {
   { // storage
-    using beman::details::inplace_vector::storage::__non_trivial;
-    using beman::details::inplace_vector::storage::__trivial;
-    using beman::details::inplace_vector::storage::__zero_sized;
     using beman::details::inplace_vector::storage::_t;
+    using beman::details::inplace_vector::storage::non_trivial;
+    using beman::details::inplace_vector::storage::trivial;
+    using beman::details::inplace_vector::storage::zero_sized;
 
-    static_assert(std::is_same<_t<int, 0>, __zero_sized<int>>{});
-    static_assert(std::is_same<_t<int, 10>, __trivial<int, 10>>{});
+    static_assert(std::is_same<_t<int, 0>, zero_sized<int>>{});
+    static_assert(std::is_same<_t<int, 10>, trivial<int, 10>>{});
     static_assert(std::is_same<_t<std::unique_ptr<int>, 10>,
-                               __non_trivial<std::unique_ptr<int>, 10>>{},
+                               non_trivial<std::unique_ptr<int>, 10>>{},
                   "");
   }
 

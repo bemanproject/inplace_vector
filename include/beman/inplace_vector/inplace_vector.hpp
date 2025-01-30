@@ -345,118 +345,115 @@ concept __container_compatible_range =
 namespace beman::details::inplace_vector::storage {
 
 // Storage for zero elements.
-template <class T> struct __zero_sized {
+template <class T> struct zero_sized {
 protected:
-  using __size_type = uint8_t;
+  using size_type = uint8_t;
   static constexpr T *__data() noexcept { return nullptr; }
-  static constexpr __size_type __size() noexcept { return 0; }
-  static constexpr void __unsafe_set_size(size_t __new_size) noexcept {
-    __IV_EXPECT(__new_size == 0 &&
+  static constexpr size_type __size() noexcept { return 0; }
+  static constexpr void __unsafe_set_size(size_t new_size) noexcept {
+    __IV_EXPECT(new_size == 0 &&
                 "tried to change size of empty storage to non-zero value");
   }
 
 public:
-  constexpr __zero_sized() = default;
-  constexpr __zero_sized(__zero_sized const &) = default;
-  constexpr __zero_sized &operator=(__zero_sized const &) = default;
-  constexpr __zero_sized(__zero_sized &&) = default;
-  constexpr __zero_sized &operator=(__zero_sized &&) = default;
-  constexpr ~__zero_sized() = default;
+  constexpr zero_sized() = default;
+  constexpr zero_sized(zero_sized const &) = default;
+  constexpr zero_sized &operator=(zero_sized const &) = default;
+  constexpr zero_sized(zero_sized &&) = default;
+  constexpr zero_sized &operator=(zero_sized &&) = default;
+  constexpr ~zero_sized() = default;
 };
 
 // Storage for trivial types.
-template <class T, size_t N> struct __trivial {
+template <class T, size_t N> struct trivial {
   static_assert(std::is_trivial_v<T>,
                 "storage::trivial<T, C> requires Trivial<T>");
-  static_assert(N != size_t{0}, "N  == 0, use __zero_sized");
+  static_assert(N != size_t{0}, "N  == 0, use zero_sized");
 
 protected:
-  using __size_type = __smallest_size_t<N>;
+  using size_type = __smallest_size_t<N>;
 
 private:
   // If value_type is const, then const std::array of non-const elements:
   using array_based_storage =
       std::conditional_t<!std::is_const_v<T>, std::array<T, N>,
                          const std::array<std::remove_const_t<T>, N>>;
-  alignas(alignof(T)) array_based_storage __data_{};
-  __size_type __size_ = 0;
+  alignas(alignof(T)) array_based_storage storage_data_{};
+  size_type storage_size_ = 0;
 
 protected:
-  constexpr const T *__data() const noexcept { return __data_.data(); }
-  constexpr T *__data() noexcept { return __data_.data(); }
-  constexpr __size_type __size() const noexcept { return __size_; }
-  constexpr void __unsafe_set_size(size_t __new_size) noexcept {
-    __IV_EXPECT(__size_type(__new_size) <= N &&
-                "new_size out-of-bounds [0, N]");
-    __size_ = __size_type(__new_size);
+  constexpr const T *__data() const noexcept { return storage_data_.data(); }
+  constexpr T *__data() noexcept { return storage_data_.data(); }
+  constexpr size_type __size() const noexcept { return storage_size_; }
+  constexpr void __unsafe_set_size(size_t new_size) noexcept {
+    __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
+    storage_size_ = size_type(new_size);
   }
 
 public:
-  constexpr __trivial() noexcept = default;
-  constexpr __trivial(__trivial const &) noexcept = default;
-  constexpr __trivial &operator=(__trivial const &) noexcept = default;
-  constexpr __trivial(__trivial &&) noexcept = default;
-  constexpr __trivial &operator=(__trivial &&) noexcept = default;
-  constexpr ~__trivial() = default;
+  constexpr trivial() noexcept = default;
+  constexpr trivial(trivial const &) noexcept = default;
+  constexpr trivial &operator=(trivial const &) noexcept = default;
+  constexpr trivial(trivial &&) noexcept = default;
+  constexpr trivial &operator=(trivial &&) noexcept = default;
+  constexpr ~trivial() = default;
 };
 
 template <class T, size_t N> struct raw_byte_based_storage {
-  alignas(T) std::byte __d[sizeof(T) * N];
+  alignas(T) std::byte _d[sizeof(T) * N];
   constexpr T *__data(size_t __i) noexcept {
     __IV_EXPECT(__i < N);
-    return reinterpret_cast<T *>(__d) + __i;
+    return reinterpret_cast<T *>(_d) + __i;
   }
   constexpr const T *__data(size_t __i) const noexcept {
     __IV_EXPECT(__i < N);
-    return reinterpret_cast<const T *>(__d) + __i;
+    return reinterpret_cast<const T *>(_d) + __i;
   }
 };
 
 /// Storage for non-trivial elements.
-template <class T, size_t N> struct __non_trivial {
+template <class T, size_t N> struct non_trivial {
   static_assert(!std::is_trivial_v<T>,
                 "use storage::trivial for Trivial<T> elements");
   static_assert(N != size_t{0}, "use storage::zero for N==0");
 
 protected:
-  using __size_type = __smallest_size_t<N>;
+  using size_type = __smallest_size_t<N>;
 
 private:
   using byte_based_storage = std::conditional_t<
       !std::is_const_v<T>, raw_byte_based_storage<T, N>,
       const raw_byte_based_storage<std::remove_const_t<T>, N>>;
-  byte_based_storage __data_{}; // BUGBUG: test SIMD types
-  __size_type __size_ = 0;
+  byte_based_storage storage_data_{}; // BUGBUG: test SIMD types
+  size_type storage_size_ = 0;
 
 protected:
-  constexpr const T *__data() const noexcept { return __data_.__data(0); }
-  constexpr T *__data() noexcept { return __data_.__data(0); }
-  constexpr __size_type __size() const noexcept { return __size_; }
-  constexpr void __unsafe_set_size(size_t __new_size) noexcept {
-    __IV_EXPECT(__size_type(__new_size) <= N &&
-                "new_size out-of-bounds [0, N)");
-    __size_ = __size_type(__new_size);
+  constexpr const T *__data() const noexcept { return storage_data_.__data(0); }
+  constexpr T *__data() noexcept { return storage_data_.__data(0); }
+  constexpr size_type __size() const noexcept { return storage_size_; }
+  constexpr void __unsafe_set_size(size_t new_size) noexcept {
+    __IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
+    storage_size_ = size_type(new_size);
   }
 
 public:
-  constexpr __non_trivial() noexcept = default;
-  constexpr __non_trivial(__non_trivial const &) noexcept = default;
-  constexpr __non_trivial &operator=(__non_trivial const &) noexcept = default;
-  constexpr __non_trivial(__non_trivial &&) noexcept = default;
-  constexpr __non_trivial &operator=(__non_trivial &&) noexcept = default;
+  constexpr non_trivial() noexcept = default;
+  constexpr non_trivial(non_trivial const &) noexcept = default;
+  constexpr non_trivial &operator=(non_trivial const &) noexcept = default;
+  constexpr non_trivial(non_trivial &&) noexcept = default;
+  constexpr non_trivial &operator=(non_trivial &&) noexcept = default;
 
-  constexpr ~__non_trivial()
+  constexpr ~non_trivial()
     requires(std::is_trivially_destructible_v<T>)
   = default;
-  constexpr ~__non_trivial() { std::destroy(__data(), __data() + __size()); }
+  constexpr ~non_trivial() { std::destroy(__data(), __data() + __size()); }
 };
 
 // Selects the vector storage.
 template <class T, size_t N>
-using _t =
-    std::conditional_t<N == 0, __zero_sized<T>,
-                       std::conditional_t<std::is_trivial_v<T>, __trivial<T, N>,
-                                          __non_trivial<T, N>>>;
+using _t = std::conditional_t<
+    N == 0, zero_sized<T>,
+    std::conditional_t<std::is_trivial_v<T>, trivial<T, N>, non_trivial<T, N>>>;
 
 } // namespace beman::details::inplace_vector::storage
 
