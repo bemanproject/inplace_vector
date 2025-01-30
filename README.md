@@ -80,7 +80,62 @@ TODO: tested platforms.
 
 ### Instructions
 
-<!-- TODO: add preset support -->
+#### Using CMake Preset
+
+[CMake Preset](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html)
+is a new CMake functionality that provides one-line configure + test.
+
+You can use `gcc-debug` to setup a debug orienated `inplace_vector` development environment.
+
+```text
+$ cmake --workflow --preset gcc-debug
+Executing workflow step 1 of 3: configure preset "gcc-debug"
+
+Preset CMake variables:
+
+  BEMAN_BUILDSYS_SANITIZER="MaxSan"
+  CMAKE_BUILD_TYPE="Debug"
+  CMAKE_CXX_STANDARD="20"
+  CMAKE_TOOLCHAIN_FILE="cmake/gnu-toolchain.cmake"
+
+-- The CXX compiler identification is GNU 14.2.0
+....
+-- Generating done (0.0s)
+-- Build files have been written to: /inplace_vector/build/gcc-debug
+
+Executing workflow step 2 of 3: build preset "gcc-debug"
+
+[8/20] Building CXX object tests/beman/inplace_vector/CMakeFiles/beman.inplace_vector.tests.erasure.dir/erasure.test.cpp.o
+
+Executing workflow step 3 of 3: test preset "gcc-debug"
+
+Test project /home/bradwu/Desktop/inplace_vector/build/gcc-debug
+      Start  1: beman.inplace_vector.test
+ 1/54 Test  #1: beman.inplace_vector.test ....................................   Passed    0.03 sec
+      Start  2: beman.inplace_vector.ref-test
+ 2/54 Test  #2: beman.inplace_vector.ref-test ................................   Passed    0.03 sec
+      Start  3: ContainerRequirements/*.ValueType
+ 3/54 Test  #3: ContainerRequirements/*.ValueType ............................   Passed    0.15 sec
+      Start  4: ContainerRequirements/*.Reference
+...
+50/54 Test #50: SizeNCapacity/*.ResizeDown ...................................   Passed    0.05 sec
+      Start 51: SizeNCapacity/*.ResizeUp
+51/54 Test #51: SizeNCapacity/*.ResizeUp .....................................   Passed    0.05 sec
+      Start 52: Data/*.Test
+52/54 Test #52: Data/*.Test ..................................................   Passed    0.05 sec
+      Start 53: Erasure/*.ByValue
+53/54 Test #53: Erasure/*.ByValue ............................................***Skipped   0.04 sec
+      Start 54: Erasure/*.ByPred
+54/54 Test #54: Erasure/*.ByPred .............................................***Skipped   0.04 sec
+
+100% tests passed, 0 tests failed out of 54
+
+Total Test time (real) =   6.20 sec
+```
+
+Note that this workflow compiles the project with sanitizers,
+if you wish to playaround with `inplace_vector` without sanitizers,
+use `gcc-release`.
 
 #### Manual CMake Build
 
