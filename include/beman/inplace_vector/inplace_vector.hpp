@@ -276,7 +276,7 @@ Software.
 #define __IV_ASSERT(...)                                                       \
   static_cast<void>((__VA_ARGS__)                                              \
                         ? void(0)                                              \
-                        : ::beman::__iv_detail::__assert_failure(              \
+                        : ::beman::details::inplace_vector::__assert_failure(  \
                               static_cast<const char *>(__FILE__), __LINE__,   \
                               "assertion failed: " #__VA_ARGS__))
 
@@ -290,17 +290,6 @@ Software.
 // TODO River: Disabled temporarily
 #define __IV_EXPECT(__EXPR)
 
-/*
-// BUGBUG workaround for libstdc++ not providing from_range_t / from_range yet
-namespace std {
-#if defined(__GLIBCXX__) || defined(__GLIBCPP__)
-struct from_range_t {};
-inline constexpr from_range_t from_range;
-#endif
-}; // namespace std
-*/
-
-// TODO(River): using namespace std below, we need to specify
 // beman::from_range_t
 namespace beman {
 struct from_range_t {};
@@ -308,7 +297,7 @@ inline constexpr from_range_t from_range;
 }; // namespace beman
 
 // Private utilities
-namespace beman::__iv_detail {
+namespace beman::details::inplace_vector {
 
 template <class = void>
 [[noreturn]]
@@ -322,7 +311,7 @@ static constexpr void __assert_failure(char const *__file, int __line,
   }
 }
 
-using namespace beman::__iv_detail;
+using namespace beman::details::inplace_vector;
 
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
@@ -357,10 +346,10 @@ concept __move_or_copy_insertable_from = requires(__Ptr __ptr, __T &&__value) {
   } -> std::same_as<__Ptr>;
 };
 
-} // namespace beman::__iv_detail
+} // namespace beman::details::inplace_vector
 
 // Types implementing the `inplace_vector`'s storage
-namespace beman::__iv_detail::__storage {
+namespace beman::details::inplace_vector::storage {
 
 // TODO: flesh out
 template <class __T, size_t __N> struct __aligned_storage2 {
@@ -477,17 +466,17 @@ using _t = std::conditional_t<
     std::conditional_t<std::is_trivial_v<__T>, __trivial<__T, __N>,
                        __non_trivial<__T, __N>>>;
 
-} // namespace beman::__iv_detail::__storage
+} // namespace beman::details::inplace_vector::storage
 
 namespace beman {
 
 /// Dynamically-resizable fixed-__N vector with inplace storage.
 template <class __T, size_t __N>
-struct inplace_vector : private __iv_detail::__storage::_t<__T, __N> {
+struct inplace_vector : private details::inplace_vector::storage::_t<__T, __N> {
 private:
   static_assert(std::is_nothrow_destructible_v<__T>,
                 "T must be nothrow destructible");
-  using __base_t = __iv_detail::__storage::_t<__T, __N>;
+  using __base_t = details::inplace_vector::storage::_t<__T, __N>;
   using __self = inplace_vector<__T, __N>;
   using __base_t::__data;
   using __base_t::__size;
@@ -513,7 +502,7 @@ public:
   // template <class __InputIterator>  // BUGBUG: why not model input_iterator?
   //   constexpr inplace_vector(__InputIterator __first, __InputIterator
   //   __last);
-  // template <__iv_detail::__container_compatible_range<__T> __R>
+  // template <details::inplace_vector::__container_compatible_range<__T> __R>
   //  constexpr inplace_vector(from_range_t, __R&& __rg);
   // from base-class, trivial if is_trivially_copy_constructible_v<T>:
   //   constexpr inplace_vector(const inplace_vector&);
@@ -532,7 +521,7 @@ public:
   //   noexcept(__N == 0 || is_nothrow_move_assignable_v<__T>);
   // template <class __InputIterator> // BUGBUG: why not model input_iterator
   //  constexpr void assign(__InputIterator __first, __InputIterator l__ast);
-  // template<__iv_detail::__container_compatible_range<__T> __R>
+  // template<details::inplace_vector::__container_compatible_range<__T> __R>
   //  constexpr void assign_range(__R&& __rg);
   // constexpr void assign(size_type __n, const __T& __u);
   // constexpr void assign(std::initializer_list<__T> __il);
@@ -578,24 +567,24 @@ public:
 
   // element access
   constexpr reference operator[](size_type __n) {
-    return __iv_detail::__index(*this, __n);
+    return details::inplace_vector::__index(*this, __n);
   }
   constexpr const_reference operator[](size_type __n) const {
-    return __iv_detail::__index(*this, __n);
+    return details::inplace_vector::__index(*this, __n);
   }
   // constexpr const_reference at(size_type __n) const;
   // constexpr reference       at(size_type __n);
   constexpr reference front() {
-    return __iv_detail::__index(*this, size_type(0));
+    return details::inplace_vector::__index(*this, size_type(0));
   }
   constexpr const_reference front() const {
-    return __iv_detail::__index(*this, size_type(0));
+    return details::inplace_vector::__index(*this, size_type(0));
   }
   constexpr reference back() {
-    return __iv_detail::__index(*this, size() - size_type(1));
+    return details::inplace_vector::__index(*this, size() - size_type(1));
   }
   constexpr const_reference back() const {
-    return __iv_detail::__index(*this, size() - size_type(1));
+    return details::inplace_vector::__index(*this, size() - size_type(1));
   }
 
   // [containers.sequences.inplace_vector.data], data access
@@ -607,7 +596,7 @@ public:
   //  constexpr __T& emplace_back(__Args&&... __args);
   // constexpr __T& push_back(const __T& __x);
   // constexpr __T& push_back(__T&& __x);
-  // template<__iv_detail::__container_compatible_range<__T> __R>
+  // template<details::inplace_vector::__container_compatible_range<__T> __R>
   //  constexpr void append_range(__R&& __rg);
   // constexpr void pop_back();
 
@@ -630,7 +619,7 @@ public:
   // template <class __InputIterator>
   //  constexpr iterator insert(const_iterator __position, __InputIterator
   //  __first, __InputIterator __last);
-  // template<__iv_detail::__container_compatible_range<__T> __R>
+  // template<details::inplace_vector::__container_compatible_range<__T> __R>
   //   constexpr iterator insert_range(const_iterator __position, __R&& __rg);
   // constexpr iterator insert(const_iterator __position,
   // std::initializer_list<__T>
@@ -744,7 +733,7 @@ public:
     return unchecked_emplace_back(std::forward<__T &&>(__x));
   }
 
-  template <__iv_detail::__container_compatible_range<__T> __R>
+  template <details::inplace_vector::__container_compatible_range<__T> __R>
   constexpr void append_range(__R &&__rg)
     requires(std::constructible_from<__T, std::ranges::range_reference_t<__R>>)
   {
@@ -792,7 +781,7 @@ public:
     return __pos;
   }
 
-  template <__iv_detail::__container_compatible_range<__T> __R>
+  template <details::inplace_vector::__container_compatible_range<__T> __R>
   constexpr iterator insert_range(const_iterator __position, __R &&__rg)
     requires(
         std::constructible_from<__T, std::ranges::range_reference_t<__R>> &&
@@ -869,7 +858,7 @@ public:
     insert(begin(), __first, __last);
   }
 
-  template <__iv_detail::__container_compatible_range<__T> __R>
+  template <details::inplace_vector::__container_compatible_range<__T> __R>
   constexpr inplace_vector(from_range_t, __R &&__rg)
     requires(
         std::constructible_from<__T, std::ranges::range_reference_t<__R>> &&
@@ -935,12 +924,12 @@ public:
   constexpr reference at(size_type __pos) {
     if (__pos >= size()) [[unlikely]]
       throw std::out_of_range("inplace_vector::at");
-    return __iv_detail::__index(*this, __pos);
+    return details::inplace_vector::__index(*this, __pos);
   }
   constexpr const_reference at(size_type __pos) const {
     if (__pos >= size()) [[unlikely]]
       throw std::out_of_range("inplace_vector::at");
-    return __iv_detail::__index(*this, __pos);
+    return details::inplace_vector::__index(*this, __pos);
   }
 
   constexpr void pop_back() {
@@ -1030,7 +1019,7 @@ public:
     clear();
     insert(begin(), __first, __last);
   }
-  template <__iv_detail::__container_compatible_range<__T> __R>
+  template <details::inplace_vector::__container_compatible_range<__T> __R>
   constexpr void assign_range(__R &&__rg)
     requires(
         std::constructible_from<__T, std::ranges::range_reference_t<__R>> &&
