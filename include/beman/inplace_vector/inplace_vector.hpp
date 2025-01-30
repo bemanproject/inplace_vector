@@ -270,7 +270,7 @@ Software.
 
 // Optimizer allowed to assume that EXPR evaluates to true
 #define __IV_ASSUME(__EXPR)                                                    \
-  static_cast<void>((__EXPR) ? void(0) : __builtin_unreachable)
+  static_cast<void>((__EXPR) ? void(0) : builtin_unreachable)
 
 // Assert pretty printer
 #define __IV_ASSERT(...)                                                       \
@@ -493,7 +493,7 @@ public:
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
   constexpr inplace_vector() noexcept = default;
   // constexpr explicit inplace_vector(size_type n);
-  // constexpr inplace_vector(size_type n, const T& __value);
+  // constexpr inplace_vector(size_type n, const T& value);
   // template <class InputIterator>  // BUGBUG: why not model input_iterator?
   //   constexpr inplace_vector(InputIterator first, InputIterator
   //   last);
@@ -590,7 +590,7 @@ public:
 
   // [containers.sequences.inplace_vector.modifiers], modifiers
   // template <class... Args>
-  //  constexpr T& emplace_back(Args&&... __args);
+  //  constexpr T& emplace_back(Args&&... args);
   // constexpr T& push_back(const T& x);
   // constexpr T& push_back(T&& x);
   // template<details::inplace_vector::container_compatible_range<T> R>
@@ -598,17 +598,17 @@ public:
   // constexpr void pop_back();
 
   // template<class... Args>
-  //  constexpr T* try_emplace_back(Args&&... __args);
-  // constexpr T* try_push_back(const T& __value);
-  // constexpr T* try_push_back(T&& __value);
+  //  constexpr T* try_emplace_back(Args&&... args);
+  // constexpr T* try_push_back(const T& value);
+  // constexpr T* try_push_back(T&& value);
 
   // template<class... Args>
-  //  constexpr T& unchecked_emplace_back(Args&&... __args);
-  // constexpr T& unchecked_push_back(const T& __value);
-  // constexpr T& unchecked_push_back(T&& __value);
+  //  constexpr T& unchecked_emplace_back(Args&&... args);
+  // constexpr T& unchecked_push_back(const T& value);
+  // constexpr T& unchecked_push_back(T&& value);
 
   // template <class... Args>
-  //  constexpr iterator emplace(const_iterator position, Args&&... __args);
+  //  constexpr iterator emplace(const_iterator position, Args&&... args);
   // constexpr iterator insert(const_iterator position, const T& x);
   // constexpr iterator insert(const_iterator position, T&& x);
   // constexpr iterator insert(const_iterator position, size_type n, const
@@ -640,24 +640,24 @@ public:
   }
 
 private: // Utilities
-  constexpr void __assert_iterator_in_range(const_iterator it) noexcept {
+  constexpr void assert_iterator_in_range(const_iterator it) noexcept {
     __IV_EXPECT(begin() <= it && "iterator not in range");
     __IV_EXPECT(it <= end() && "iterator not in range");
   }
-  constexpr void __assert_valid_iterator_pair(const_iterator first,
-                                              const_iterator last) noexcept {
+  constexpr void assert_valid_iterator_pair(const_iterator first,
+                                            const_iterator last) noexcept {
     __IV_EXPECT(first <= last && "invalid iterator pair");
   }
-  constexpr void __assert_iterator_pair_in_range(const_iterator first,
-                                                 const_iterator last) noexcept {
-    __assert_iterator_in_range(first);
-    __assert_iterator_in_range(last);
-    __assert_valid_iterator_pair(first, last);
+  constexpr void assert_iterator_pair_in_range(const_iterator first,
+                                               const_iterator last) noexcept {
+    assert_iterator_in_range(first);
+    assert_iterator_in_range(last);
+    assert_valid_iterator_pair(first, last);
   }
   constexpr void
   unsafe_destroy(T *first,
                  T *last) noexcept(std::is_nothrow_destructible_v<T>) {
-    __assert_iterator_pair_in_range(first, last);
+    assert_iterator_pair_in_range(first, last);
     if constexpr (N > 0 && !std::is_trivial_v<T>) {
       for (; first != last; ++first)
         first->~T();
@@ -670,26 +670,26 @@ public:
   // [containers.sequences.inplace_vector.modifiers], modifiers
 
   template <class... Args>
-  constexpr T &unchecked_emplace_back(Args &&...__args)
+  constexpr T &unchecked_emplace_back(Args &&...args)
     requires(std::constructible_from<T, Args...>)
   {
     __IV_EXPECT(size() < capacity() && "inplace_vector out-of-memory");
-    std::construct_at(end(), std::forward<Args>(__args)...);
+    std::construct_at(end(), std::forward<Args>(args)...);
     unsafe_set_size(size() + size_type(1));
     return back();
   }
 
-  template <class... Args> constexpr T *try_emplace_back(Args &&...__args) {
+  template <class... Args> constexpr T *try_emplace_back(Args &&...args) {
     if (size() == capacity()) [[unlikely]]
       return nullptr;
-    return &unchecked_emplace_back(std::forward<Args>(__args)...);
+    return &unchecked_emplace_back(std::forward<Args>(args)...);
   }
 
   template <class... Args>
-  constexpr T &emplace_back(Args &&...__args)
+  constexpr T &emplace_back(Args &&...args)
     requires(std::constructible_from<T, Args...>)
   {
-    if (!try_emplace_back(std::forward<Args>(__args)...)) [[unlikely]]
+    if (!try_emplace_back(std::forward<Args>(args)...)) [[unlikely]]
       throw std::bad_alloc();
     return back();
   }
@@ -744,14 +744,14 @@ public:
   }
 
   template <class... Args>
-  constexpr iterator emplace(const_iterator position, Args &&...__args)
+  constexpr iterator emplace(const_iterator position, Args &&...args)
     requires(std::constructible_from<T, Args...> && std::movable<T>)
   {
-    __assert_iterator_in_range(position);
-    auto __b = end();
-    emplace_back(std::forward<Args>(__args)...);
+    assert_iterator_in_range(position);
+    auto b = end();
+    emplace_back(std::forward<Args>(args)...);
     auto pos = begin() + (position - begin());
-    std::rotate(pos, __b, end());
+    std::rotate(pos, b, end());
     return pos;
   }
 
@@ -761,17 +761,17 @@ public:
     requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
   {
-    __assert_iterator_in_range(position);
+    assert_iterator_in_range(position);
     if constexpr (std::random_access_iterator<InputIterator>) {
       if (size() + static_cast<size_type>(std::distance(first, last)) >
           capacity()) [[unlikely]]
         throw std::bad_alloc{};
     }
-    auto __b = end();
+    auto b = end();
     for (; first != last; ++first)
       emplace_back(std::move(*first));
     auto pos = begin() + (position - begin());
-    std::rotate(pos, __b, end());
+    std::rotate(pos, b, end());
     return pos;
   }
 
@@ -795,12 +795,12 @@ public:
   constexpr iterator insert(const_iterator position, size_type n, const T &x)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
   {
-    __assert_iterator_in_range(position);
-    auto __b = end();
+    assert_iterator_in_range(position);
+    auto b = end();
     for (size_type i = 0; i < n; ++i)
       emplace_back(x);
     auto pos = begin() + (position - begin());
-    std::rotate(pos, __b, end());
+    std::rotate(pos, b, end());
     return pos;
   }
 
@@ -824,10 +824,10 @@ public:
     insert(begin(), il);
   }
 
-  constexpr inplace_vector(size_type n, const T &__value)
+  constexpr inplace_vector(size_type n, const T &value)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
   {
-    insert(begin(), n, __value);
+    insert(begin(), n, value);
   }
 
   constexpr explicit inplace_vector(size_type n)
@@ -856,7 +856,7 @@ public:
   constexpr iterator erase(const_iterator first, const_iterator last)
     requires(std::movable<T>)
   {
-    __assert_iterator_pair_in_range(first, last);
+    assert_iterator_pair_in_range(first, last);
     iterator f = begin() + (first - begin());
     if (first != last) {
       unsafe_destroy(std::move(f + (last - first), end(), f), end());
