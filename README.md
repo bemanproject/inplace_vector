@@ -4,16 +4,14 @@ SPDX-License-Identifier: <SPDX License Expression>
 
 # beman.inplace\_vector: Dynamically-resizable vector with fixed capacity
 
-<!-- markdownlint-disable -->
-<img src="https://github.com/bemanproject/beman/blob/main/images/logos/beman_logo-beman_library_under_development.png" style="width:5%; height:auto;"> ![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)
+![Library Status](https://github.com/bemanproject/beman/blob/c6997986557ec6dda98acbdf502082cdf7335526/images/badges/beman_badge-beman_library_under_development.svg)
+![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)
 ![Code Format](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit.yml/badge.svg)
-<!-- markdownlint-enable -->
 
 **Implements**: [`inplace_vector` (P0843R14)](https://wg21.link/P0843R14)
 
-<!-- markdownlint-disable -->
-**Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
-<!-- markdownlint-enable -->
+**Status**:
+[Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
 
 ## Usage
 
@@ -30,12 +28,15 @@ which dynamic memory allocations are undesired.
 #### Note on implementation progress
 
 Current implementation implements all public interfaces defined in the paper.
-However constexpr related functionalities are not tested and maybe broken.
 
-There have been minor updates to the wording after the paper is accepted, notably [P3247](wg21.link/P3247).
+There have been minor updates to the wording after the paper is accepted,
+notably [P3247](wg21.link/P3247).
 Which changes the requirements for constexpr support.
 This will likely be preceded with [P3074](wg21.link/P3074).
 These has not been implemented yet.
+
+You can follow [this link](eel.is/c++draft/inplace.vector)
+to checkout the status of `inplace_vector` in the latest draft.
 
 Contributions are welcome.
 
