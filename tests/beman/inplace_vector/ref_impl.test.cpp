@@ -23,12 +23,24 @@
 #include <type_traits>
 #include <vector>
 
+template <class = void>
+[[noreturn]]
+static constexpr void __assert_failure(char const *__file, int __line,
+                                       char const *__msg) {
+  if (std::is_constant_evaluated()) {
+    throw __msg;
+  } else {
+    std::fprintf(stderr, "%s(%d): %s\n", __file, __line, __msg);
+    std::abort();
+  }
+}
+
 #define CHECK(...)                                                             \
-  static_cast<void>((__VA_ARGS__)                                              \
-                        ? void(0)                                              \
-                        : ::beman::__iv_detail::__assert_failure(              \
-                              static_cast<const char *>(__FILE__), __LINE__,   \
-                              "assertion failed: " #__VA_ARGS__))
+  static_cast<void>(                                                           \
+      (__VA_ARGS__)                                                            \
+          ? void(0)                                                            \
+          : ::__assert_failure(static_cast<const char *>(__FILE__), __LINE__,  \
+                               "assertion failed: " #__VA_ARGS__))
 
 #define CHECK_THROWS(EXPR, EXCEPT)                                             \
   if (auto e =                                                                 \
@@ -43,19 +55,18 @@
             }                                                                  \
           }();                                                                 \
       !e) {                                                                    \
-    ::beman::__iv_detail::__assert_failure(                                    \
-        static_cast<const char *>(__FILE__), __LINE__,                         \
-        "expression failed to throw " #EXCEPT ": " #EXPR);                     \
+    __assert_failure(static_cast<const char *>(__FILE__), __LINE__,            \
+                     "expression failed to throw " #EXCEPT ": " #EXPR);        \
   }
 
-template struct beman::__iv_detail::__storage::__zero_sized<int>;
-template struct beman::__iv_detail::__storage::__trivial<int, 10>;
-template struct beman::__iv_detail::__storage::__non_trivial<
+template struct beman::details::inplace_vector::storage::zero_sized<int>;
+template struct beman::details::inplace_vector::storage::trivial<int, 10>;
+template struct beman::details::inplace_vector::storage::non_trivial<
     std::unique_ptr<int>, 10>;
 
-template struct beman::__iv_detail::__storage::__zero_sized<const int>;
-template struct beman::__iv_detail::__storage::__trivial<const int, 10>;
-template struct beman::__iv_detail::__storage::__non_trivial<
+template struct beman::details::inplace_vector::storage::zero_sized<const int>;
+template struct beman::details::inplace_vector::storage::trivial<const int, 10>;
+template struct beman::details::inplace_vector::storage::non_trivial<
     const std::unique_ptr<int>, 10>;
 
 // empty:
@@ -336,15 +347,15 @@ template <typename T, std::size_t N> void test_all() {
 
 int main() {
   { // storage
-    using beman::__iv_detail::__storage::__non_trivial;
-    using beman::__iv_detail::__storage::__trivial;
-    using beman::__iv_detail::__storage::__zero_sized;
-    using beman::__iv_detail::__storage::_t;
+    using beman::details::inplace_vector::storage::non_trivial;
+    using beman::details::inplace_vector::storage::storage_for;
+    using beman::details::inplace_vector::storage::trivial;
+    using beman::details::inplace_vector::storage::zero_sized;
 
-    static_assert(std::is_same<_t<int, 0>, __zero_sized<int>>{});
-    static_assert(std::is_same<_t<int, 10>, __trivial<int, 10>>{});
-    static_assert(std::is_same<_t<std::unique_ptr<int>, 10>,
-                               __non_trivial<std::unique_ptr<int>, 10>>{},
+    static_assert(std::is_same<storage_for<int, 0>, zero_sized<int>>{});
+    static_assert(std::is_same<storage_for<int, 10>, trivial<int, 10>>{});
+    static_assert(std::is_same<storage_for<std::unique_ptr<int>, 10>,
+                               non_trivial<std::unique_ptr<int>, 10>>{},
                   "");
   }
 
