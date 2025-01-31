@@ -2,6 +2,10 @@
 #include <beman/inplace_vector/inplace_vector.hpp>
 #include <type_traits>
 
+// used for testing beman::has_constexpr_support
+#include <memory>
+#include <string>
+
 /**
  * These tests are only meant to test that suitable constexpr functions compiles
  * in a constant evaluation environment.
@@ -24,6 +28,18 @@ struct Some {
   }
 };
 static_assert(std::is_trivial_v<Some>);
+
+using beman::has_constexpr_support;
+using beman::inplace_vector;
+
+static_assert(has_constexpr_support<inplace_vector<int, 50>>);
+static_assert(has_constexpr_support<inplace_vector<Some, 50>>);
+
+static_assert(has_constexpr_support<inplace_vector<std::string, 0>>);
+static_assert(!has_constexpr_support<inplace_vector<std::string, 50>>);
+
+static_assert(has_constexpr_support<inplace_vector<std::unique_ptr<int>, 0>>);
+static_assert(!has_constexpr_support<inplace_vector<std::unique_ptr<int>, 50>>);
 
 #define TEST(NAME)                                                             \
   static_assert(std::invoke([]() {                                             \
@@ -267,6 +283,9 @@ struct Complex {
   }
 };
 static_assert(!std::is_trivially_default_constructible_v<Complex>);
+
+static_assert(has_constexpr_support<inplace_vector<Complex, 0>>);
+static_assert(!has_constexpr_support<inplace_vector<Complex, 50>>);
 
 #define TEST_EMPTY(NAME)                                                       \
   static_assert(std::invoke([]() {                                             \

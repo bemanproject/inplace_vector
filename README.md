@@ -82,6 +82,18 @@ static_assert(check_5());
 
 ```
 
+### Note on constexpr support
+
+Since `constexpr` requirements are actively changing,
+you can use `beman::has_constexpr_support` to detect if our implementation
+provide constexpr support for a specific specialization of `inplace_vector`.
+
+Note this is not part of the standard Library and should not be relied on once
+`constexpr` requirement stabilize.
+
+Example Usage:
+`static_assert(beman::has_constexpr_support<beman::inplace_vector<int, 5>>)`.
+
 ## How to Build
 
 ### Compiler support
