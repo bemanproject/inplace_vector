@@ -50,7 +50,10 @@ Not tested for now.
 > then no `inplace_vector<T, N>` member functions are usable in
 > constant expressions.
 
-Not tested for now.
+See [constexpr.test.cpp](constexpr.test.cpp),
+note that this test suite only ensure functions are usable in a constexpr
+environment.
+The validity of those functions are tested in the main test suite.
 
 #### 6.5 Bad alloc requirement
 
