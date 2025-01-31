@@ -17,3 +17,9 @@ target_link_libraries(
     beman.inplace_vector.benchmark.push_back
     PRIVATE beman.inplace_vector benchmark::benchmark
 )
+
+add_executable(beman.inplace_vector.benchmark.access access_benchmark.cpp)
+target_link_libraries(
+    beman.inplace_vector.benchmark.access
+    PRIVATE beman.inplace_vector benchmark::benchmark
+)
