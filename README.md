@@ -53,7 +53,8 @@ using namespace beman;
  * Generates fibonacci sequence using inplace_vector.
  * See: https://en.wikipedia.org/wiki/Fibonacci_sequence
  */
-template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
+template <int Capacity>
+constexpr inplace_vector<int, Capacity> fibonacci_to(int num) {
   assert(num < Capacity);
 
   inplace_vector<int, Capacity> vec;
