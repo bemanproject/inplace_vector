@@ -54,6 +54,8 @@ See [constexpr.test.cpp](constexpr.test.cpp),
 note that this test suite only ensure functions are usable in a constexpr
 environment.
 The validity of those functions are tested in the main test suite.
+This test also doesn't exhaustivly test constexpr functions' behavior
+when exception throwing is expected.
 
 #### 6.5 Bad alloc requirement
 
@@ -102,7 +104,6 @@ See [erasure.test.cpp](erasure.test.cpp)
 
 ## Known Issues/ Missed Tests
 
-- Constexpr related functionalities.
 - Emplacement minimal copy/ construction.
 - Exception safety on mutation.
 

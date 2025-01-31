@@ -122,6 +122,8 @@ template <typename IV> constexpr void test_iterator_access() {
     (void)v.rend();
     (void)v.cbegin();
     (void)v.cend();
+    (void)v.crbegin();
+    (void)v.crend();
   }
 }
 TEST(test_iterator_access);
@@ -253,6 +255,89 @@ template <typename IV> constexpr void test_erase() {
   (void)beman::erase_if(v, [](auto v) { return v < 3; });
 }
 TEST(test_erase)
+
+struct Complex {
+  int val = 0;
+
+  constexpr bool operator==(const Complex &other) const {
+    return val == other.val;
+  }
+  constexpr auto operator<=>(const Complex &other) const {
+    return val <=> other.val;
+  }
+};
+static_assert(!std::is_trivially_default_constructible_v<Complex>);
+
+#define TEST_EMPTY(NAME)                                                       \
+  static_assert(std::invoke([]() {                                             \
+                  NAME<Complex>();                                             \
+                  return true;                                                 \
+                }),                                                            \
+                "##NAME");
+
+template <typename T> constexpr void speical_test_empty() {
+  static_assert(!std::is_trivially_default_constructible_v<T>);
+  using IV = beman::inplace_vector<T, 0>;
+
+  std::array<T, 10> arr;
+  arr.fill(T{50});
+
+  {
+    IV v;
+  }
+  {
+    IV v(0, T{50});
+  }
+  {
+    IV a, b;
+    a = b;
+    a = IV();
+  }
+  {
+    IV v;
+    v.assign(0, T{50});
+  }
+  {
+    IV v;
+    (void)v.begin();
+    (void)v.end();
+    (void)v.rbegin();
+    (void)v.rend();
+    (void)v.cbegin();
+    (void)v.cend();
+    (void)v.crbegin();
+    (void)v.crend();
+  }
+  {
+    IV v;
+    (void)v.empty();
+    (void)v.size();
+    (void)v.max_size();
+    (void)v.capacity();
+    v.resize(0);
+    v.resize(0, T{40});
+    v.reserve(0);
+    v.shrink_to_fit();
+  }
+  {
+    IV v;
+    v.try_emplace_back(50);
+    v.try_push_back(T(50));
+    v.try_push_back(arr[0]);
+    // v.try_append_range(arr);
+    v.clear();
+  }
+  {
+    IV a, b;
+    a.swap(b);
+  }
+  {
+    IV a, b;
+    (void)(a == b);
+    (void)(a <=> b);
+  }
+}
+TEST_EMPTY(speical_test_empty);
 
 int main() {
   // compile means passing
