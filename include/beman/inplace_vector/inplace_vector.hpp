@@ -1,6 +1,11 @@
 #pragma once
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#include <beman/inplace_vector/config.hpp>
+#ifndef BEMAN_INPLACE_VECTOR_CONFIG
+#error "Config file not run"
+#endif
+
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2023 Gonzalo Brito Gadeschi. All rights
 reserved.
@@ -282,14 +287,30 @@ namespace beman::details::inplace_vector {
 
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
-template <size_t N>
+template <std::size_t N>
 using smallest_size_t
 = std::conditional_t<(N < std::numeric_limits<uint8_t>::max()),  uint8_t,
     std::conditional_t<(N < std::numeric_limits<uint16_t>::max()), uint16_t,
     std::conditional_t<(N < std::numeric_limits<uint32_t>::max()), uint32_t,
     std::conditional_t<(N < std::numeric_limits<uint64_t>::max()), uint64_t,
-                   size_t>>>>;
+                   std::size_t>>>>;
 // clang-format on
+
+/*
+ * This is generally for managing the size type in the storage block.
+ * This behavior can be turned off by setting the
+ * BEMAN_INPLACE_VECTOR_FIXED_SIZE_T build option as there has been report of
+ * performance impact.
+ *
+ * This macro is set in the config.hpp.
+ */
+template <std::size_t N>
+using size_t_for =
+#if BEMAN_INPLACE_VECTOR_FIXED_SIZE_T == 1
+    std::size_t;
+#else
+    smallest_size_t<N>;
+#endif
 
 // Index a random-access and sized range doing bound checks in debug builds
 template <std::ranges::random_access_range Rng, std::integral Index>
@@ -317,7 +338,7 @@ protected:
   using size_type = uint8_t;
   static constexpr T *storage_data() noexcept { return nullptr; }
   static constexpr size_type storage_size() noexcept { return 0; }
-  static constexpr void unsafe_set_size(size_t new_size) noexcept {
+  static constexpr void unsafe_set_size(std::size_t new_size) noexcept {
     IV_EXPECT(new_size == 0 &&
               "tried to change size of empty storage to non-zero value");
   }
@@ -332,13 +353,13 @@ public:
 };
 
 // Storage for trivial types.
-template <class T, size_t N> struct trivial {
+template <class T, std::size_t N> struct trivial {
   static_assert(std::is_trivial_v<T>,
                 "storage::trivial<T, C> requires Trivial<T>");
-  static_assert(N != size_t{0}, "N  == 0, use zero_sized");
+  static_assert(N != std::size_t{0}, "N  == 0, use zero_sized");
 
 protected:
-  using size_type = smallest_size_t<N>;
+  using size_type = size_t_for<N>;
 
 private:
   // If value_type is const, then const std::array of non-const elements:
@@ -354,7 +375,7 @@ protected:
   }
   constexpr T *storage_data() noexcept { return storage_data_.data(); }
   constexpr size_type storage_size() const noexcept { return storage_size_; }
-  constexpr void unsafe_set_size(size_t new_size) noexcept {
+  constexpr void unsafe_set_size(std::size_t new_size) noexcept {
     IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
     storage_size_ = size_type(new_size);
   }
@@ -368,26 +389,27 @@ public:
   constexpr ~trivial() = default;
 };
 
-template <class T, size_t N> struct raw_byte_based_storage {
+template <class T, std::size_t N> struct raw_byte_based_storage {
+public:
   alignas(T) std::byte _d[sizeof(T) * N];
-  constexpr T *storage_data(size_t i) noexcept {
+  constexpr T *storage_data(std::size_t i) noexcept {
     IV_EXPECT(i < N);
     return reinterpret_cast<T *>(_d) + i;
   }
-  constexpr const T *storage_data(size_t i) const noexcept {
+  constexpr const T *storage_data(std::size_t i) const noexcept {
     IV_EXPECT(i < N);
     return reinterpret_cast<const T *>(_d) + i;
   }
 };
 
 /// Storage for non-trivial elements.
-template <class T, size_t N> struct non_trivial {
+template <class T, std::size_t N> struct non_trivial {
   static_assert(!std::is_trivial_v<T>,
                 "use storage::trivial for Trivial<T> elements");
-  static_assert(N != size_t{0}, "use storage::zero for N==0");
+  static_assert(N != std::size_t{0}, "use storage::zero for N==0");
 
 protected:
-  using size_type = smallest_size_t<N>;
+  using size_type = size_t_for<N>;
 
 private:
   using byte_based_storage = std::conditional_t<
@@ -402,7 +424,7 @@ protected:
   }
   constexpr T *storage_data() noexcept { return storage_data_.storage_data(0); }
   constexpr size_type storage_size() const noexcept { return storage_size_; }
-  constexpr void unsafe_set_size(size_t new_size) noexcept {
+  constexpr void unsafe_set_size(std::size_t new_size) noexcept {
     IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
     storage_size_ = size_type(new_size);
   }
@@ -423,7 +445,7 @@ public:
 };
 
 // Selects the vector storage.
-template <class T, size_t N>
+template <class T, std::size_t N>
 using storage_for = std::conditional_t<
     N == 0, zero_sized<T>,
     std::conditional_t<std::is_trivial_v<T>, trivial<T, N>, non_trivial<T, N>>>;
@@ -433,7 +455,7 @@ using storage_for = std::conditional_t<
 namespace beman {
 
 /// Dynamically-resizable fixed-N vector with inplace storage.
-template <class T, size_t N>
+template <class T, std::size_t N>
 struct inplace_vector
     : private details::inplace_vector::storage::storage_for<T, N> {
 private:
@@ -450,7 +472,8 @@ public:
   using const_pointer = const T *;
   using reference = value_type &;
   using const_reference = const value_type &;
-  using size_type = size_t;
+  // Note: This may be different from base_t::size_t.
+  using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using iterator = pointer;
   using const_iterator = const_pointer;
@@ -518,7 +541,9 @@ public:
   [[nodiscard]] constexpr bool empty() const noexcept {
     return storage_size() == 0;
   };
-  constexpr size_type size() const noexcept { return storage_size(); }
+  constexpr size_type size() const noexcept {
+    return size_type(storage_size());
+  }
   static constexpr size_type max_size() noexcept { return N; }
   static constexpr size_type capacity() noexcept { return N; }
   // constexpr void resize(size_type sz);
@@ -730,8 +755,8 @@ public:
   {
     assert_iterator_in_range(position);
     if constexpr (std::random_access_iterator<InputIterator>) {
-      if (size() + static_cast<size_type>(std::distance(first, last)) >
-          capacity()) [[unlikely]]
+      if (size() + size_type(std::distance(first, last)) > capacity())
+          [[unlikely]]
         throw std::bad_alloc{};
     }
     auto b = end();
@@ -764,7 +789,7 @@ public:
   {
     assert_iterator_in_range(position);
     auto b = end();
-    for (size_type i = 0; i < n; ++i)
+    for (auto i = size_type(0); i < n; ++i)
       emplace_back(x);
     auto pos = begin() + (position - begin());
     std::rotate(pos, b, end());
@@ -827,7 +852,7 @@ public:
     iterator f = begin() + (first - begin());
     if (first != last) {
       unsafe_destroy(std::move(f + (last - first), end(), f), end());
-      unsafe_set_size(size() - static_cast<size_type>(last - first));
+      unsafe_set_size(size() - size_type(last - first));
     }
     return f;
   }
