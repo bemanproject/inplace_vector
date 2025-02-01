@@ -26,26 +26,20 @@ TYPED_TEST(Constructors, SizedDefault) {
   constexpr auto mid_size = std::midpoint(0ul, IV::capacity());
   IV mid(mid_size);
   EXPECT_EQ(mid.size(), mid_size);
-  if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
-      std::is_same_v<T, NonTrivial>) {
+  if constexpr (std::is_scalar_v<T> || std::is_aggregate_v<T> ||
+                !std::is_trivially_default_constructible_v<T>) {
 
-    IV mid_correct;
-    for (auto i = 0ul; i < mid_size; ++i)
-      mid_correct.emplace_back();
-
-    EXPECT_EQ(mid, mid_correct);
+    // all elements are value-initialized
+    EXPECT_EQ(std::ranges::count(mid, T{}), mid.size());
   }
 
   IV full((IV::capacity()));
   EXPECT_EQ(full.size(), IV::capacity());
-  if (std::is_same_v<T, NonTriviallyDefaultConstructible> ||
-      std::is_same_v<T, NonTrivial>) {
+  if constexpr (std::is_scalar_v<T> || std::is_aggregate_v<T> ||
+                !std::is_trivially_default_constructible_v<T>) {
 
-    IV full_correct;
-    for (auto i = 0ul; i < full.size(); ++i)
-      full_correct.emplace_back();
-
-    EXPECT_EQ(full, full_correct);
+    // all elements are value-initialized
+    EXPECT_EQ(std::ranges::count(full, T{}), full.size());
   }
 }
 
@@ -66,7 +60,7 @@ TYPED_TEST(Constructors, SizedValue) {
     EXPECT_THROW(IV(IV::capacity() + 1, value), std::bad_alloc);
   }
 
-  if (IV::capacity() < 1)
+  if constexpr (IV::capacity() < 1u)
     return;
 
   {
@@ -79,11 +73,7 @@ TYPED_TEST(Constructors, SizedValue) {
     T value{8194};
     IV device(IV::capacity(), value);
 
-    IV correct;
-    for (auto i = 0ul; i < device.size(); ++i)
-      correct.push_back(value);
-
-    EXPECT_EQ(std::count(device.begin(), device.end(), value), IV::capacity());
+    EXPECT_EQ(std::ranges::count(device, value), device.size());
   }
 }
 
@@ -94,16 +84,24 @@ TYPED_TEST(Constructors, CopyIter) {
   // Complexity: Linear in distance(first, last).
 
   using IV = TestFixture::IV;
+  using T = TestFixture::T;
   using InputIterator = TestFixture::InputIterator;
 
-  IV a(InputIterator{0}, InputIterator{IV::max_size() / 2});
-  EXPECT_EQ(a.size(), IV::max_size() / 2);
-  if (!a.empty()) {
-    EXPECT_EQ(a.back().value, IV::max_size() / 2 - 1);
-  }
+  for (std::size_t n : {std::size_t(0), IV::max_size() / 2u, IV::max_size()}) {
+    // InputIterator
+    InputIterator::num_deref = 0u;
+    IV a(InputIterator{}, InputIterator{static_cast<int>(n)});
+    EXPECT_EQ(a.size(), n);
+    for (int i = 0; i < static_cast<int>(n); ++i) {
+      EXPECT_EQ(a[i], T{i});
+    }
+    // Only single-pass through input range
+    EXPECT_EQ(InputIterator::num_deref, n);
 
-  IV b(a.begin(), a.end());
-  EXPECT_EQ(b, a);
+    // RandomAccessIterator
+    IV b(a.begin(), a.end());
+    EXPECT_EQ(b, a);
+  }
 }
 
 TYPED_TEST(Constructors, CopyRanges) {
