@@ -472,7 +472,7 @@ public:
   using const_pointer = const T *;
   using reference = value_type &;
   using const_reference = const value_type &;
-  // Note: This may be different from base_t::size_t.
+  // Note: This may be different from base_t::size_type
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using iterator = pointer;
