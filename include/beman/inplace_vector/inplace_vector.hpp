@@ -306,6 +306,9 @@ concept container_compatible_range =
     std::ranges::input_range<Rng> &&
     std::convertible_to<std::ranges::range_reference_t<Rng>, T>;
 
+template <typename T, std::size_t N>
+concept satify_constexpr = N == 0 || std::is_trivial_v<T>;
+
 } // namespace beman::details::inplace_vector
 
 // Types implementing the `inplace_vector`'s storage
@@ -425,12 +428,17 @@ public:
 // Selects the vector storage.
 template <class T, size_t N>
 using storage_for = std::conditional_t<
-    N == 0, zero_sized<T>,
-    std::conditional_t<std::is_trivial_v<T>, trivial<T, N>, non_trivial<T, N>>>;
+    !satify_constexpr<T, N>, non_trivial<T, N>,
+    std::conditional_t<N == 0, zero_sized<T>, trivial<T, N>>>;
 
 } // namespace beman::details::inplace_vector::storage
 
 namespace beman {
+
+template <typename IV>
+concept has_constexpr_support =
+    details::inplace_vector::satify_constexpr<typename IV::value_type,
+                                              IV::capacity()>;
 
 /// Dynamically-resizable fixed-N vector with inplace storage.
 template <class T, size_t N>
