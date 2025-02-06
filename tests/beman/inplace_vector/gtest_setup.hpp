@@ -364,6 +364,7 @@ public:
   }
 
   struct InputIterator {
+    static std::size_t num_deref;
     T value;
     using difference_type = std::ptrdiff_t;
     using value_type = T;
@@ -371,7 +372,10 @@ public:
     constexpr InputIterator() noexcept : value{0} {}
     constexpr InputIterator(int i) noexcept : value{i} {}
 
-    T operator*() const { return value; };
+    T operator*() const {
+      ++num_deref;
+      return value;
+    };
 
     InputIterator &operator++() {
       ++value.value;
@@ -385,3 +389,6 @@ public:
   };
   static_assert(std::input_iterator<InputIterator>);
 };
+
+template <typename Param>
+std::size_t IVBasicTest<Param>::InputIterator::num_deref;
