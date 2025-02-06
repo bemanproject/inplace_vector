@@ -10,12 +10,13 @@ using namespace beman;
  * Generates fibonacci sequence using inplace_vector.
  * See: https://en.wikipedia.org/wiki/Fibonacci_sequence
  */
-template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
+template <int Capacity>
+constexpr inplace_vector<int, Capacity> fibonacci_to(int num) {
   assert(num < Capacity);
 
   inplace_vector<int, Capacity> vec;
 
-  constexpr static std::array<int, 2> first_two{0, 1};
+  constexpr std::array<int, 2> first_two{0, 1};
   for (auto i = 0; i <= num; ++i) {
     auto new_val = i < 2 ? first_two[i] : vec[i - 1] + vec[i - 2];
     vec.push_back(new_val);
@@ -23,6 +24,17 @@ template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
 
   return vec;
 }
+
+/*
+ * Check the result of the computation at compile time.
+ */
+constexpr bool check_5() {
+  auto got = fibonacci_to<10>(5);
+  constexpr inplace_vector<int, 10> correct{0, 1, 1, 2, 3, 5};
+  return got == correct;
+}
+
+static_assert(check_5());
 
 /**
  * Expected program output:
