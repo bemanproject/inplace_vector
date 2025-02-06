@@ -30,12 +30,12 @@ which dynamic memory allocations are undesired.
 Current implementation implements all public interfaces defined in the paper.
 
 There have been minor updates to the wording after the paper is accepted,
-notably [P3247](wg21.link/P3247).
+notably [P3247](https://wg21.link/P3247).
 Which changes the requirements for constexpr support.
-This will likely be preceded with [P3074](wg21.link/P3074).
+This will likely be preceded with [P3074](https://wg21.link/P3074).
 These has not been implemented yet.
 
-You can follow [this link](eel.is/c++draft/inplace.vector)
+You can follow [this link](https://eel.is/c++draft/inplace.vector)
 to checkout the status of `inplace_vector` in the latest draft.
 
 Contributions are welcome.
