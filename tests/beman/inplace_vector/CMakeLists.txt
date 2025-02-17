@@ -40,3 +40,14 @@ add_gtest(triviality)
 add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
+
+# constexpr test
+add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
+target_link_libraries(
+    beman.inplace_vector.tests.constexpr
+    PRIVATE beman.inplace_vector
+)
+add_test(
+    NAME beman.inplace_vector.tests.constexpr
+    COMMAND beman.inplace_vector.tests.constexpr
+)

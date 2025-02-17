@@ -164,6 +164,59 @@ jobs:
           cmake --install build --config Debug --prefix /opt/beman.inplace_vector
           ls -R /opt/beman.inplace_vector
 
+  compiler-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compilers:
+          - class: gnu
+            version: 14
+          - class: gnu
+            version: 13
+          - class: gnu
+            version: 12
+          - class: llvm
+            version: 20
+          - class: llvm
+            version: 19
+          - class: llvm
+            version: 18
+          - class: llvm
+            version: 17
+    container:
+      image: ghcr.io/wusatosi/cpp-docker:${{ matrix.compilers.class }}-${{ matrix.compilers.version }}
+    name: "Compiler: ${{ matrix.compilers.class }} ${{ matrix.compilers.version }}"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Compiler
+        id: install-compiler
+        run: |
+          if [ "${{ matrix.compilers.class }}" = "gnu" ]; then
+            CC=gcc-${{ matrix.compilers.version }}
+            CXX=g++-${{ matrix.compilers.version }}
+          else
+            CC=clang-${{ matrix.compilers.version }}
+            CXX=clang++-${{ matrix.compilers.version }}
+          fi
+
+          echo "CC=$CC" >> "$GITHUB_OUTPUT"
+          echo "CXX=$CXX" >> "$GITHUB_OUTPUT"
+      - name: Configure CMake
+        run: |
+          cmake -B build -S . -DCMAKE_CXX_STANDARD=20
+        env:
+          CC: ${{ steps.install-compiler.outputs.CC }}
+          CXX: ${{ steps.install-compiler.outputs.CXX }}
+          CMAKE_GENERATOR: "Ninja Multi-Config"
+      - name: Build Debug
+        run: |
+          cmake --build build --config Debug --verbose
+          # cmake --build build --config Debug --target all_verify_interface_header_sets
+          cmake --install build --config Debug --prefix /tmp/beman.exemplar
+          find /tmp/beman.exemplar -type f
+      - name: Test Debug
+        run: ctest --test-dir build --build-config Debug
 
   create-issue-when-fault:
     runs-on: ubuntu-latest

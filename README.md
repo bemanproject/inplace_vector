@@ -4,16 +4,14 @@ SPDX-License-Identifier: <SPDX License Expression>
 
 # beman.inplace\_vector: Dynamically-resizable vector with fixed capacity
 
-<!-- markdownlint-disable -->
-<img src="https://github.com/bemanproject/beman/blob/main/images/logos/beman_logo-beman_library_under_development.png" style="width:5%; height:auto;"> ![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)
+![Library Status](https://github.com/bemanproject/beman/blob/c6997986557ec6dda98acbdf502082cdf7335526/images/badges/beman_badge-beman_library_under_development.svg)
+![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)
 ![Code Format](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit.yml/badge.svg)
-<!-- markdownlint-enable -->
 
 **Implements**: [`inplace_vector` (P0843R14)](https://wg21.link/P0843R14)
 
-<!-- markdownlint-disable -->
-**Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
-<!-- markdownlint-enable -->
+**Status**:
+[Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
 
 ## Usage
 
@@ -30,12 +28,15 @@ which dynamic memory allocations are undesired.
 #### Note on implementation progress
 
 Current implementation implements all public interfaces defined in the paper.
-However constexpr related functionalities are not tested and maybe broken.
 
-There have been minor updates to the wording after the paper is accepted, notably [P3247](wg21.link/P3247).
+There have been minor updates to the wording after the paper is accepted,
+notably [P3247](https://wg21.link/P3247).
 Which changes the requirements for constexpr support.
-This will likely be preceded with [P3074](wg21.link/P3074).
+This will likely be preceded with [P3074](https://wg21.link/P3074).
 These has not been implemented yet.
+
+You can follow [this link](https://eel.is/c++draft/inplace.vector)
+to checkout the status of `inplace_vector` in the latest draft.
 
 Contributions are welcome.
 
@@ -53,12 +54,13 @@ using namespace beman;
  * Generates fibonacci sequence using inplace_vector.
  * See: https://en.wikipedia.org/wiki/Fibonacci_sequence
  */
-template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
+template <int Capacity>
+constexpr inplace_vector<int, Capacity> fibonacci_to(int num) {
   assert(num < Capacity);
 
   inplace_vector<int, Capacity> vec;
 
-  constexpr static std::array<int, 2> first_two{0, 1};
+  constexpr std::array<int, 2> first_two{0, 1};
   for (auto i = 0; i <= num; ++i) {
     auto new_val = i < 2 ? first_two[i] : vec[i - 1] + vec[i - 2];
     vec.push_back(new_val);
@@ -66,7 +68,31 @@ template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
 
   return vec;
 }
+
+/*
+ * Check the result of the computation at compile time.
+ */
+constexpr bool check_5() {
+  auto got = fibonacci_to<10>(5);
+  constexpr inplace_vector<int, 10> correct{0, 1, 1, 2, 3, 5};
+  return got == correct;
+}
+
+static_assert(check_5());
+
 ```
+
+### Note on constexpr support
+
+Since `constexpr` requirements are actively changing,
+you can use `beman::has_constexpr_support` to detect if our implementation
+provide constexpr support for a specific specialization of `inplace_vector`.
+
+Note this is not part of the standard Library and should not be relied on once
+`constexpr` requirement stabilize.
+
+Example Usage:
+`static_assert(beman::has_constexpr_support<beman::inplace_vector<int, 5>>)`.
 
 ## How to Build
 
@@ -74,9 +100,17 @@ template <int Capacity> inplace_vector<int, Capacity> fibonacci_to(int num) {
 
 Building this repository requires **C++20** or later.
 
+We will evaluate the possibility of partial support for C++17
+when constexpr is fully supported and tested.
+
 ### Dependencies
 
-TODO: tested platforms.
+Current implementation is tested against both GNU gcc and LLVM clang compilers.
+More specifically, gcc version 12 to 14, and clang version 17 to 20.
+Versions outside of this range will likely work as well,
+they are just not tested in our current infrastructure.
+We are working on expanding this range of compiler support,
+and aim to bring `inplace_vector` to MSVC soon!
 
 ### Instructions
 
