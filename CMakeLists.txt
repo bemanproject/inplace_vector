@@ -15,7 +15,7 @@ project(
 
 # [CMAKE.SKIP_EXAMPLES]
 option(
-    BEMAN_EXEMPLAR_BUILD_EXAMPLES
+    BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES
     "Enable building examples. Default: ON. Values: { ON, OFF }."
     ${PROJECT_IS_TOP_LEVEL}
 )
@@ -25,6 +25,19 @@ option(
     BEMAN_INPLACE_VECTOR_BUILD_TESTS
     "Enable building tests and test infrastructure. Default: ON. Values: { ON, OFF }."
     ${PROJECT_IS_TOP_LEVEL}
+)
+
+option(
+    BEMAN_INPLACE_VECTOR_FIXED_SIZE_T
+    "Fixes size_t in inplace_vector, otherwise size_t is dynamic against \
+    inplace_vector's capacity. Default: OFF. Values: { ON, OFF }."
+    OFF
+)
+
+configure_file(
+    "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"
+    @ONLY
 )
 
 include(FetchContent)
@@ -38,6 +51,7 @@ target_include_directories(
     beman.inplace_vector
     INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 

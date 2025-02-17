@@ -204,6 +204,24 @@ Test project /.../inplace_vector/build
 Total Test time (real) =   0.01 sec
 ```
 
+## Build arguments
+
+### Disable dynamic size type in control block
+
+By default,
+the type of the size variable in the control block is selected to the smallest
+it could be
+(as an upper bound can be established given we know the capacity of the vector).
+
+You can turn off this behavior by setting `BEMAN_INPLACE_VECTOR_FIXED_SIZE_T`
+to `ON`, which fixes the type to `std::size_t`.
+
+Example: configuring the project with fixed size type.
+
+```bash
+cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DBEMAN_INPLACE_VECTOR_FIXED_SIZE_T=ON
+```
+
 ## Development
 
 ### Linting
