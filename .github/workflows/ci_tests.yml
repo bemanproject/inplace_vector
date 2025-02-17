@@ -120,6 +120,51 @@ jobs:
       - name: Test Debug
         run: ctest --test-dir build --build-config Debug
 
+  configuration-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        args:
+          - name: "Disable build testing"
+            arg: "-DBEMAN_INPLACE_VECTOR_BUILD_TESTS=OFF"
+          - name: "Disable example building"
+            arg: "-DBEMAN_INPLACE_VECTOR_BUILD_EXAMPLES=OFF"
+          - name: "Enable fixed size type"
+            arg: "-DBEMAN_INPLACE_VECTOR_FIXED_SIZE_T=ON"
+    name: "CMake: ${{ matrix.args.name }}"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup build environment
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.25.0"
+          ninjaVersion: "^1.11.1"
+      - name: Print installed software
+        run: |
+          cmake --version
+          ninja --version
+      - name: Configure CMake
+        run: |
+          cmake -B build -S . -DCMAKE_CXX_STANDARD=20 ${{ matrix.args.arg }}
+        env:
+          CMAKE_GENERATOR: "Ninja Multi-Config"
+      - name: Build Release
+        run: |
+          # Portable commands only
+          cmake --build build --config Release --parallel --verbose
+          # cmake --build build --config Release --target all_verify_interface_header_sets
+          cmake --install build --config Release --prefix /opt/beman.inplace_vector
+          ls -R /opt/beman.inplace_vector
+      - name: Build Debug
+        run: |
+          # Portable commands only
+          cmake --build build --config Debug --parallel --verbose
+          # cmake --build build --config Debug --target all_verify_interface_header_sets
+          cmake --install build --config Debug --prefix /opt/beman.inplace_vector
+          ls -R /opt/beman.inplace_vector
+
+
   create-issue-when-fault:
     runs-on: ubuntu-latest
     needs: [test]
