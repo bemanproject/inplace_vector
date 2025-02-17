@@ -297,10 +297,10 @@ using smallest_size_t
 // clang-format on
 
 /*
- * This is generally for managing the size type in the storage block.
+ * This is for managing the type of size in the control block.
+ *
  * This behavior can be turned off by setting the
- * BEMAN_INPLACE_VECTOR_FIXED_SIZE_T build option as there has been report of
- * performance impact.
+ * BEMAN_INPLACE_VECTOR_FIXED_SIZE_T build option.
  *
  * This macro is set in the config.hpp.
  */
