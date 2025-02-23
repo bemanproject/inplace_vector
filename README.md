@@ -29,11 +29,11 @@ which dynamic memory allocations are undesired.
 
 Current implementation implements all public interfaces defined in the paper.
 
-There have been minor updates to the wording after the paper is accepted,
-notably [P3247](https://wg21.link/P3247).
-Which changes the requirements for constexpr support.
-This will likely be preceded with [P3074](https://wg21.link/P3074).
-These has not been implemented yet.
+There have been updates to the spec after the paper getting accepted.
+Notably,
+[trivial unions (P3074)](https://github.com/cplusplus/draft/pull/7680/files#diff-3b5851f7056b7c68cb3ba2ab51cf0b75a780c6a11e5e181770067700454ace7b)
+have made the constexpr unconditional.
+This have not been implemented yet due to limited compiler support.
 
 You can follow [this link](https://eel.is/c++draft/inplace.vector)
 to checkout the status of `inplace_vector` in the latest draft.
