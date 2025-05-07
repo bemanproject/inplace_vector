@@ -33,7 +33,7 @@ There have been updates to the spec after the paper getting accepted.
 Notably,
 [trivial unions (P3074)](https://github.com/cplusplus/draft/pull/7680/files#diff-3b5851f7056b7c68cb3ba2ab51cf0b75a780c6a11e5e181770067700454ace7b)
 have made the constexpr unconditional.
-This have not been implemented yet due to limited compiler support.
+constexpr has not yet been fully implemented due to limited compiler support - see [Alternative implementation using P3074 when compiler support is available](https://github.com/bemanproject/inplace_vector/issues/36).
 
 You can follow [this link](https://eel.is/c++draft/inplace.vector)
 to checkout the status of `inplace_vector` in the latest draft.
