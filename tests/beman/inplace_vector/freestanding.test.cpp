@@ -24,6 +24,5 @@ TYPED_TEST(Freestanding, alltypes) {
 
   vec.clear();
   EXPECT_EQ(vec.size(), 0);
-
 }
 } // namespace
