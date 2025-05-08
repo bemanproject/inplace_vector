@@ -11,6 +11,10 @@ concept has_threeway = requires(const T &t) {
   { t <=> t };
 };
 
+template <class T>
+concept lessthan_comparable =
+    beman::details::inplace_vector::lessthan_comparable<T>;
+
 template <typename T> struct vec_list {
   T empty;
   T base;            // base
@@ -25,7 +29,7 @@ template <typename T> struct vec_list {
 
 template <typename T> static void runtests(vec_list<T> &list) {
 
-  static_assert(std::three_way_comparable<T>);
+  static_assert(std::three_way_comparable<T> || lessthan_comparable<T>);
 
   // if T::value_type is threewaycomparable with ordering X then T must also
   // be comparable with ordering X
@@ -41,8 +45,10 @@ template <typename T> static void runtests(vec_list<T> &list) {
   if constexpr (std::three_way_comparable<VT, std::partial_ordering>)
     static_assert(std::three_way_comparable<T, std::partial_ordering>);
 
-  EXPECT_TRUE(list.empty == list.empty);
-  EXPECT_TRUE(list.empty != list.base);
+  if constexpr (std::equality_comparable<VT>) {
+    EXPECT_TRUE(list.empty == list.empty);
+    EXPECT_TRUE(list.empty != list.base);
+  }
 
   EXPECT_TRUE((list.base <=> list.copy) == 0);
   EXPECT_TRUE((list.base <=> list.greater) < 0);
@@ -54,7 +60,11 @@ template <typename T> static void runtests(vec_list<T> &list) {
   EXPECT_TRUE((list.base <=> list.greater_smaller) < 0);
   EXPECT_TRUE((list.base <=> list.lesser_bigger) > 0);
 
-  EXPECT_TRUE(list.base == list.copy);
+  if constexpr (std::equality_comparable<VT>) {
+    EXPECT_TRUE(list.base == list.copy);
+    EXPECT_TRUE(list.base != list.greater);
+    EXPECT_TRUE(list.base != list.lesser);
+  }
   EXPECT_TRUE(list.base <= list.copy);
   EXPECT_TRUE(list.base >= list.copy);
   EXPECT_TRUE(list.base < list.greater);
@@ -62,7 +72,11 @@ template <typename T> static void runtests(vec_list<T> &list) {
   EXPECT_TRUE(list.base > list.lesser);
   EXPECT_TRUE(list.base >= list.lesser);
 
-  EXPECT_TRUE(list.copy == list.base);
+  if constexpr (std::equality_comparable<VT>) {
+    EXPECT_TRUE(list.copy == list.base);
+    EXPECT_TRUE(list.copy != list.greater);
+    EXPECT_TRUE(list.copy != list.lesser);
+  }
   EXPECT_TRUE(list.copy <= list.base);
   EXPECT_TRUE(list.copy >= list.base);
   EXPECT_TRUE(list.greater > list.base);
@@ -101,6 +115,25 @@ TEST(Compare, threeway_float) {
   };
 
   runtests(list);
+
+  // compare unorderable values
+
+  EXPECT_EQ(std::nanf("") <=> std::nanf(""), std::partial_ordering::unordered);
+  EXPECT_FALSE(std::nanf("") == std::nanf(""));
+  EXPECT_FALSE(std::nanf("") < std::nanf(""));
+  EXPECT_FALSE(std::nanf("") > std::nanf(""));
+  EXPECT_FALSE(std::nanf("") >= std::nanf(""));
+  EXPECT_FALSE(std::nanf("") <= std::nanf(""));
+
+  inplace_vector<float, 4> vnan{std::nanf("")};
+  inplace_vector<float, 4> vnan2{std::nanf("")};
+
+  EXPECT_EQ(vnan <=> vnan2, std::partial_ordering::unordered);
+  EXPECT_FALSE(vnan == vnan2);
+  EXPECT_FALSE(vnan < vnan2);
+  EXPECT_FALSE(vnan > vnan2);
+  EXPECT_FALSE(vnan >= vnan2);
+  EXPECT_FALSE(vnan <= vnan2);
 }
 
 TEST(Compare, threeway_comparable1) {
@@ -135,7 +168,7 @@ TEST(Compare, threeway_comparable2) {
   struct comparable2 {
     int a;
     int b;
-    constexpr bool operator==(const comparable2 &) const = default;
+    constexpr bool operator==(const comparable2 &) const = delete;
     constexpr bool operator<(const comparable2 &other) const {
       return a < other.a || (a == other.a && b < other.b);
     };
@@ -143,6 +176,7 @@ TEST(Compare, threeway_comparable2) {
 
   static_assert(!std::three_way_comparable<comparable2>);
   static_assert(!has_threeway<comparable2>);
+  static_assert(lessthan_comparable<comparable2>);
   static_assert(std::three_way_comparable<inplace_vector<comparable2, 4>>);
   static_assert(has_threeway<inplace_vector<comparable2, 4>>);
 
@@ -159,25 +193,6 @@ TEST(Compare, threeway_comparable2) {
   };
 
   runtests(list);
-
-  // compare unorderable values
-
-  EXPECT_EQ(std::nanf("") <=> std::nanf(""), std::partial_ordering::unordered);
-  EXPECT_FALSE(std::nanf("") == std::nanf(""));
-  EXPECT_FALSE(std::nanf("") < std::nanf(""));
-  EXPECT_FALSE(std::nanf("") > std::nanf(""));
-  EXPECT_FALSE(std::nanf("") >= std::nanf(""));
-  EXPECT_FALSE(std::nanf("") <= std::nanf(""));
-
-  inplace_vector<float, 4> vnan{std::nanf("")};
-  inplace_vector<float, 4> vnan2{std::nanf("")};
-
-  EXPECT_EQ(vnan <=> vnan2, std::partial_ordering::unordered);
-  EXPECT_FALSE(vnan == vnan2);
-  EXPECT_FALSE(vnan < vnan2);
-  EXPECT_FALSE(vnan > vnan2);
-  EXPECT_FALSE(vnan >= vnan2);
-  EXPECT_FALSE(vnan <= vnan2);
 }
 
 TEST(Compare, threeway_strong_ordering) {
@@ -301,14 +316,11 @@ TEST(Compare, threeway_uncomparable) {
 
   struct uncomparable3 {
     int a;
-    constexpr auto operator<=>(const uncomparable3 &) const {
-      return std::partial_ordering::unordered;
-    }
-    constexpr bool operator==(const uncomparable3 &) const = delete;
+    constexpr auto operator<=>(const uncomparable3 &) const = delete;
   };
 
   static_assert(!std::three_way_comparable<uncomparable3>);
-  static_assert(has_threeway<uncomparable3>); // has <=> but no == operator
+  static_assert(!has_threeway<uncomparable3>);
   static_assert(!std::three_way_comparable<inplace_vector<uncomparable3, 4>>);
   static_assert(!has_threeway<inplace_vector<uncomparable3, 4>>);
 }
