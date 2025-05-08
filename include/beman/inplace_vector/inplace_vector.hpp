@@ -1009,7 +1009,7 @@ public:
 
   constexpr friend auto operator<=>(const inplace_vector &x,
                                     const inplace_vector &y)
-    requires(std::equality_comparable<T> &&
+    requires(!std::three_way_comparable<T> && std::equality_comparable<T> &&
              beman::details::inplace_vector::lessthan_comparable<T>)
   {
     const auto sz = std::min(x.size(), y.size());
@@ -1021,6 +1021,14 @@ public:
     }
 
     return x.size() <=> y.size();
+  }
+
+  constexpr friend auto operator<=>(const inplace_vector &x,
+                                    const inplace_vector &y)
+    requires(std::three_way_comparable<T>)
+  {
+    return std::lexicographical_compare_three_way(x.begin(), x.end(), y.begin(),
+                                                  y.end());
   }
 };
 
