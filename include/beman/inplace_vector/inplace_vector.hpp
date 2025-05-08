@@ -1009,26 +1009,24 @@ public:
 
   constexpr friend auto operator<=>(const inplace_vector &x,
                                     const inplace_vector &y)
-    requires(!std::three_way_comparable<T> && std::equality_comparable<T> &&
+    requires(std::equality_comparable<T> &&
              beman::details::inplace_vector::lessthan_comparable<T>)
   {
-    const auto sz = std::min(x.size(), y.size());
-    for (std::size_t i = 0; i < sz; ++i) {
-      if (x[i] < y[i])
-        return std::strong_ordering::less;
-      if (y[i] < x[i])
-        return std::strong_ordering::greater;
+    if constexpr (std::three_way_comparable<T>) {
+      return std::lexicographical_compare_three_way(x.begin(), x.end(),
+                                                    y.begin(), y.end());
+    } else {
+      const auto sz = std::min(x.size(), y.size());
+      for (std::size_t i = 0; i < sz; ++i) {
+        if (x[i] < y[i])
+          return std::strong_ordering::less;
+        if (y[i] < x[i])
+          return std::strong_ordering::greater;
+        // [container.opt.reqmts] < must be total ordering relationship
+      }
+
+      return x.size() <=> y.size();
     }
-
-    return x.size() <=> y.size();
-  }
-
-  constexpr friend auto operator<=>(const inplace_vector &x,
-                                    const inplace_vector &y)
-    requires(std::three_way_comparable<T>)
-  {
-    return std::lexicographical_compare_three_way(x.begin(), x.end(), y.begin(),
-                                                  y.end());
   }
 };
 
