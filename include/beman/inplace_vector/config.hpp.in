@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#pragma once
+
+#define BEMAN_INPLACE_VECTOR_CONFIG
+
+#cmakedefine01 BEMAN_INPLACE_VECTOR_FIXED_SIZE_T
