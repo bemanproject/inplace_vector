@@ -40,6 +40,12 @@ add_gtest(triviality)
 add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
+add_gtest(freestanding)
+
+set_source_files_properties(
+    freestanding.test.cpp
+    PROPERTIES COMPILE_FLAGS "-DBEMAN_IV_FREESTANDING_FORCE_TEST"
+)
 
 # constexpr test
 add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
