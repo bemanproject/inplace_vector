@@ -42,9 +42,9 @@ add_gtest(size_n_data)
 add_gtest(erasure)
 add_gtest(freestanding)
 
-set_source_files_properties(
-    freestanding.test.cpp
-    PROPERTIES COMPILE_FLAGS "-DBEMAN_IV_FREESTANDING_FORCE_TEST"
+target_compile_definitions(
+    beman.inplace_vector.tests.freestanding
+    PRIVATE BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED=1
 )
 
 # constexpr test

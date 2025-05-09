@@ -252,6 +252,9 @@ prospectively choose to deem waived or otherwise exclude such Section(s) of
 the License, but only in their entirety and only with respect to the Combined
 Software.
  */
+
+#include <beman/inplace_vector/config.hpp>
+
 #include <algorithm> // for rotate...
 #include <array>
 #include <concepts>   // for lots...
@@ -271,8 +274,7 @@ Software.
 // Artifact from previous implementation, can be used as hints for optimizer
 #define IV_EXPECT(EXPR)
 
-#if (!defined(__EXCEPTIONS) && !defined(_CPPUNWIND)) ||                        \
-    __STDC_HOSTED__ == 0 || BEMAN_IV_FREESTANDING_FORCE_TEST
+#if __STDC_HOSTED__ == 0 || BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED
 #define BEMAN_IV_FREESTANDING_DELETE(impl) = delete
 #else
 #define BEMAN_IV_FREESTANDING_DELETE(impl) impl
