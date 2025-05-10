@@ -1,11 +1,14 @@
-#include <gtest/gtest.h>
+#include <numeric>
 
 #include "gtest_setup.hpp"
+#include <gtest/gtest.h>
 
 namespace {
 // 23.3.14.5 Modifiers [inplace.vector.modifiers]
 template <typename Param> class Modifiers : public IVBasicTest<Param> {};
 TYPED_TEST_SUITE(Modifiers, IVAllTypes);
+
+#if BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED
 
 TYPED_TEST(Modifiers, InsertSingleConstRef) {
   // constexpr iterator insert(const_iterator position, const T& x);
@@ -428,6 +431,8 @@ TYPED_TEST(Modifiers, EmplaceBack) {
 
   EXPECT_THROW(device.emplace_back(0), std::bad_alloc);
 }
+
+#endif
 
 TYPED_TEST(Modifiers, TryEmplaceBack) {
   // template<class... Args>

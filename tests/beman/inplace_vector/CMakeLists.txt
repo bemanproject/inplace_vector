@@ -41,12 +41,8 @@ add_gtest(compare)
 add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
+add_gtest(modifiers)
 add_gtest(freestanding)
-
-target_compile_definitions(
-    beman.inplace_vector.tests.freestanding
-    PRIVATE BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED=1
-)
 
 # constexpr test
 add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
