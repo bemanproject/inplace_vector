@@ -10,7 +10,7 @@ TYPED_TEST_SUITE(Freestanding, IVAllTypes);
 
 TYPED_TEST(Freestanding, alltypes) {
 
-#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 
   GTEST_SKIP() << "Not applicable";
 
