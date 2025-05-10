@@ -21,6 +21,7 @@ jobs:
           - preset: gcc-release
             platform: llvm-20
     name: "Preset: ${{ matrix.presets.preset }}"
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/bemanproject/infra:test-${{ matrix.presets.tag }}
     steps:
@@ -69,6 +70,7 @@ jobs:
               cmake_args: "-DBUILD_SHARED_LIBS=on"
 
     name: "Build & Test: ${{ matrix.compiler.c }} ${{ matrix.cpp_version }} ${{ matrix.cmake_args.description }}"
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/bemanproject/infra:test-${{ matrix.compiler.tag }}
     steps:
