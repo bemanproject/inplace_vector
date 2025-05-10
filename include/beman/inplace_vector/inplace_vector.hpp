@@ -717,6 +717,16 @@ public:
     return *this;
   }
 
+  constexpr inplace_vector &operator=(std::initializer_list<T> il)
+    requires(std::constructible_from<
+                 T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
+             std::movable<T>)
+  {
+    clear();
+    insert_range(begin(), il);
+    return *this;
+  }
+
   constexpr void
   swap(inplace_vector &x) noexcept(N == 0 ||
                                    (std::is_nothrow_swappable_v<T> &&
