@@ -41,6 +41,7 @@ add_gtest(compare)
 add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
+add_gtest(modifiers)
 
 # constexpr test
 add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
