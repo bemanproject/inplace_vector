@@ -738,7 +738,9 @@ public:
   constexpr void assign_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
-  BEMAN_IV_FREESTANDING_DELETE({ assign(std::ranges::begin(rg), std::ranges::end(rg)); });
+  BEMAN_IV_FREESTANDING_DELETE({
+    assign(std::ranges::begin(rg), std::ranges::end(rg));
+  });
   constexpr void assign(size_type n, const T &u)
     requires(std::constructible_from<T, const T &> && std::movable<T>)
   BEMAN_IV_FREESTANDING_DELETE({
