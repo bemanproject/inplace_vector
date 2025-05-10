@@ -16,12 +16,13 @@ jobs:
       fail-fast: false
       matrix:
         presets:
-          - preset: "gcc-debug"
-            platform: "ubuntu-latest"
-          - preset: "gcc-release"
-            platform: "ubuntu-latest"
-    name: "Preset: ${{ matrix.presets.preset }} on ${{ matrix.presets.platform }}"
-    runs-on: ${{ matrix.presets.platform }}
+          - preset: gcc-debug
+            tag: gnu-14
+          - preset: gcc-release
+            platform: llvm-20
+    name: "Preset: ${{ matrix.presets.preset }}"
+    container:
+      image: ghcr.io/bemanproject/infra:test-${{ matrix.presets.tag }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup build environment
@@ -41,12 +42,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-24.04]
         compiler:
           - cpp: g++
             c: gcc
+            tag: gnu-14
           - cpp: clang++
             c: clang
+            tag: llvm-20
         cpp_version: [20, 23]
         cmake_args:
           - description: "Default"
@@ -60,42 +62,24 @@ jobs:
             compiler:
               cpp: g++
               c: gcc
+              tag: gnu-14
             cpp_version: 20
             cmake_args:
               description: "Dynamic"
               cmake_args: "-DBUILD_SHARED_LIBS=on"
 
     name: "Build & Test: ${{ matrix.compiler.c }} ${{ matrix.cpp_version }} ${{ matrix.cmake_args.description }}"
-    runs-on: ${{ matrix.platform }}
+    container:
+      image: ghcr.io/bemanproject/infra:test-${{ matrix.compiler.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install Ninja
-        uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.25.0"
-          ninjaVersion: "^1.11.1"
-      - name: Install latest compiler
-        run: |
-          if [ "${{ matrix.compiler.cpp}}" == "g++" ]; then
-            # Install gcc-14
-            sudo apt-get update
-            sudo apt-get install -y gcc-14 g++-14
-
-            sudo rm /usr/bin/gcc
-            sudo ln -s /usr/bin/gcc-14 /usr/bin/gcc
-
-            sudo rm /usr/bin/g++
-            sudo ln -s /usr/bin/g++-14 /usr/bin/g++
-          else
-            # Install llvm
-            sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-          fi
       - name: Print installed software
         run: |
           clang++ --version
           g++ --version
           cmake --version
           ninja --version
+          ctest --version
       - name: Configure CMake
         run: |
           cmake -B build -S . -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }} ${{ matrix.cmake_args.args }}
@@ -141,7 +125,7 @@ jobs:
           - class: llvm
             version: 17
     container:
-      image: ghcr.io/wusatosi/cpp-docker:${{ matrix.compilers.class }}-${{ matrix.compilers.version }}
+      image: ghcr.io/bemanproject/infra:test-${{ matrix.compilers.class }}-${{ matrix.compilers.version }}
     name: "Compiler: ${{ matrix.compilers.class }} ${{ matrix.compilers.version }}"
     steps:
       - uses: actions/checkout@v4
