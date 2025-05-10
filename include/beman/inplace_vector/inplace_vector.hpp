@@ -5,6 +5,7 @@
 
 #include <algorithm> // for rotate...
 #include <array>
+#include <compare>
 #include <concepts>   // for lots...
 #include <cstddef>    // for size_t
 #include <cstdint>    // for fixed-width integer types
@@ -59,6 +60,11 @@ concept container_compatible_range =
 
 template <typename T, std::size_t N>
 concept satify_constexpr = N == 0 || std::is_trivial_v<T>;
+
+template <typename T>
+concept lessthan_comparable = requires(const T &a, const T &b) {
+  { a < b } -> std::convertible_to<bool>;
+};
 
 } // namespace beman::details::inplace_vector
 
@@ -752,27 +758,25 @@ public:
     insert_range(begin(), il);
   }
 
-  constexpr friend int /*synth-three-way-result<T>*/
-  operator<=>(const inplace_vector & x, const inplace_vector & y) {
-    if (x.size() < y.size())
-      return -1;
-    if (x.size() > y.size())
-      return +1;
+  constexpr friend auto operator<=>(const inplace_vector &x,
+                                    const inplace_vector &y)
+    requires(beman::details::inplace_vector::lessthan_comparable<T>)
+  {
+    if constexpr (std::three_way_comparable<T>) {
+      return std::lexicographical_compare_three_way(x.begin(), x.end(),
+                                                    y.begin(), y.end());
+    } else {
+      const auto sz = std::min(x.size(), y.size());
+      for (std::size_t i = 0; i < sz; ++i) {
+        if (x[i] < y[i])
+          return std::strong_ordering::less;
+        if (y[i] < x[i])
+          return std::strong_ordering::greater;
+        // [container.opt.reqmts] < must be total ordering relationship
+      }
 
-    bool all_equal = true;
-    bool all_less = true;
-    for (size_type i = 0; i < x.size(); ++i) {
-      if (x[i] < y[i])
-        all_equal = false;
-      if (x[i] == y[i])
-        all_less = false;
+      return x.size() <=> y.size();
     }
-
-    if (all_equal)
-      return 0;
-    if (all_less)
-      return -1;
-    return 1;
   }
 };
 
