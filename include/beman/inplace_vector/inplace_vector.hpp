@@ -259,8 +259,6 @@ public:
   constexpr size_type size() const noexcept { return storage_size(); }
   static constexpr size_type max_size() noexcept { return N; }
   static constexpr size_type capacity() noexcept { return N; }
-  // constexpr void resize(size_type sz);
-  // constexpr void resize(size_type sz, const T& c);
   constexpr void reserve(size_type n) {
     if (n > N) [[unlikely]]
       throw std::bad_alloc();
@@ -274,8 +272,6 @@ public:
   constexpr const_reference operator[](size_type n) const {
     return details::inplace_vector::index(*this, n);
   }
-  // constexpr const_reference at(size_type n) const;
-  // constexpr reference       at(size_type n);
   constexpr reference front() {
     return details::inplace_vector::index(*this, size_type(0));
   }
@@ -297,8 +293,6 @@ public:
                                    const inplace_vector &y) {
     return x.size() == y.size() && std::ranges::equal(x, y);
   }
-  // constexpr friend auto /*synth-three-way-result<T>*/
-  //  operator<=>(const inplace_vector& x, const inplace_vector& y);
   constexpr friend void swap(inplace_vector &x, inplace_vector &y) noexcept(
       N == 0 || (std::is_nothrow_swappable_v<T> &&
                  std::is_nothrow_move_constructible_v<T>)) {
