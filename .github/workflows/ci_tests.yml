@@ -77,8 +77,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Print installed software
         run: |
-          clang++ --version
-          g++ --version
           cmake --version
           ninja --version
           ctest --version
