@@ -482,7 +482,7 @@ public:
     auto it = std::ranges::begin(rg);
     const auto end = std::ranges::end(rg);
     for (; size() != capacity() && it != end; ++it) {
-      try_emplace_back(std::forward<decltype(*it)>(*it));
+      unchecked_emplace_back(*it);
     }
     return it;
   }
