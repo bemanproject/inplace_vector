@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-#pragma once
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+#ifndef BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP
+#define BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP
 
 #include <algorithm> // for rotate...
 #include <array>
@@ -77,7 +77,8 @@ protected:
   using size_type = uint8_t;
   static constexpr T *storage_data() noexcept { return nullptr; }
   static constexpr size_type storage_size() noexcept { return 0; }
-  static constexpr void unsafe_set_size(size_t new_size) noexcept {
+  static constexpr void
+  unsafe_set_size([[maybe_unused]] size_t new_size) noexcept {
     IV_EXPECT(new_size == 0 &&
               "tried to change size of empty storage to non-zero value");
   }
@@ -224,34 +225,6 @@ public:
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
   constexpr inplace_vector() noexcept = default;
-  // constexpr explicit inplace_vector(size_type n);
-  // constexpr inplace_vector(size_type n, const T& value);
-  // template <class InputIterator>  // BUGBUG: why not model input_iterator?
-  //   constexpr inplace_vector(InputIterator first, InputIterator
-  //   last);
-  // template <details::inplace_vector::container_compatible_range<T> R>
-  //  constexpr inplace_vector(from_range_t, R&& rg);
-  // from base-class, trivial if is_trivially_copy_constructible_v<T>:
-  //   constexpr inplace_vector(const inplace_vector&);
-  // from base-class, trivial if is_trivially_move_constructible_v<T>
-  //   constexpr inplace_vector(inplace_vector&&) noexcept(N == 0 ||
-  //   std::is_nothrow_move_constructible_v<T>);
-  // constexpr inplace_vector(std::initializer_list<T> il);
-  // from base-class, trivial if is_trivially_destructible_v<T>
-  //   constexpr ~inplace_vector();
-  // from base-class, trivial if is_trivially_destructible_v<T> &&
-  // is_trivially_copy_assignable_v<T>
-  //   constexpr inplace_vector& operator=(const inplace_vector& other);
-  // from base-class, trivial if is_trivially_destructible_v<T> &&
-  // is_trivially_copy_assignable_v<T>
-  //   constexpr inplace_vector& operator=(inplace_vector&& other)
-  //   noexcept(N == 0 || is_nothrow_move_assignable_v<T>);
-  // template <class InputIterator> // BUGBUG: why not model input_iterator
-  //  constexpr void assign(InputIterator first, InputIterator last);
-  // template<details::inplace_vector::container_compatible_range<T> R>
-  //  constexpr void assign_range(R&& rg);
-  // constexpr void assign(size_type n, const T& u);
-  // constexpr void assign(std::initializer_list<T> il);
 
   // iterators
   constexpr iterator begin() noexcept { return storage_data(); }
@@ -286,8 +259,6 @@ public:
   constexpr size_type size() const noexcept { return storage_size(); }
   static constexpr size_type max_size() noexcept { return N; }
   static constexpr size_type capacity() noexcept { return N; }
-  // constexpr void resize(size_type sz);
-  // constexpr void resize(size_type sz, const T& c);
   constexpr void reserve(size_type n) {
     if (n > N) [[unlikely]]
       throw std::bad_alloc();
@@ -301,8 +272,6 @@ public:
   constexpr const_reference operator[](size_type n) const {
     return details::inplace_vector::index(*this, n);
   }
-  // constexpr const_reference at(size_type n) const;
-  // constexpr reference       at(size_type n);
   constexpr reference front() {
     return details::inplace_vector::index(*this, size_type(0));
   }
@@ -320,51 +289,10 @@ public:
   constexpr T *data() noexcept { return storage_data(); }
   constexpr const T *data() const noexcept { return storage_data(); }
 
-  // [containers.sequences.inplace_vector.modifiers], modifiers
-  // template <class... Args>
-  //  constexpr T& emplace_back(Args&&... args);
-  // constexpr T& push_back(const T& x);
-  // constexpr T& push_back(T&& x);
-  // template<details::inplace_vector::container_compatible_range<T> R>
-  //  constexpr void append_range(R&& rg);
-  // constexpr void pop_back();
-
-  // template<class... Args>
-  //  constexpr T* try_emplace_back(Args&&... args);
-  // constexpr T* try_push_back(const T& value);
-  // constexpr T* try_push_back(T&& value);
-
-  // template<class... Args>
-  //  constexpr T& unchecked_emplace_back(Args&&... args);
-  // constexpr T& unchecked_push_back(const T& value);
-  // constexpr T& unchecked_push_back(T&& value);
-
-  // template <class... Args>
-  //  constexpr iterator emplace(const_iterator position, Args&&... args);
-  // constexpr iterator insert(const_iterator position, const T& x);
-  // constexpr iterator insert(const_iterator position, T&& x);
-  // constexpr iterator insert(const_iterator position, size_type n, const
-  // T& x);
-  // template <class InputIterator>
-  //  constexpr iterator insert(const_iterator position, InputIterator
-  //  first, InputIterator last);
-  // template<details::inplace_vector::container_compatible_range<T> R>
-  //   constexpr iterator insert_range(const_iterator position, R&& rg);
-  // constexpr iterator insert(const_iterator position,
-  // std::initializer_list<T>
-  // il); constexpr iterator erase(const_iterator position); constexpr
-  // iterator erase(const_iterator first, const_iterator last); constexpr
-  // void swap(inplace_vector& x)
-  //  noexcept(N == 0 || (std::is_nothrow_swappable_v<T> &&
-  //  std::is_nothrow_move_constructible_v<T>));
-  // constexpr void clear() noexcept;
-
   constexpr friend bool operator==(const inplace_vector &x,
                                    const inplace_vector &y) {
     return x.size() == y.size() && std::ranges::equal(x, y);
   }
-  // constexpr friend auto /*synth-three-way-result<T>*/
-  //  operator<=>(const inplace_vector& x, const inplace_vector& y);
   constexpr friend void swap(inplace_vector &x, inplace_vector &y) noexcept(
       N == 0 || (std::is_nothrow_swappable_v<T> &&
                  std::is_nothrow_move_constructible_v<T>)) {
@@ -372,12 +300,14 @@ public:
   }
 
 private: // Utilities
-  constexpr void assert_iterator_in_range(const_iterator it) noexcept {
+  constexpr void
+  assert_iterator_in_range([[maybe_unused]] const_iterator it) noexcept {
     IV_EXPECT(begin() <= it && "iterator not in range");
     IV_EXPECT(it <= end() && "iterator not in range");
   }
-  constexpr void assert_valid_iterator_pair(const_iterator first,
-                                            const_iterator last) noexcept {
+  constexpr void
+  assert_valid_iterator_pair([[maybe_unused]] const_iterator first,
+                             [[maybe_unused]] const_iterator last) noexcept {
     IV_EXPECT(first <= last && "invalid iterator pair");
   }
   constexpr void assert_iterator_pair_in_range(const_iterator first,
@@ -799,3 +729,5 @@ constexpr std::size_t erase_if(inplace_vector<T, N> &c, Predicate pred) {
 } // namespace beman
 
 #undef IV_EXPECT
+
+#endif // BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP
