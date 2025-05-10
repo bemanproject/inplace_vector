@@ -19,18 +19,13 @@ jobs:
           - preset: gcc-debug
             tag: gnu-14
           - preset: gcc-release
-            platform: llvm-20
+            tag: gnu-14
     name: "Preset: ${{ matrix.presets.preset }}"
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/bemanproject/infra:test-${{ matrix.presets.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup build environment
-        uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.25.0"
-          ninjaVersion: "^1.11.1"
       - name: Setup MSVC
         if: startsWith(matrix.presets.platform, 'windows')
         uses: TheMrMilchmann/setup-msvc-dev@v3
