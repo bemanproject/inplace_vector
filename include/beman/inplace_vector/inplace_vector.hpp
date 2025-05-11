@@ -609,7 +609,7 @@ public:
              std::copyable<T>)
   {
     for (auto &&e : x)
-      emplace_back(e);
+      unchecked_emplace_back(e);
   }
 
   constexpr inplace_vector(inplace_vector &&x)
@@ -621,7 +621,7 @@ public:
              std::movable<T>)
   {
     for (auto &&e : x)
-      emplace_back(std::move(e));
+      unchecked_emplace_back(std::move(e));
   }
 
   constexpr inplace_vector &operator=(const inplace_vector &x)
@@ -639,7 +639,7 @@ public:
   {
     clear();
     for (auto &&e : x)
-      emplace_back(e);
+      unchecked_emplace_back(e);
     return *this;
   }
 
@@ -658,7 +658,7 @@ public:
   {
     clear();
     for (auto &&e : x)
-      emplace_back(std::move(e));
+      unchecked_emplace_back(std::move(e));
     return *this;
   }
 
