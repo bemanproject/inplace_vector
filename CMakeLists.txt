@@ -27,6 +27,18 @@ option(
     ${PROJECT_IS_TOP_LEVEL}
 )
 
+option(
+    BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED
+    "Enable freestanding mode. Default: OFF. Values: { ON, OFF }."
+    OFF
+)
+
+configure_file(
+    "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"
+    @ONLY
+)
+
 include(FetchContent)
 include(GNUInstallDirs)
 
@@ -38,7 +50,9 @@ target_include_directories(
     beman.inplace_vector
     INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
 )
 
 # Install the InplaceVector library to the appropriate destination
