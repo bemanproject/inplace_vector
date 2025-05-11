@@ -734,8 +734,7 @@ public:
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
   {
-    clear();
-    insert_range(begin(), il);
+    assign_range(il);
     return *this;
   }
 
