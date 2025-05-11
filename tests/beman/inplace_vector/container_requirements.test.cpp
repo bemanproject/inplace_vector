@@ -762,6 +762,7 @@ TYPED_TEST(SequenceContainerRequirements, Clear) {
   EXPECT_TRUE(device.empty());
 }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 // a.assign(i, j)
 // Result: void
 // Preconditions: T is Cpp17EmplaceConstructible into X from *i and assignable
@@ -835,6 +836,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignRange) {
   ref.back() = T{5};
   EXPECT_THROW(device.assign_range(ref), std::bad_alloc);
 }
+#endif
 
 // a.assign(il)
 // Effects: Equivalent to a.assign(il.begin(), il.end()).
@@ -854,6 +856,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignFuncInitializerList) {
   EXPECT_EQ(device, IV{T{50}});
 }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 // a.assign(n, t)
 // Result: void
 // Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable. t is
@@ -918,6 +921,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignMulti) {
   device.clear();
   EXPECT_THROW(device.assign(device.capacity() + 1, T{12}), std::bad_alloc);
 }
+#endif
 
 // a.front()
 // Result: reference; const_reference for constant a.
@@ -1002,6 +1006,7 @@ TYPED_TEST(SequenceContainerRequirements, ElementAccess) {
     EXPECT_EQ(device[i], *(device.begin() + i));
 }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 // a.at(n)
 // Result: reference; const_reference for constant a
 // Returns: *(a.begin() + n)
@@ -1019,5 +1024,6 @@ TYPED_TEST(SequenceContainerRequirements, ElementAccessAt) {
 
   EXPECT_THROW(device.at(IV::capacity()), std::out_of_range);
 }
+#endif
 
 }; // namespace

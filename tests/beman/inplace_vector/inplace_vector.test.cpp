@@ -65,6 +65,9 @@ template <typename T> constexpr void test() {
   assert(const_data == std::addressof(const_front));
 }
 
+#if BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+void test_exceptions() {};
+#else
 void test_exceptions() {
   using vec = inplace_vector<int, 42>;
   {
@@ -86,6 +89,7 @@ void test_exceptions() {
     }
   }
 }
+#endif
 int main() {
   test<int>();
   test_exceptions();

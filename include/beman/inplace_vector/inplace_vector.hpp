@@ -25,7 +25,7 @@
 // Artifact from previous implementation, can be used as hints for optimizer
 #define IV_EXPECT(EXPR)
 
-#if __STDC_HOSTED__ == 0 || BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+#if BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 #define BEMAN_IV_FREESTANDING_DELETE(impl) = delete
 #else
 #define BEMAN_IV_FREESTANDING_DELETE(impl) impl

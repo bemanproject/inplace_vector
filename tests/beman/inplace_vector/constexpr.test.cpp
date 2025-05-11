@@ -58,6 +58,7 @@ template <typename IV> constexpr void test_constructors() {
   {
     IV v;
   }
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v(10);
   }
@@ -70,6 +71,7 @@ template <typename IV> constexpr void test_constructors() {
   {
     IV v(beman::from_range_t{}, arr);
   }
+#endif
   {
     IV other{0, 1};
     IV copy(other);
@@ -108,6 +110,7 @@ template <typename IV> constexpr void test_assignment() {
   std::array<T, 5> arr;
   arr.fill(T(20));
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v;
     v.assign(arr.begin(), arr.end());
@@ -124,6 +127,7 @@ template <typename IV> constexpr void test_assignment() {
     IV v;
     v.assign({0, 1, 2});
   }
+#endif
 }
 TEST(test_assignment);
 
@@ -147,6 +151,7 @@ TEST(test_iterator_access);
 template <typename IV> constexpr void test_size_capacity() {
   using T = IV::value_type;
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v{0, 1};
     (void)v.empty();
@@ -166,6 +171,7 @@ template <typename IV> constexpr void test_size_capacity() {
     v.reserve(5);
     v.shrink_to_fit();
   }
+#endif
 }
 TEST(test_size_capacity);
 
@@ -173,7 +179,9 @@ template <typename IV> constexpr void test_element_access() {
   {
     IV v{0, 1};
     (void)v[0];
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
     (void)v.at(0);
+#endif
     (void)v.front();
     (void)v.back();
   }
@@ -181,7 +189,9 @@ template <typename IV> constexpr void test_element_access() {
   {
     const IV v{0, 1};
     (void)v[0];
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
     (void)v.at(0);
+#endif
     (void)v.front();
     (void)v.back();
   }
@@ -206,6 +216,7 @@ template <typename IV> constexpr void test_modifiers() {
   std::array<T, 5> arr;
   arr.fill(T(20));
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v;
     v.emplace_back(20);
@@ -214,6 +225,7 @@ template <typename IV> constexpr void test_modifiers() {
     v.append_range(arr);
     v.pop_back();
   }
+#endif
 
   {
     IV v;
@@ -230,6 +242,7 @@ template <typename IV> constexpr void test_modifiers() {
     v.unchecked_push_back(T(20));
   }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v{0, 1};
     v.emplace(v.begin(), 20);
@@ -242,6 +255,7 @@ template <typename IV> constexpr void test_modifiers() {
     v.erase(v.begin());
     v.erase(v.begin(), v.begin() + 2);
   }
+#endif
 
   {
     IV v, other{0, 1};
@@ -304,18 +318,22 @@ template <typename T> constexpr void speical_test_empty() {
   {
     IV v;
   }
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v(0, T{50});
   }
+#endif
   {
     IV a, b;
     a = b;
     a = IV();
   }
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v;
     v.assign(0, T{50});
   }
+#endif
   {
     IV v;
     (void)v.begin();
@@ -333,9 +351,11 @@ template <typename T> constexpr void speical_test_empty() {
     (void)v.size();
     (void)v.max_size();
     (void)v.capacity();
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
     v.resize(0);
     v.resize(0, T{40});
     v.reserve(0);
+#endif
     v.shrink_to_fit();
   }
   {
@@ -360,4 +380,5 @@ TEST_EMPTY(speical_test_empty);
 
 int main() {
   // compile means passing
+  return 0;
 }
