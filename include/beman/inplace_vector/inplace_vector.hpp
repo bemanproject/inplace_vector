@@ -405,6 +405,18 @@ public:
     }
   }
 
+  template <details::inplace_vector::container_compatible_range<T> R>
+  constexpr std::ranges::borrowed_iterator_t<R> try_append_range(R &&rg)
+    requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
+  {
+    auto it = std::ranges::begin(rg);
+    const auto end = std::ranges::end(rg);
+    for (; size() != capacity() && it != end; ++it) {
+      unchecked_emplace_back(*it);
+    }
+    return it;
+  }
+
   template <class... Args>
   constexpr iterator emplace(const_iterator position, Args &&...args)
     requires(std::constructible_from<T, Args...> && std::movable<T>)
@@ -644,6 +656,15 @@ public:
     clear();
     for (auto &&e : x)
       emplace_back(std::move(e));
+    return *this;
+  }
+
+  constexpr inplace_vector &operator=(std::initializer_list<T> il)
+    requires(std::constructible_from<
+                 T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
+             std::movable<T>)
+  {
+    assign_range(il);
     return *this;
   }
 

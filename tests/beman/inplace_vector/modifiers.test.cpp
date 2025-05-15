@@ -1,6 +1,7 @@
-#include <gtest/gtest.h>
+#include <numeric>
 
 #include "gtest_setup.hpp"
+#include <gtest/gtest.h>
 
 namespace {
 // 23.3.14.5 Modifiers [inplace.vector.modifiers]
@@ -581,8 +582,41 @@ TYPED_TEST(Modifiers, TryAppendRanges) {
   // elements in the range begin() + [0, n) are not modified, and elements in
   // the range begin() + [n, n + k) correspond to the inserted elements.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+  using size_type = IV::size_type;
+
+  IV device;
+  auto reference = this->unique();
+
+  device.try_append_range(reference | std::views::take(0));
+  EXPECT_EQ(device, IV());
+  device.clear();
+
+  EXPECT_EQ(device.try_append_range(reference), reference.end());
+  EXPECT_EQ(device, reference);
+  EXPECT_EQ(device.try_append_range(reference), reference.begin());
+  device.clear();
+
+  auto range = std::array<T, IV::capacity() + 1>{};
+  std::copy_n(reference.begin(), IV::capacity(), range.begin());
+  EXPECT_EQ(device.try_append_range(range), range.end() - 1);
+  EXPECT_EQ(device, reference);
+  device.clear();
+
+  auto half_size = std::midpoint(size_type(0), reference.size());
+  EXPECT_EQ(device.try_append_range(reference | std::views::take(half_size)),
+            reference.begin() + half_size);
+  EXPECT_EQ(device.try_append_range(reference | std::views::drop(half_size)),
+            reference.end());
+  EXPECT_EQ(device, reference);
+
+  device.clear();
+
+  EXPECT_EQ(device.try_append_range(reference | std::views::drop(half_size)),
+            reference.end());
+  EXPECT_EQ(device.try_append_range(reference), reference.begin() + half_size);
+  device.clear();
 }
 
 TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
