@@ -105,29 +105,29 @@ jobs:
       fail-fast: false
       matrix:
         compilers:
-          - class: gnu
+          - class: gcc
             version: 14
-          - class: gnu
+          - class: gcc
             version: 13
-          - class: gnu
+          - class: gcc
             version: 12
-          - class: llvm
+          - class: clang
             version: 20
-          - class: llvm
+          - class: clang
             version: 19
-          - class: llvm
+          - class: clang
             version: 18
-          - class: llvm
+          - class: clang
             version: 17
     container:
-      image: ghcr.io/bemanproject/infra:test-${{ matrix.compilers.class }}-${{ matrix.compilers.version }}
+      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.compilers.class }}:${{ matrix.compilers.version }}
     name: "Compiler: ${{ matrix.compilers.class }} ${{ matrix.compilers.version }}"
     steps:
       - uses: actions/checkout@v4
       - name: Install Compiler
         id: install-compiler
         run: |
-          if [ "${{ matrix.compilers.class }}" = "gnu" ]; then
+          if [ "${{ matrix.compilers.class }}" = "gcc" ]; then
             CC=gcc-${{ matrix.compilers.version }}
             CXX=g++-${{ matrix.compilers.version }}
           else
