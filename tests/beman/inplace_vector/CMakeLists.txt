@@ -43,6 +43,17 @@ add_gtest(size_n_data)
 add_gtest(erasure)
 add_gtest(modifiers)
 
+if(
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+)
+    add_gtest(noexceptions)
+    target_compile_options(
+        beman.inplace_vector.tests.noexceptions
+        PRIVATE -fno-exceptions
+    )
+endif()
+
 # constexpr test
 add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
 target_link_libraries(
