@@ -21,14 +21,14 @@
 // Artifact from previous implementation, can be used as hints for optimizer
 #define IV_EXPECT(EXPR)
 
+#ifndef BEMAN_IV_THROW_OR_ABORT
 #if !defined(__cpp_exceptions) || __cpp_exceptions < 199711L
-#ifndef BEMAN_IV_THROW
 #include <cstdlib> // for abort
-#define BEMAN_IV_THROW(x) abort()
-#endif
+#define BEMAN_IV_THROW_OR_ABORT(x) abort()
 #else
 #include <stdexcept> // for length_error
-#define BEMAN_IV_THROW(x) throw x
+#define BEMAN_IV_THROW_OR_ABORT(x) throw x
+#endif
 #endif
 
 // beman::from_range_t
@@ -269,7 +269,7 @@ public:
   static constexpr size_type capacity() noexcept { return N; }
   constexpr void reserve(size_type n) {
     if (n > N) [[unlikely]] {
-      BEMAN_IV_THROW(std::bad_alloc());
+      BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
     }
   }
   constexpr void shrink_to_fit() {}
@@ -361,7 +361,7 @@ public:
     requires(std::constructible_from<T, Args...>)
   {
     if (!try_emplace_back(std::forward<Args>(args)...)) [[unlikely]] {
-      BEMAN_IV_THROW(std::bad_alloc());
+      BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
     }
     return back();
   }
@@ -406,12 +406,12 @@ public:
   {
     if constexpr (std::ranges::sized_range<R>) {
       if (size() + std::ranges::size(rg) > capacity()) [[unlikely]] {
-        BEMAN_IV_THROW(std::bad_alloc());
+        BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
       }
     }
     for (auto &&e : rg) {
       if (size() == capacity()) [[unlikely]] {
-        BEMAN_IV_THROW(std::bad_alloc());
+        BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
       }
       emplace_back(std::forward<decltype(e)>(e));
     }
@@ -451,7 +451,7 @@ public:
     if constexpr (std::random_access_iterator<InputIterator>) {
       if (size() + static_cast<size_type>(std::distance(first, last)) >
           capacity()) [[unlikely]] {
-        BEMAN_IV_THROW(std::bad_alloc());
+        BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
       }
     }
     auto b = end();
@@ -569,7 +569,7 @@ public:
     if (sz == size())
       return;
     else if (sz > N) [[unlikely]] {
-      BEMAN_IV_THROW(std::bad_alloc());
+      BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
     } else if (sz > size())
       insert(end(), sz - size(), c);
     else {
@@ -583,7 +583,7 @@ public:
     if (sz == size())
       return;
     else if (sz > N) [[unlikely]] {
-      BEMAN_IV_THROW(std::bad_alloc());
+      BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
     } else if (sz > size()) {
       while (size() != sz)
         emplace_back(T{});
@@ -595,13 +595,13 @@ public:
 
   constexpr reference at(size_type pos) {
     if (pos >= size()) [[unlikely]] {
-      BEMAN_IV_THROW(std::out_of_range("inplace_vector::at"));
+      BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
     }
     return details::inplace_vector::index(*this, pos);
   }
   constexpr const_reference at(size_type pos) const {
     if (pos >= size()) [[unlikely]] {
-      BEMAN_IV_THROW(std::out_of_range("inplace_vector::at"));
+      BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
     }
     return details::inplace_vector::index(*this, pos);
   }

@@ -1,7 +1,7 @@
 #include <array>
 
 bool abort_called = false;
-#define BEMAN_IV_THROW(x) abort_called = true;
+#define BEMAN_IV_THROW_OR_ABORT(x) abort_called = true;
 
 #include "gtest_setup.hpp"
 
