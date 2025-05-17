@@ -58,7 +58,7 @@ jobs:
             compiler:
               cpp: g++
               c: gcc
-              tag: "gnu:14"
+              tag: "gcc:14"
             cpp_version: 20
             cmake_args:
               description: "Dynamic"
