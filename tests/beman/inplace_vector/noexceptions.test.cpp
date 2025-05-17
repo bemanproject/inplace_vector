@@ -1,68 +1,111 @@
 #include <array>
 
-bool abort_called = false;
-#define BEMAN_IV_THROW_OR_ABORT(x) abort_called = true;
-
 #include "gtest_setup.hpp"
 
 namespace {
+
 template <typename Param> class NoExceptions : public IVBasicTest<Param> {};
 TYPED_TEST_SUITE(NoExceptions, IVAllTypes);
 
 TYPED_TEST(NoExceptions, NonThrowing) {
 
   using IV = TestFixture::IV;
-  using T = TestFixture::T;
 
   const auto reference = this->unique();
 
   IV device;
-  abort_called = false;
 
   device.assign(reference.begin(), reference.end());
   EXPECT_EQ(device, reference);
   device.clear();
-
-  EXPECT_EQ(abort_called, false);
 }
 
-TYPED_TEST(NoExceptions, Throwing) {
+TYPED_TEST(NoExceptions, IVAllTypes) {
 
   using IV = TestFixture::IV;
   using T = TestFixture::T;
 
-  const auto reference = this->unique();
-  auto range = std::array<T, IV::capacity() + 1>{};
+  IV sanitycheck = this->unique();
+  EXPECT_EQ(sanitycheck.size(), IV::capacity());
 
-  IV device;
-  device.assign(reference.begin(), reference.end());
+  EXPECT_DEATH(
+      {
+        IV device = this->unique();
+        device.emplace_back(T{});
+      },
+      ".*");
 
-  abort_called = false;
-  device.emplace_back(T{});
-  EXPECT_EQ(abort_called, true);
+  EXPECT_DEATH(
+      {
+        IV device = this->unique();
+        device.resize(IV::capacity() + 1);
+      },
+      ".*");
 
-  abort_called = false;
-  device.resize(IV::capacity() + 1);
-  EXPECT_EQ(abort_called, true);
+  EXPECT_DEATH(
+      {
+        IV device = this->unique();
+        device.resize(IV::capacity() + 1, T{});
+      },
+      ".*");
 
-  abort_called = false;
-  device.resize(IV::capacity() + 1, T{});
-  EXPECT_EQ(abort_called, true);
+  EXPECT_DEATH(
+      {
+        IV device = this->unique();
+        device.reserve(IV::capacity() + 1);
+      },
+      ".*");
 
-  abort_called = false;
-  device.reserve(IV::capacity() + 1);
-  EXPECT_EQ(abort_called, true);
+  EXPECT_DEATH(
+      {
+        IV device{};
+        device.append_range(std::array<T, IV::capacity() + 2>{});
+      },
+      ".*");
 
-  abort_called = false;
-  device.append_range(range);
-  EXPECT_EQ(abort_called, true);
+  EXPECT_DEATH(
+      {
+        IV device = this->unique();
+        device.append_range(std::array<T, 2>{});
+      },
+      ".*");
 
-  abort_called = false;
-  device.insert(device.end(), range.begin(), range.end());
-  EXPECT_EQ(abort_called, true);
+  // TODO consider adding test for append_range of unsized range
 
-  abort_called = false;
-  device.at(IV::capacity() + 1);
-  EXPECT_EQ(abort_called, true);
+  if constexpr (IV::capacity() > 0) {
+    EXPECT_DEATH(
+        {
+          IV device = this->unique();
+          // test macro fails to compile if we use std::array<T, N> without
+          // parenthesis ()
+          auto range = (std::array<T, IV::capacity()>{});
+          device.insert(device.end(), range.begin(), range.end());
+        },
+        ".*");
+  }
+
+  EXPECT_DEATH(
+      {
+        IV device{};
+        // test macro fails to compile if we use std::array<T, N> without
+        // parenthesis ()
+        auto range = (std::array<T, IV::capacity() + 1>{});
+        device.insert(device.end(), range.begin(), range.end());
+      },
+      ".*");
+
+  EXPECT_DEATH(
+      {
+        IV device = this->unique();
+        auto e = device.at(IV::capacity() + 1);
+      },
+      ".*");
+
+  EXPECT_DEATH(
+      {
+        IV device;
+        const auto e = device.at(IV::capacity() + 1);
+      },
+      ".*");
 }
 } // namespace
