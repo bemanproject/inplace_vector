@@ -41,6 +41,7 @@ add_gtest(compare)
 add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
+add_gtest(modifiers)
 
 if(
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
