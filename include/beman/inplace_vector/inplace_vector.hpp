@@ -2,6 +2,7 @@
 
 #ifndef BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP
 #define BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP
+#include <beman/inplace_vector/config.hpp>
 
 #include <algorithm> // for rotate...
 #include <array>
@@ -22,7 +23,8 @@
 #define IV_EXPECT(EXPR)
 
 #ifndef BEMAN_IV_THROW_OR_ABORT
-#if !defined(__cpp_exceptions) || __cpp_exceptions < 199711L
+#if !defined(__cpp_exceptions) || __cpp_exceptions < 199711L ||                \
+    BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
 #include <cstdlib> // for abort
 #define BEMAN_IV_THROW_OR_ABORT(x) abort()
 #else
