@@ -42,6 +42,11 @@ static constexpr void __assert_failure(char const *__file, int __line,
           : ::__assert_failure(static_cast<const char *>(__FILE__), __LINE__,  \
                                "assertion failed: " #__VA_ARGS__))
 
+#if BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
+#define CHECK_THROWS(EXPR, EXCEPT)                                             \
+  do {                                                                         \
+  } while (0)
+#else
 #define CHECK_THROWS(EXPR, EXCEPT)                                             \
   if (auto e =                                                                 \
           [&] {                                                                \
@@ -58,6 +63,7 @@ static constexpr void __assert_failure(char const *__file, int __line,
     __assert_failure(static_cast<const char *>(__FILE__), __LINE__,            \
                      "expression failed to throw " #EXCEPT ": " #EXPR);        \
   }
+#endif
 
 template struct beman::details::inplace_vector::storage::zero_sized<int>;
 template struct beman::details::inplace_vector::storage::trivial<int, 10>;

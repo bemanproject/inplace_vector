@@ -56,7 +56,7 @@ TYPED_TEST(SizeNCapacity, ResizeUp) {
 
   IV device;
 
-  EXPECT_THROW(device.resize(device.capacity() + 1), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.resize(device.capacity() + 1), std::bad_alloc);
   EXPECT_EQ(device, IV{});
 
   if (device.capacity() == 0)
@@ -86,7 +86,7 @@ TYPED_TEST(SizeNCapacity, ResizeUp) {
   }
 
   IV before_resize(device);
-  EXPECT_THROW(device.resize(device.capacity() + 1), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.resize(device.capacity() + 1), std::bad_alloc);
   EXPECT_EQ(device, before_resize);
 }
 

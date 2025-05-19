@@ -21,7 +21,7 @@ TYPED_TEST(Constructors, SizedDefault) {
 
   EXPECT_EQ(IV(0), IV{});
 
-  EXPECT_THROW(IV(IV::capacity() + 1), std::bad_alloc);
+  SAFE_EXPECT_THROW(IV(IV::capacity() + 1), std::bad_alloc);
 
   constexpr auto mid_size = std::midpoint(0ul, IV::capacity());
   IV mid(mid_size);
@@ -57,7 +57,7 @@ TYPED_TEST(Constructors, SizedValue) {
     IV device(0, value);
     EXPECT_EQ(device, IV{});
 
-    EXPECT_THROW(IV(IV::capacity() + 1, value), std::bad_alloc);
+    SAFE_EXPECT_THROW(IV(IV::capacity() + 1, value), std::bad_alloc);
   }
 
   if constexpr (IV::capacity() < 1u)
