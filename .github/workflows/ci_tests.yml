@@ -16,19 +16,16 @@ jobs:
       fail-fast: false
       matrix:
         presets:
-          - preset: "gcc-debug"
-            platform: "ubuntu-latest"
-          - preset: "gcc-release"
-            platform: "ubuntu-latest"
-    name: "Preset: ${{ matrix.presets.preset }} on ${{ matrix.presets.platform }}"
-    runs-on: ${{ matrix.presets.platform }}
+          - preset: gcc-debug
+            tag: "gcc:14"
+          - preset: gcc-release
+            tag: "gcc:14"
+    name: "Preset: ${{ matrix.presets.preset }}"
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.presets.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup build environment
-        uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.25.0"
-          ninjaVersion: "^1.11.1"
       - name: Setup MSVC
         if: startsWith(matrix.presets.platform, 'windows')
         uses: TheMrMilchmann/setup-msvc-dev@v3
@@ -41,12 +38,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-24.04]
         compiler:
           - cpp: g++
             c: gcc
+            tag: "gcc:14"
           - cpp: clang++
             c: clang
+            tag: "clang:20"
         cpp_version: [20, 23]
         cmake_args:
           - description: "Default"
@@ -60,42 +58,23 @@ jobs:
             compiler:
               cpp: g++
               c: gcc
+              tag: "gcc:14"
             cpp_version: 20
             cmake_args:
               description: "Dynamic"
               cmake_args: "-DBUILD_SHARED_LIBS=on"
 
     name: "Build & Test: ${{ matrix.compiler.c }} ${{ matrix.cpp_version }} ${{ matrix.cmake_args.description }}"
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.compiler.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install Ninja
-        uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.25.0"
-          ninjaVersion: "^1.11.1"
-      - name: Install latest compiler
-        run: |
-          if [ "${{ matrix.compiler.cpp}}" == "g++" ]; then
-            # Install gcc-14
-            sudo apt-get update
-            sudo apt-get install -y gcc-14 g++-14
-
-            sudo rm /usr/bin/gcc
-            sudo ln -s /usr/bin/gcc-14 /usr/bin/gcc
-
-            sudo rm /usr/bin/g++
-            sudo ln -s /usr/bin/g++-14 /usr/bin/g++
-          else
-            # Install llvm
-            sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-          fi
       - name: Print installed software
         run: |
-          clang++ --version
-          g++ --version
           cmake --version
           ninja --version
+          ctest --version
       - name: Configure CMake
         run: |
           cmake -B build -S . -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }} ${{ matrix.cmake_args.args }}
@@ -126,44 +105,28 @@ jobs:
       fail-fast: false
       matrix:
         compilers:
-          - class: gnu
+          - class: gcc
             version: 14
-          - class: gnu
+          - class: gcc
             version: 13
-          - class: gnu
+          - class: gcc
             version: 12
-          - class: llvm
+          - class: clang
             version: 20
-          - class: llvm
+          - class: clang
             version: 19
-          - class: llvm
+          - class: clang
             version: 18
-          - class: llvm
+          - class: clang
             version: 17
     container:
-      image: ghcr.io/wusatosi/cpp-docker:${{ matrix.compilers.class }}-${{ matrix.compilers.version }}
+      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.compilers.class }}:${{ matrix.compilers.version }}
     name: "Compiler: ${{ matrix.compilers.class }} ${{ matrix.compilers.version }}"
     steps:
       - uses: actions/checkout@v4
-      - name: Install Compiler
-        id: install-compiler
-        run: |
-          if [ "${{ matrix.compilers.class }}" = "gnu" ]; then
-            CC=gcc-${{ matrix.compilers.version }}
-            CXX=g++-${{ matrix.compilers.version }}
-          else
-            CC=clang-${{ matrix.compilers.version }}
-            CXX=clang++-${{ matrix.compilers.version }}
-          fi
-
-          echo "CC=$CC" >> "$GITHUB_OUTPUT"
-          echo "CXX=$CXX" >> "$GITHUB_OUTPUT"
       - name: Configure CMake
-        run: |
-          cmake -B build -S . -DCMAKE_CXX_STANDARD=20
+        run: cmake -B build -S . -DCMAKE_CXX_STANDARD=20
         env:
-          CC: ${{ steps.install-compiler.outputs.CC }}
-          CXX: ${{ steps.install-compiler.outputs.CXX }}
           CMAKE_GENERATOR: "Ninja Multi-Config"
       - name: Build Debug
         run: |
