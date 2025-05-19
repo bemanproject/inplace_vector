@@ -1,5 +1,8 @@
 #include <array>
 
+#include <cstdlib>
+#define BEMAN_IV_THROW_OR_ABORT(x) abort()
+
 #include "gtest_setup.hpp"
 
 namespace {
