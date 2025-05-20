@@ -65,6 +65,12 @@ template <typename T> constexpr void test() {
   assert(const_data == std::addressof(const_front));
 }
 
+#if BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
+int main() {
+  test<int>();
+  return 0;
+}
+#else
 void test_exceptions() {
   using vec = inplace_vector<int, 42>;
   {
@@ -86,8 +92,10 @@ void test_exceptions() {
     }
   }
 }
+
 int main() {
   test<int>();
   test_exceptions();
   return 0;
 }
+#endif

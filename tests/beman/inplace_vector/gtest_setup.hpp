@@ -392,3 +392,11 @@ public:
 
 template <typename Param>
 std::size_t IVBasicTest<Param>::InputIterator::num_deref;
+
+#if BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
+#define SAFE_EXPECT_THROW(x, y)                                                \
+  do {                                                                         \
+  } while (0)
+#else
+#define SAFE_EXPECT_THROW(x, y) EXPECT_THROW(x, y)
+#endif
