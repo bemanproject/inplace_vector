@@ -33,6 +33,12 @@ option(
     OFF
 )
 
+option(
+    BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS
+    "Disable exceptions by replacing throw calls with abort. Default: OFF. Values: { ON, OFF }."
+    OFF
+)
+
 configure_file(
     "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
     "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"

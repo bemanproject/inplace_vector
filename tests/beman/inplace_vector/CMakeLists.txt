@@ -47,6 +47,21 @@ if(BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED)
     add_gtest(freestanding)
 endif()
 
+# only add noexception tests if NO_EXCEPTIONS option is set and compiler supports -fno-exceptions
+if(
+    BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS
+    AND (
+        CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+        OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    )
+)
+    add_gtest(noexceptions)
+    target_compile_options(
+        beman.inplace_vector.tests.noexceptions
+        PRIVATE -fno-exceptions
+    )
+endif()
+
 # constexpr test
 add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
 target_link_libraries(

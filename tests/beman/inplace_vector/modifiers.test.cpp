@@ -44,10 +44,10 @@ TYPED_TEST(Modifiers, InsertSingleConstRef) {
   }
 
   T val{272};
-  EXPECT_THROW(device.insert(device.begin(), val), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.insert(device.begin(), val), std::bad_alloc);
   EXPECT_EQ(device, reference);
 
-  EXPECT_THROW(device.insert(device.begin(), val), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.insert(device.begin(), val), std::bad_alloc);
   EXPECT_EQ(device, reference);
 }
 
@@ -84,10 +84,10 @@ TYPED_TEST(Modifiers, InsertSingleRV) {
     }
   }
 
-  EXPECT_THROW(device.insert(device.begin(), T{272}), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.insert(device.begin(), T{272}), std::bad_alloc);
   EXPECT_EQ(device, reference);
 
-  EXPECT_THROW(device.insert(device.begin(), T{272}), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.insert(device.begin(), T{272}), std::bad_alloc);
   EXPECT_EQ(device, reference);
 }
 
@@ -123,10 +123,10 @@ TYPED_TEST(Modifiers, InsertEmplace) {
     }
   }
 
-  EXPECT_THROW(device.emplace(device.begin(), 272), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.emplace(device.begin(), 272), std::bad_alloc);
   EXPECT_EQ(device, reference);
 
-  EXPECT_THROW(device.emplace(device.begin(), 272), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.emplace(device.begin(), 272), std::bad_alloc);
   EXPECT_EQ(device, reference);
 }
 
@@ -163,7 +163,7 @@ TYPED_TEST(Modifiers, InsertMulti) {
   }
 
   EXPECT_NO_THROW(device.insert(device.begin(), 0, {2538}));
-  EXPECT_THROW(device.insert(device.begin(), 1, {2538}), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.insert(device.begin(), 1, {2538}), std::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, InsertInitList) {
@@ -203,7 +203,7 @@ TYPED_TEST(Modifiers, InsertInitList) {
 
   auto full = this->unique();
   EXPECT_NO_THROW(full.insert(full.begin(), {}));
-  EXPECT_THROW(full.insert(full.begin(), {T{25}}), std::bad_alloc);
+  SAFE_EXPECT_THROW(full.insert(full.begin(), {T{25}}), std::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, InsertRange) {
@@ -259,8 +259,9 @@ TYPED_TEST(Modifiers, InsertRange) {
   EXPECT_NO_THROW(device.insert_range(device.begin(), std::array<T, 0>{}));
   EXPECT_EQ(device, reference);
 
-  EXPECT_THROW(device.insert_range(device.begin(), std::array<T, 1>{T{25}}),
-               std::bad_alloc);
+  SAFE_EXPECT_THROW(
+      device.insert_range(device.begin(), std::array<T, 1>{T{25}}),
+      std::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, InsertItrRange) {
@@ -317,7 +318,7 @@ TYPED_TEST(Modifiers, InsertItrRange) {
   EXPECT_EQ(device, reference);
 
   std::array<T, 1> single_array{T{25}};
-  EXPECT_THROW(
+  SAFE_EXPECT_THROW(
       device.insert(device.begin(), single_array.begin(), single_array.end()),
       std::bad_alloc);
 }
@@ -377,7 +378,7 @@ TYPED_TEST(Modifiers, PushBackConstRef) {
   }
 
   T val{0};
-  EXPECT_THROW(device.push_back(val), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.push_back(val), std::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, PushBackRV) {
@@ -403,7 +404,7 @@ TYPED_TEST(Modifiers, PushBackRV) {
   }
 
   T val{0};
-  EXPECT_THROW(device.push_back(val), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.push_back(val), std::bad_alloc);
 }
 
 // TODO: Check if there's extra copies
@@ -429,7 +430,7 @@ TYPED_TEST(Modifiers, EmplaceBack) {
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
   }
 
-  EXPECT_THROW(device.emplace_back(0), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.emplace_back(0), std::bad_alloc);
 }
 
 #endif
@@ -586,8 +587,41 @@ TYPED_TEST(Modifiers, TryAppendRanges) {
   // elements in the range begin() + [0, n) are not modified, and elements in
   // the range begin() + [n, n + k) correspond to the inserted elements.
 
-  // TODO
-  GTEST_SKIP();
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+  using size_type = IV::size_type;
+
+  IV device;
+  auto reference = this->unique();
+
+  device.try_append_range(reference | std::views::take(0));
+  EXPECT_EQ(device, IV());
+  device.clear();
+
+  EXPECT_EQ(device.try_append_range(reference), reference.end());
+  EXPECT_EQ(device, reference);
+  EXPECT_EQ(device.try_append_range(reference), reference.begin());
+  device.clear();
+
+  auto range = std::array<T, IV::capacity() + 1>{};
+  std::copy_n(reference.begin(), IV::capacity(), range.begin());
+  EXPECT_EQ(device.try_append_range(range), range.end() - 1);
+  EXPECT_EQ(device, reference);
+  device.clear();
+
+  auto half_size = std::midpoint(size_type(0), reference.size());
+  EXPECT_EQ(device.try_append_range(reference | std::views::take(half_size)),
+            reference.begin() + half_size);
+  EXPECT_EQ(device.try_append_range(reference | std::views::drop(half_size)),
+            reference.end());
+  EXPECT_EQ(device, reference);
+
+  device.clear();
+
+  EXPECT_EQ(device.try_append_range(reference | std::views::drop(half_size)),
+            reference.end());
+  EXPECT_EQ(device.try_append_range(reference), reference.begin() + half_size);
+  device.clear();
 }
 
 TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
@@ -672,7 +706,7 @@ TYPED_TEST(Modifiers, ReserveNonEmpty) {
   device.reserve(device.capacity());
   EXPECT_EQ(device, reference);
 
-  EXPECT_THROW(device.reserve(device.capacity() + 1), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.reserve(device.capacity() + 1), std::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, ReserveEmpty) {
@@ -694,7 +728,7 @@ TYPED_TEST(Modifiers, ReserveEmpty) {
   device.reserve(device.capacity());
   EXPECT_EQ(device, IV());
 
-  EXPECT_THROW(device.reserve(device.capacity() + 1), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.reserve(device.capacity() + 1), std::bad_alloc);
 }
 
 TYPED_TEST(Modifiers, ShrinkToFitNonEmpty) {

@@ -626,7 +626,7 @@ TYPED_TEST(SequenceContainerRequirements, ConstructorInitializerList) {
   using T = TestFixture::T;
 
   if (IV::capacity() == 0) {
-    EXPECT_THROW(IV({T{20}}), std::bad_alloc);
+    SAFE_EXPECT_THROW(IV({T{20}}), std::bad_alloc);
     return;
   }
 
@@ -657,7 +657,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignInitializerList) {
 
   if (IV::capacity() == 0) {
     IV device;
-    EXPECT_THROW(device = {T{52}}, std::bad_alloc);
+    SAFE_EXPECT_THROW(device = {T{52}}, std::bad_alloc);
     return;
   }
 
@@ -788,7 +788,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignIterRange) {
     EXPECT_EQ(device, correct);
 
     std::array<T, IV::capacity() + 1> ref{};
-    EXPECT_THROW(device.assign(ref.begin(), ref.end()), std::bad_alloc);
+    SAFE_EXPECT_THROW(device.assign(ref.begin(), ref.end()), std::bad_alloc);
   }
 
   {
@@ -803,7 +803,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignIterRange) {
     // [containers.sequences.inplace.vector.overview]
     // 5. Any member function of inplace_vector<T, N> that would cause the size
     // to exceed N throws an exception of type bad_alloc.
-    EXPECT_THROW(
+    SAFE_EXPECT_THROW(
         device.assign(InputIterator{0}, InputIterator{IV::max_size() + 1}),
         std::bad_alloc);
   }
@@ -834,7 +834,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignRange) {
   std::array<T, IV::capacity() + 1> ref;
   std::copy(correct.begin(), correct.end(), ref.begin());
   ref.back() = T{5};
-  EXPECT_THROW(device.assign_range(ref), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.assign_range(ref), std::bad_alloc);
 }
 #endif
 
@@ -848,7 +848,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignFuncInitializerList) {
   auto device = this->unique();
 
   if (device.capacity() == 0) {
-    EXPECT_THROW(device.assign({T{50}}), std::bad_alloc);
+    SAFE_EXPECT_THROW(device.assign({T{50}}), std::bad_alloc);
     return;
   }
 
@@ -919,7 +919,8 @@ TYPED_TEST(SequenceContainerRequirements, AssignMulti) {
   }
 
   device.clear();
-  EXPECT_THROW(device.assign(device.capacity() + 1, T{12}), std::bad_alloc);
+  SAFE_EXPECT_THROW(device.assign(device.capacity() + 1, T{12}),
+                    std::bad_alloc);
 }
 #endif
 
@@ -1022,7 +1023,7 @@ TYPED_TEST(SequenceContainerRequirements, ElementAccessAt) {
     EXPECT_EQ(device.at(i), *(device.begin() + i));
   }
 
-  EXPECT_THROW(device.at(IV::capacity()), std::out_of_range);
+  SAFE_EXPECT_THROW(device.at(IV::capacity()), std::out_of_range);
 }
 #endif
 
