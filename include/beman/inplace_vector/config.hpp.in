@@ -1,6 +1,9 @@
 // include/beman/inplace_vector/config.hpp.in -*-C++-*-
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
+#ifndef BEMAN_INPLACE_VECTOR_CONFIG_HPP
+#define BEMAN_INPLACE_VECTOR_CONFIG_HPP
+
 #cmakedefine01 BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
 
 #cmakedefine01 BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
