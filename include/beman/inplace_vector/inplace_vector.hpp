@@ -39,6 +39,7 @@
 #include <stdexcept> // for length_error
 #define BEMAN_IV_THROW_OR_ABORT(x) throw x
 #endif
+#endif
 
 // beman::from_range_t
 namespace beman {

@@ -97,4 +97,3 @@ int main() {
   test_exceptions();
   return 0;
 }
-#endif
