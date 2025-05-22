@@ -49,6 +49,19 @@ static_assert(!has_constexpr_support<inplace_vector<std::unique_ptr<int>, 50>>);
                 }),                                                            \
                 "##NAME");
 
+template <typename IV>
+constexpr IV vec_of(std::initializer_list<typename IV::value_type> &&il) {
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+  return IV(il);
+#else
+  IV res;
+  for (auto &ele : il) {
+    res.unchecked_push_back(ele);
+  }
+  return res;
+#endif
+}
+
 template <typename IV> constexpr void test_constructors() {
   using T = IV::value_type;
 
@@ -71,17 +84,17 @@ template <typename IV> constexpr void test_constructors() {
   {
     IV v(beman::from_range_t{}, arr);
   }
+  {
+    IV v({0, 1});
+  }
 #endif
   {
-    IV other{0, 1};
+    auto other = vec_of<IV>({0, 1});
     IV copy(other);
   }
   {
-    IV other{0, 1};
+    auto other = vec_of<IV>({0, 1});
     IV copy(std::move(other));
-  }
-  {
-    IV v({0, 1});
   }
 }
 TEST(test_constructors);
@@ -90,17 +103,21 @@ template <typename IV> constexpr void test_op_eq() {
   using T = IV::value_type;
 
   {
-    IV v, other{0, 1};
+    IV v;
+    auto other = vec_of<IV>({0, 1});
     v = other;
   }
   {
-    IV v, other{0, 1};
+    IV v;
+    auto other = vec_of<IV>({0, 1});
     v = std::move(other);
   }
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v;
     v = {0, 1};
   }
+#endif
 }
 TEST(test_op_eq);
 
@@ -132,25 +149,19 @@ template <typename IV> constexpr void test_assignment() {
 TEST(test_assignment);
 
 template <typename IV> constexpr void test_iterator_access() {
-  using T = IV::value_type;
-
-  {
-    IV v{0, 1};
-    (void)v.begin();
-    (void)v.end();
-    (void)v.rbegin();
-    (void)v.rend();
-    (void)v.cbegin();
-    (void)v.cend();
-    (void)v.crbegin();
-    (void)v.crend();
-  }
+  auto v = vec_of<IV>({0, 1});
+  (void)v.begin();
+  (void)v.end();
+  (void)v.rbegin();
+  (void)v.rend();
+  (void)v.cbegin();
+  (void)v.cend();
+  (void)v.crbegin();
+  (void)v.crend();
 }
 TEST(test_iterator_access);
 
 template <typename IV> constexpr void test_size_capacity() {
-  using T = IV::value_type;
-
 #if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   {
     IV v{0, 1};
@@ -177,7 +188,7 @@ TEST(test_size_capacity);
 
 template <typename IV> constexpr void test_element_access() {
   {
-    IV v{0, 1};
+    auto v = vec_of<IV>({0, 1});
     (void)v[0];
 #if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
     (void)v.at(0);
@@ -187,7 +198,7 @@ template <typename IV> constexpr void test_element_access() {
   }
 
   {
-    const IV v{0, 1};
+    auto v = vec_of<IV>({0, 1});
     (void)v[0];
 #if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
     (void)v.at(0);
@@ -200,11 +211,11 @@ TEST(test_element_access);
 
 template <typename IV> constexpr void test_data_access() {
   {
-    IV v{0, 1};
+    auto v = vec_of<IV>({0, 1});
     v.data();
   }
   {
-    const IV v{0, 1};
+    auto v = vec_of<IV>({0, 1});
     v.data();
   }
 }
@@ -258,19 +269,21 @@ template <typename IV> constexpr void test_modifiers() {
 #endif
 
   {
-    IV v, other{0, 1};
+    IV v;
+    auto other = vec_of<IV>({0, 1});
     v.swap(other);
   }
 
   {
-    IV v{0, 1};
+    auto v = vec_of<IV>({0, 1});
     v.clear();
   }
 }
 TEST(test_modifiers);
 
 template <typename IV> constexpr void test_op_comp() {
-  IV v{0, 1, 2}, other{3, 4};
+  auto v = vec_of<IV>({0, 1, 2});
+  auto other = vec_of<IV>({3, 4});
 
   (void)(v == v);
   (void)(v == other);
@@ -280,7 +293,7 @@ template <typename IV> constexpr void test_op_comp() {
 TEST(test_op_comp);
 
 template <typename IV> constexpr void test_erase() {
-  IV v{0, 1, 2, 3, 3, 5};
+  auto v = vec_of<IV>({0, 1, 2, 3, 3, 5});
   (void)beman::erase(v, 3);
   (void)beman::erase_if(v, [](auto v) { return v < 3; });
 }
