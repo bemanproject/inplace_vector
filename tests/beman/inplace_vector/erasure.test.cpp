@@ -30,9 +30,9 @@ TYPED_TEST(Erasure, ByValue) {
   auto uniques = this->unique(device.capacity() / 2);
 
   for (auto i = 0ul; i < uniques.size(); ++i) {
-    device.push_back(uniques[i]);
+    device.unchecked_push_back(uniques[i]);
     if (device.size() != device.capacity())
-      device.push_back(duplicates);
+      device.unchecked_push_back(duplicates);
   }
 
   beman::erase(device, duplicates);
@@ -57,7 +57,7 @@ TYPED_TEST(Erasure, ByPred) {
     return;
 
   for (auto i = 0; i < static_cast<int>(device.capacity()); ++i)
-    device.push_back(T{i});
+    device.unchecked_push_back(T{i});
 
   beman::erase_if(device,
                   [&](auto &v) { return v.value > (device.capacity() / 2); });
