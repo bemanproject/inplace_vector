@@ -39,6 +39,17 @@ option(
     OFF
 )
 
+if(
+    BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED
+    AND BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS
+)
+    message(
+        WARNING
+        "There's no throwing functions in freestanding implementation,"
+        "disabling exception does not influence implementation."
+    )
+endif()
+
 configure_file(
     "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
     "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"
