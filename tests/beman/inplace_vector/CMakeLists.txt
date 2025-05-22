@@ -37,7 +37,7 @@ add_gtest(container_requirements)
 add_gtest(triviality)
 add_gtest(compare)
 add_gtest(constructors)
-# add_gtest(size_n_data)
+add_gtest(size_n_data)
 # add_gtest(erasure)
 # add_gtest(modifiers)
 
