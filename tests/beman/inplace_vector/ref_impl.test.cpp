@@ -370,7 +370,7 @@ template <typename T, std::size_t N> void test_all() {
 }
 
 template <typename T>
-T construct_vec(std::initializer_list<typename T::value_type> il) {
+T vec_of(std::initializer_list<typename T::value_type> il) {
 #if BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   T vec;
   for (auto &v : il) {
@@ -849,7 +849,7 @@ int main() {
 
   { // erase
     {
-      auto l1 = construct_vec<vector<int, 4>>({1, 2, 3});
+      auto l1 = vec_of<vector<int, 4>>({1, 2, 3});
       CHECK(l1.size() == 3);
       vector<int, 4>::const_iterator i = l1.begin();
       ++i;
@@ -874,38 +874,38 @@ int main() {
   { // erase iter iter
     using vec_t = vector<int, 5>;
     {
-      auto l1 = construct_vec<vec_t>({1, 2, 3});
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), l1.cbegin());
       CHECK(l1.size() == 3);
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 3);
       CHECK(i == l1.begin());
     }
     {
-      auto l1 = construct_vec<vec_t>({1, 2, 3});
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), std::next(l1.cbegin()));
       CHECK(l1.size() == 2);
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 2);
       CHECK(i == l1.begin());
-      CHECK(l1 == construct_vec<vec_t>({2, 3}));
+      CHECK(l1 == vec_of<vec_t>({2, 3}));
     }
     {
-      auto l1 = construct_vec<vec_t>({1, 2, 3});
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), std::next(l1.cbegin(), 2));
       CHECK(l1.size() == 1);
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 1);
       CHECK(i == l1.begin());
-      CHECK(l1 == construct_vec<vec_t>({3}));
+      CHECK(l1 == vec_of<vec_t>({3}));
     }
     {
-      auto l1 = construct_vec<vec_t>({1, 2, 3});
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), std::next(l1.cbegin(), 3));
       CHECK(l1.empty());
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 0);
       CHECK(i == l1.begin());
     }
     {
-      auto outer = construct_vec<vector<vec_t, 3>>(
-          {construct_vec<vec_t>({1}), construct_vec<vec_t>({1})});
+      auto outer =
+          vec_of<vector<vec_t, 3>>({vec_of<vec_t>({1}), vec_of<vec_t>({1})});
       outer.erase(outer.begin(), outer.begin());
       CHECK(outer.size() == 2);
       CHECK(outer[0].size() == 1);
