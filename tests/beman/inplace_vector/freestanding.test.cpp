@@ -314,11 +314,17 @@ TEST(Freestanding, usage) {
 
   EXPECT_EQ(device.size(), device.capacity());
 
+  EXPECT_EQ(nullptr, device.try_emplace_back(T{}));
+
+  EXPECT_EQ(device.size(), device.capacity());
+
   for (auto i = int(device.capacity()); i > 0; --i) {
     const auto value = T{i - 1};
     EXPECT_EQ(device.back(), value);
     device.pop_back();
   }
+
+  device.pop_back(); // UB should be safe
 
   EXPECT_EQ(device.size(), 0);
 }

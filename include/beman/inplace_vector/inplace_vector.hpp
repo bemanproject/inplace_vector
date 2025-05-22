@@ -396,8 +396,10 @@ public:
 
   constexpr void pop_back() {
     IV_EXPECT(size() > 0 && "pop_back from empty inplace_vector!");
-    unsafe_destroy(end() - 1, end());
-    unsafe_set_size(size() - 1);
+    if (size() > 0) { // UB fail-safe
+      unsafe_destroy(end() - 1, end());
+      unsafe_set_size(size() - 1);
+    }
   }
 
   constexpr friend bool operator==(const inplace_vector_base &x,
