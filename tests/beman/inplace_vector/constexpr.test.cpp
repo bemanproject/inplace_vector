@@ -163,6 +163,8 @@ TEST(test_iterator_access);
 
 template <typename IV> constexpr void test_size_capacity() {
 #if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+  using T = IV::value_type;
+
   {
     IV v{0, 1};
     (void)v.empty();
