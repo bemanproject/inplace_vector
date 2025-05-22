@@ -351,12 +351,25 @@ public:
   using X = beman::inplace_vector<T, N>;
   using IV = X;
 
+  // Implements inplace_vector's freestanding constructors for convenience
+  // testing in a freestanding context
+  static X vec_of(std::size_t size) {
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+    return IV(size);
+#else
+    X vec;
+    for (auto i = 0; i < size; ++i)
+      vec.unchecked_emplace_back();
+    return vec;
+#endif
+  }
+
   // Returns IV of size n with unique values
   static IV unique(typename IV::size_type n = IV::max_size()) {
     static T val = T{};
     IV res;
     while (n > 0) {
-      res.push_back(val);
+      res.unchecked_push_back(val);
       ++val.value;
       --n;
     }

@@ -177,7 +177,7 @@ TYPED_TEST(ContainerRequirements, CopyAssignment) {
   //   Complexity: Linear.
   X const v(TestFixture::unique(X::max_size() / 2));
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X t(n);
+    X t = TestFixture::vec_of(n);
     t = v;
     EXPECT_TRUE((std::is_same_v<decltype(t = v), X &>));
     EXPECT_EQ(t, v);
@@ -202,7 +202,7 @@ TYPED_TEST(ContainerRequirements, MoveAssignment) {
     if constexpr (counts_objects_v<T>) {
       T::num_objects = 0;
     }
-    X t(n);
+    X t = TestFixture::vec_of(n);
     if constexpr (counts_objects_v<T>) {
       ASSERT_EQ(T::num_objects, t.size());
     }
@@ -228,7 +228,8 @@ TYPED_TEST(ContainerRequirements, Destructor) {
     T::num_objects = 0;
   }
   alignas(X) std::byte storage[sizeof(X)];
-  X *pa = new (static_cast<void *>(storage)) X(X::max_size());
+  X *pa = new (static_cast<void *>(storage)) X;
+  *pa = TestFixture::unique();
   X &a = *pa;
   if constexpr (counts_objects_v<T>) {
     ASSERT_EQ(T::num_objects, X::max_size());
@@ -254,8 +255,8 @@ TYPED_TEST(ContainerRequirements, Begin) {
   //   Complexity: Constant.
 
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X b(n);
-    X const cb(n);
+    X b = TestFixture::vec_of(n);
+    X const cb = TestFixture::vec_of(n);
     EXPECT_TRUE((std::is_same_v<decltype(b.begin()), typename X::iterator>));
     EXPECT_TRUE(
         (std::is_same_v<decltype(cb.begin()), typename X::const_iterator>));
@@ -284,8 +285,8 @@ TYPED_TEST(ContainerRequirements, End) {
   //   Complexity: Constant.
 
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X b(n);
-    X const cb(n);
+    X b = TestFixture::vec_of(n);
+    X const cb = TestFixture::vec_of(n);
     EXPECT_TRUE((std::is_same_v<decltype(b.end()), typename X::iterator>));
     EXPECT_TRUE(
         (std::is_same_v<decltype(cb.end()), typename X::const_iterator>));
@@ -350,9 +351,10 @@ TYPED_TEST(ContainerRequirements, Equality) {
                                 : X{}; // { 0, 1, ... }
   values[1] = values[0];
   if (values[1].size() < X::max_size()) {
-    values[1].push_back(TestFixture::unique(1)[0]);
+    values[1].unchecked_push_back(TestFixture::unique(1)[0]);
   } // { 0, 1, 2, ... }
-  values[2] = X::max_size() > 0 ? X(X::max_size() - 1) : X{}; // { 0, 0, ... }
+  values[2] = X::max_size() > 0 ? TestFixture::vec_of(X::max_size() - 1)
+                                : X{}; // { 0, 0, ... }
   for (X const &c : values) {
     EXPECT_TRUE(c == c);
     for (X const &b : values) {
@@ -379,7 +381,7 @@ TYPED_TEST(ContainerRequirements, Swap) {
   //   Effects: Equivalent to t.swap(s).
 
   X const t_proto(TestFixture::unique());
-  X const s_proto(X::max_size());
+  X const s_proto = TestFixture::vec_of(X::max_size());
   X t(t_proto);
   X s(s_proto);
 
@@ -407,7 +409,7 @@ TYPED_TEST(ContainerRequirements, Size) {
   //     defined by the rules of constructors, inserts, and erases.
 
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X c(n);
+    X c = TestFixture::vec_of(n);
     EXPECT_TRUE((std::is_same_v<decltype(c.size()), typename X::size_type>));
     EXPECT_EQ(c.size(), std::distance(c.begin(), c.end()));
   }
@@ -422,7 +424,7 @@ TYPED_TEST(ContainerRequirements, MaxSize) {
   //   Result: size_type.
   //   Returns: distance(begin(), end()) for the largest possible container.
   //   Complexity: Constant.
-  X c(N);
+  X c = TestFixture::vec_of(N);
   EXPECT_TRUE((std::is_same_v<decltype(c.max_size()), typename X::size_type>));
   EXPECT_EQ(c.max_size(), std::distance(c.begin(), c.end()));
   // How to test complexity?
@@ -438,7 +440,7 @@ TYPED_TEST(ContainerRequirements, Empty) {
   //   Remarks: If the container is empty, then c.empty() is true.}
 
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X c(n);
+    X c = TestFixture::vec_of(n);
     EXPECT_TRUE((std::is_same_v<decltype(c.empty()), bool>));
     EXPECT_EQ(c.empty(), c.begin() == c.end());
   }
@@ -471,7 +473,7 @@ TYPED_TEST(ContainerRequirements, NothrowPopBack) {
 
   // pop_back() has a narrow contract, therefore we cannot check noexcept().
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X c(n);
+    X c = TestFixture::vec_of(n);
     if (n > 0) {
       EXPECT_NO_THROW(c.pop_back());
     }
@@ -540,8 +542,8 @@ TYPED_TEST(ReversibleContainerRequirements, RBegin) {
   //   Complexity: Constant.
 
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X a(n);
-    X const ca(n);
+    X a = TestFixture::vec_of(n);
+    X const ca = TestFixture::vec_of(n);
     EXPECT_TRUE(
         (std::is_same_v<decltype(a.rbegin()), typename X::reverse_iterator>));
     EXPECT_TRUE((std::is_same_v<decltype(ca.rbegin()),
@@ -569,8 +571,8 @@ TYPED_TEST(ReversibleContainerRequirements, REnd) {
   //   Complexity: Constant.
 
   for (typename X::size_type n = 0; n <= X::max_size(); ++n) {
-    X a(n);
-    X const ca(n);
+    X a = TestFixture::vec_of(n);
+    X const ca = TestFixture::vec_of(n);
     EXPECT_TRUE(
         (std::is_same_v<decltype(a.rend()), typename X::reverse_iterator>));
     EXPECT_TRUE((std::is_same_v<decltype(ca.rend()),
@@ -621,6 +623,7 @@ TYPED_TEST_SUITE(SequenceContainerRequirements, IVAllTypes);
 // X(il)
 // Effects: Equivalent to X(il.begin(), il.end()).
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 TYPED_TEST(SequenceContainerRequirements, ConstructorInitializerList) {
   using IV = TestFixture::IV;
   using T = TestFixture::T;
@@ -665,6 +668,7 @@ TYPED_TEST(SequenceContainerRequirements, AssignInitializerList) {
   device = {T{20}};
   EXPECT_EQ(device, IV{T{20}});
 }
+#endif
 
 // a.emplace(p, args)
 // Result: iterator.

@@ -33,7 +33,7 @@ function(add_gtest NAME)
 endfunction()
 
 # Tests for official specs
-# add_gtest(container_requirements)
+add_gtest(container_requirements)
 # add_gtest(triviality)
 # add_gtest(compare)
 # add_gtest(constructors)
