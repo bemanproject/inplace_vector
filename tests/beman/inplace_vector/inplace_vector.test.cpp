@@ -6,8 +6,22 @@ using namespace beman;
 
 template <typename T> constexpr void test() {
   using vec = inplace_vector<T, 42>;
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   vec range{T(1), T(1337), T(42), T(12), T(0), T(-1)};
   const vec const_range{T(0), T(42), T(1337), T(42), T(5), T(-42)};
+#else
+  vec range;
+  for (auto &ele : {T(1), T(1337), T(42), T(12), T(0), T(-1)}) {
+    range.unchecked_push_back(ele);
+  }
+
+  vec const_range_builder;
+  for (auto &ele : {T(0), T(42), T(1337), T(42), T(5), T(-42)}) {
+    const_range_builder.unchecked_push_back(ele);
+  }
+
+  const vec const_range = const_range_builder;
+#endif
 
   auto &&bracket = range[3];
   static_assert(std::is_same<decltype(bracket), typename vec::reference>::value,
