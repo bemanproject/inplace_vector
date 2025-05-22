@@ -463,7 +463,8 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
     for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_emplace_back(reference[i].value);
       EXPECT_EQ(res, std::addressof(device.back()));
-      EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+      EXPECT_EQ(device, TestFixture::vec_of(reference.begin(),
+                                            reference.begin() + i + 1));
     }
 
     auto res = device.try_emplace_back(reference[0].value);
@@ -505,7 +506,8 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
     for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_push_back(reference[i]);
       EXPECT_EQ(res, std::addressof(device.back()));
-      EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+      EXPECT_EQ(device, TestFixture::vec_of(reference.begin(),
+                                            reference.begin() + i + 1));
     }
 
     auto res = device.try_push_back(reference[0]);
@@ -552,7 +554,8 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
 
       auto res = device.try_push_back(std::move(val));
       EXPECT_EQ(res, std::addressof(device.back()));
-      EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+      EXPECT_EQ(device, TestFixture::vec_of(reference.begin(),
+                                            reference.begin() + i + 1));
     }
 
     auto res = device.try_push_back(reference[0]);
@@ -640,7 +643,8 @@ TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
   for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.unchecked_emplace_back(reference[i].value);
     EXPECT_EQ(res, device.back());
-    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+    EXPECT_EQ(device, TestFixture::vec_of(reference.begin(),
+                                          reference.begin() + i + 1));
   }
 }
 
@@ -659,7 +663,8 @@ TYPED_TEST(Modifiers, UncheckedPushBackConstRef) {
   for (auto i = 0ul; i < reference.size(); ++i) {
     auto res = device.unchecked_push_back(reference[i]);
     EXPECT_EQ(res, device.back());
-    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+    EXPECT_EQ(device, TestFixture::vec_of(reference.begin(),
+                                          reference.begin() + i + 1));
   }
 }
 
@@ -681,7 +686,8 @@ TYPED_TEST(Modifiers, UncheckedPushBackRV) {
 
     auto res = device.unchecked_push_back(std::move(val));
     EXPECT_EQ(res, device.back());
-    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
+    EXPECT_EQ(device, TestFixture::vec_of(reference.begin(),
+                                          reference.begin() + i + 1));
   }
 }
 
@@ -859,7 +865,8 @@ TYPED_TEST(Modifiers, EraseRange) {
 
   itr = device.erase(device.begin(), device.begin() + 1);
   EXPECT_EQ(itr, device.begin());
-  EXPECT_EQ(device, IV(reference.begin() + 1, reference.end()));
+  EXPECT_EQ(device,
+            TestFixture::vec_of(reference.begin() + 1, reference.end()));
 
   if (device.empty())
     return;
@@ -870,7 +877,8 @@ TYPED_TEST(Modifiers, EraseRange) {
 
   itr = device.erase(last_itr, device.end());
   EXPECT_EQ(itr, device.end());
-  EXPECT_EQ(device, IV(reference.begin(), reference.end() - 1));
+  EXPECT_EQ(device,
+            TestFixture::vec_of(reference.begin(), reference.end() - 1));
 
   if (device.size() >= 4) {
     reference = IV(device);
@@ -880,7 +888,7 @@ TYPED_TEST(Modifiers, EraseRange) {
 
     itr = device.erase(from_itr, to_itr);
     EXPECT_EQ(itr, device.begin() + 1);
-    EXPECT_EQ(device, IV({reference[0], reference.back()}));
+    EXPECT_EQ(device, TestFixture::vec_of({reference[0], reference.back()}));
   }
 }
 
@@ -923,7 +931,8 @@ TYPED_TEST(Modifiers, PopBack) {
     return;
 
   for (auto i = int(reference.size()); i > 0; --i) {
-    EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i));
+    EXPECT_EQ(device,
+              TestFixture::vec_of(reference.begin(), reference.begin() + i));
     device.pop_back();
   }
 

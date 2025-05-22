@@ -39,7 +39,7 @@ add_gtest(compare)
 add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
-# add_gtest(modifiers)
+add_gtest(modifiers)
 
 if(BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED)
     add_gtest(freestanding)
