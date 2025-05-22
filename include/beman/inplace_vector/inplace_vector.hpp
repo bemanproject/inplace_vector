@@ -676,10 +676,10 @@ public:
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     assign_range(il);
     return *this;
-  }
+  });
 
   constexpr void
   swap(inplace_vector &x) noexcept(N == 0 ||
