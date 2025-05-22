@@ -42,6 +42,7 @@ add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
 add_gtest(modifiers)
+add_gtest(freestanding)
 
 # only add noexception tests if NO_EXCEPTIONS option is set and compiler supports -fno-exceptions
 if(
