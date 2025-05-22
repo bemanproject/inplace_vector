@@ -10,6 +10,7 @@ namespace {
 template <typename Param> class Constructors : public IVBasicTest<Param> {};
 TYPED_TEST_SUITE(Constructors, IVAllTypes);
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 TYPED_TEST(Constructors, SizedDefault) {
   // constexpr explicit inplace_vector(size_type n);
   // Preconditions: T is Cpp17DefaultInsertable into inplace_vector.
@@ -133,5 +134,6 @@ TYPED_TEST(Constructors, CopyRanges) {
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + mid));
   }
 }
+#endif
 
 }; // namespace

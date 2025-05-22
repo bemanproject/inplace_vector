@@ -836,7 +836,6 @@ TYPED_TEST(SequenceContainerRequirements, AssignRange) {
   ref.back() = T{5};
   SAFE_EXPECT_THROW(device.assign_range(ref), std::bad_alloc);
 }
-#endif
 
 // a.assign(il)
 // Effects: Equivalent to a.assign(il.begin(), il.end()).
@@ -856,7 +855,6 @@ TYPED_TEST(SequenceContainerRequirements, AssignFuncInitializerList) {
   EXPECT_EQ(device, IV{T{50}});
 }
 
-#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 // a.assign(n, t)
 // Result: void
 // Preconditions: T is Cpp17CopyInsertable into X and Cpp17CopyAssignable. t is
@@ -1018,6 +1016,19 @@ TYPED_TEST(SequenceContainerRequirements, ElementAccessAt) {
   using T = TestFixture::T;
 
   auto device = this->unique();
+
+  for (auto i = 0ul; i < device.size(); ++i) {
+    EXPECT_EQ(device.at(i), *(device.begin() + i));
+  }
+
+  SAFE_EXPECT_THROW(device.at(IV::capacity()), std::out_of_range);
+}
+
+TYPED_TEST(SequenceContainerRequirements, ElementAccessAtConst) {
+  using IV = TestFixture::IV;
+  using T = TestFixture::T;
+
+  const auto device = this->unique();
 
   for (auto i = 0ul; i < device.size(); ++i) {
     EXPECT_EQ(device.at(i), *(device.begin() + i));

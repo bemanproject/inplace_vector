@@ -685,6 +685,7 @@ TYPED_TEST(Modifiers, UncheckedPushBackRV) {
   }
 }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 TYPED_TEST(Modifiers, ReserveNonEmpty) {
   // static constexpr void reserve(size_type n);
   //
@@ -730,6 +731,7 @@ TYPED_TEST(Modifiers, ReserveEmpty) {
 
   SAFE_EXPECT_THROW(device.reserve(device.capacity() + 1), std::bad_alloc);
 }
+#endif
 
 TYPED_TEST(Modifiers, ShrinkToFitNonEmpty) {
   // static constexpr void shrink_to_fit() noexcept;

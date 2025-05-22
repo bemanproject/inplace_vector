@@ -22,6 +22,7 @@ TYPED_TEST(SizeNCapacity, Capacity) {
   EXPECT_EQ(device.max_size(), N);
 }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 TYPED_TEST(SizeNCapacity, ResizeDown) {
   // constexpr void resize(size_type sz);
   // Preconditions: T is Cpp17DefaultInsertable into inplace_vector.
@@ -89,6 +90,7 @@ TYPED_TEST(SizeNCapacity, ResizeUp) {
   SAFE_EXPECT_THROW(device.resize(device.capacity() + 1), std::bad_alloc);
   EXPECT_EQ(device, before_resize);
 }
+#endif
 
 // 23.3.14.4 Data [inplace.vector.data]
 
