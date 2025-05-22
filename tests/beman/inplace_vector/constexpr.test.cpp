@@ -1,5 +1,7 @@
-#include <array>
 #include <beman/inplace_vector/inplace_vector.hpp>
+
+#include <array>
+#include <functional>
 #include <type_traits>
 
 // used for testing beman::has_constexpr_support

@@ -10,15 +10,12 @@
 #include <algorithm> // for rotate...
 #include <array>
 #include <compare>
-#include <concepts>   // for lots...
-#include <cstddef>    // for size_t
-#include <cstdint>    // for fixed-width integer types
-#include <cstdio>     // for assertion diagnostics
-#include <functional> // for less and equal_to
-#include <iterator>   // for reverse_iterator and iterator traits
-#include <limits>     // for numeric_limits
-#include <memory>     // for destroy
-#include <new>        // for operator new
+#include <concepts> // for lots...
+#include <cstddef>  // for size_t
+#include <cstdint>  // for fixed-width integer types
+#include <iterator> // for reverse_iterator and iterator traits
+#include <limits>   // for numeric_limits
+#include <memory>   // for destroy
 #include <ranges>
 #include <type_traits> // for aligned_storage and all meta-functions
 
