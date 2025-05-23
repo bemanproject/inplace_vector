@@ -27,6 +27,14 @@ template <typename T> struct vec_list {
   T lesser_bigger;   // lesser number of elements but bigger values
 };
 
+template <typename T>
+T Vec(std::initializer_list<typename T::value_type> list) {
+  T vec;
+  for (auto &ele : list)
+    vec.unchecked_push_back(ele);
+  return vec;
+}
+
 template <typename T> static void runtests(vec_list<T> &list) {
 
   static_assert(std::three_way_comparable<T> || lessthan_comparable<T>);
@@ -86,32 +94,34 @@ template <typename T> static void runtests(vec_list<T> &list) {
 };
 
 TEST(Compare, threeway_int) {
-  vec_list<inplace_vector<int, 4>> list{
+  using IV = inplace_vector<int, 4>;
+  vec_list<IV> list{
       .empty{},
-      .base{1, 2, 3},
-      .copy{1, 2, 3},
-      .greater{4, 5, 6},
-      .lesser{0, 0, 0},
-      .bigger{1, 2, 3, 0},
-      .smaller{1, 2},
-      .greater_smaller{2, 2},
-      .lesser_bigger{0, 2, 3, 4},
+      .base{Vec<IV>({1, 2, 3})},
+      .copy{Vec<IV>({1, 2, 3})},
+      .greater{Vec<IV>({4, 5, 6})},
+      .lesser{Vec<IV>({0, 0, 0})},
+      .bigger{Vec<IV>({1, 2, 3, 0})},
+      .smaller{Vec<IV>({1, 2})},
+      .greater_smaller{Vec<IV>({2, 2})},
+      .lesser_bigger{Vec<IV>({0, 2, 3, 4})},
   };
 
   runtests(list);
 }
 
 TEST(Compare, threeway_float) {
-  vec_list<inplace_vector<float, 4>> list{
+  using IV = inplace_vector<float, 4>;
+  vec_list<IV> list{
       .empty{},
-      .base{1.0f, 2.0f, 3.0f},
-      .copy{1.0f, 2.0f, 3.0f},
-      .greater{4.0f, 5.0f, 6.0f},
-      .lesser{0.0f, 0.0f, 0.0f},
-      .bigger{1.0f, 2.0f, 3.0f, 0.0f},
-      .smaller{1.0f, 2.0f},
-      .greater_smaller{2.0f, 2.0f},
-      .lesser_bigger{0.0f, 2.0f, 3.0f, 4.0f},
+      .base{Vec<IV>({1.0f, 2.0f, 3.0f})},
+      .copy{Vec<IV>({1.0f, 2.0f, 3.0f})},
+      .greater{Vec<IV>({4.0f, 5.0f, 6.0f})},
+      .lesser{Vec<IV>({0.0f, 0.0f, 0.0f})},
+      .bigger{Vec<IV>({1.0f, 2.0f, 3.0f, 0.0f})},
+      .smaller{Vec<IV>({1.0f, 2.0f})},
+      .greater_smaller{Vec<IV>({2.0f, 2.0f})},
+      .lesser_bigger{Vec<IV>({0.0f, 2.0f, 3.0f, 4.0f})},
   };
 
   runtests(list);
@@ -125,8 +135,8 @@ TEST(Compare, threeway_float) {
   EXPECT_FALSE(std::nanf("") >= std::nanf(""));
   EXPECT_FALSE(std::nanf("") <= std::nanf(""));
 
-  inplace_vector<float, 4> vnan{std::nanf("")};
-  inplace_vector<float, 4> vnan2{std::nanf("")};
+  auto vnan = Vec<IV>({std::nanf("")});
+  auto vnan2 = Vec<IV>({std::nanf("")});
 
   EXPECT_EQ(vnan <=> vnan2, std::partial_ordering::unordered);
   EXPECT_FALSE(vnan == vnan2);
@@ -148,17 +158,16 @@ TEST(Compare, threeway_comparable1) {
   static_assert(std::three_way_comparable<inplace_vector<comparable1, 4>>);
   static_assert(has_threeway<inplace_vector<comparable1, 4>>);
 
-  vec_list<inplace_vector<comparable1, 4>> list{
-      .empty{},
-      .base{{1, 2}, {3, 4}},
-      .copy{{1, 2}, {3, 4}},
-      .greater{{5, 6}, {7, 8}},
-      .lesser{{0, 0}, {0, 0}},
-      .bigger{{1, 2}, {3, 4}, {5, 6}},
-      .smaller{{1, 2}},
-      .greater_smaller{{2, 2}, {3, 3}},
-      .lesser_bigger{{0, 2}, {3, 3}, {4, 4}},
-  };
+  using IV = inplace_vector<comparable1, 4>;
+  vec_list<IV> list{.empty{},
+                    .base{Vec<IV>({{1, 2}, {3, 4}})},
+                    .copy{Vec<IV>({{1, 2}, {3, 4}})},
+                    .greater{Vec<IV>({{5, 6}, {7, 8}})},
+                    .lesser{Vec<IV>({{0, 0}, {0, 0}})},
+                    .bigger{Vec<IV>({{1, 2}, {3, 4}, {5, 6}})},
+                    .smaller{Vec<IV>({{1, 2}})},
+                    .greater_smaller{Vec<IV>({{2, 2}, {3, 3}})},
+                    .lesser_bigger{Vec<IV>({{0, 2}, {3, 3}, {4, 4}})}};
 
   runtests(list);
 }
@@ -180,17 +189,16 @@ TEST(Compare, threeway_comparable2) {
   static_assert(std::three_way_comparable<inplace_vector<comparable2, 4>>);
   static_assert(has_threeway<inplace_vector<comparable2, 4>>);
 
-  vec_list<inplace_vector<comparable2, 4>> list{
-      .empty{},
-      .base{{1, 2}, {3, 4}},
-      .copy{{1, 2}, {3, 4}},
-      .greater{{5, 6}, {7, 8}},
-      .lesser{{0, 0}, {0, 0}},
-      .bigger{{1, 2}, {3, 4}, {5, 6}},
-      .smaller{{1, 2}},
-      .greater_smaller{{2, 2}, {3, 3}},
-      .lesser_bigger{{0, 2}, {3, 3}, {4, 4}},
-  };
+  using IV = inplace_vector<comparable2, 4>;
+  vec_list<IV> list{.empty{},
+                    .base{Vec<IV>({{1, 2}, {3, 4}})},
+                    .copy{Vec<IV>({{1, 2}, {3, 4}})},
+                    .greater{Vec<IV>({{5, 6}, {7, 8}})},
+                    .lesser{Vec<IV>({{0, 0}, {0, 0}})},
+                    .bigger{Vec<IV>({{1, 2}, {3, 4}, {5, 6}})},
+                    .smaller{Vec<IV>({{1, 2}})},
+                    .greater_smaller{Vec<IV>({{2, 2}, {3, 3}})},
+                    .lesser_bigger{Vec<IV>({{0, 2}, {3, 3}, {4, 4}})}};
 
   runtests(list);
 }
@@ -203,19 +211,16 @@ TEST(Compare, threeway_strong_ordering) {
     operator<=>(const weaktype &other) const = default;
   };
 
-  using T = weaktype;
-
-  vec_list<inplace_vector<weaktype, 4>> list{
-      .empty{},
-      .base{T{1}, T{2}, T{3}},
-      .copy{T{1}, T{2}, T{3}},
-      .greater{T{4}, T{5}, T{6}},
-      .lesser{T{0}, T{0}, T{0}},
-      .bigger{T{1}, T{2}, T{3}, T{0}},
-      .smaller{T{1}, T{2}},
-      .greater_smaller{T{2}, T{2}},
-      .lesser_bigger{T{0}, T{2}, T{3}, T{4}},
-  };
+  using IV = inplace_vector<weaktype, 4>;
+  vec_list<IV> list{.empty{},
+                    .base{Vec<IV>({{1}, {2}, {3}})},
+                    .copy{Vec<IV>({{1}, {2}, {3}})},
+                    .greater{Vec<IV>({{4}, {5}, {6}})},
+                    .lesser{Vec<IV>({{0}, {0}, {0}})},
+                    .bigger{Vec<IV>({{1}, {2}, {3}, {0}})},
+                    .smaller{Vec<IV>({{1}, {2}})},
+                    .greater_smaller{Vec<IV>({{2}, {2}})},
+                    .lesser_bigger{Vec<IV>({{0}, {2}, {3}, {4}})}};
 
   runtests(list);
 }
@@ -228,19 +233,16 @@ TEST(Compare, threeway_weak_ordering) {
     operator<=>(const weaktype &other) const = default;
   };
 
-  using T = weaktype;
-
-  vec_list<inplace_vector<weaktype, 4>> list{
-      .empty{},
-      .base{T{1}, T{2}, T{3}},
-      .copy{T{1}, T{2}, T{3}},
-      .greater{T{4}, T{5}, T{6}},
-      .lesser{T{0}, T{0}, T{0}},
-      .bigger{T{1}, T{2}, T{3}, T{0}},
-      .smaller{T{1}, T{2}},
-      .greater_smaller{T{2}, T{2}},
-      .lesser_bigger{T{0}, T{2}, T{3}, T{4}},
-  };
+  using IV = inplace_vector<weaktype, 4>;
+  vec_list<IV> list{.empty{},
+                    .base{Vec<IV>({{1}, {2}, {3}})},
+                    .copy{Vec<IV>({{1}, {2}, {3}})},
+                    .greater{Vec<IV>({{4}, {5}, {6}})},
+                    .lesser{Vec<IV>({{0}, {0}, {0}})},
+                    .bigger{Vec<IV>({{1}, {2}, {3}, {0}})},
+                    .smaller{Vec<IV>({{1}, {2}})},
+                    .greater_smaller{Vec<IV>({{2}, {2}})},
+                    .lesser_bigger{Vec<IV>({{0}, {2}, {3}, {4}})}};
 
   runtests(list);
 }
@@ -263,18 +265,16 @@ TEST(Compare, threeway_partial_ordering) {
   };
 
   using T = custom;
-
-  vec_list<inplace_vector<custom, 4>> list{
-      .empty{},
-      .base{T{1}, T{2}, T{3}},
-      .copy{T{1}, T{2}, T{3}},
-      .greater{T{4}, T{5}, T{6}},
-      .lesser{T{0}, T{0}, T{0}},
-      .bigger{T{1}, T{2}, T{3}, T{0}},
-      .smaller{T{1}, T{2}},
-      .greater_smaller{T{2}, T{2}},
-      .lesser_bigger{T{0}, T{2}, T{3}, T{4}},
-  };
+  using IV = inplace_vector<T, 4>;
+  vec_list<IV> list{.empty{},
+                    .base{Vec<IV>({{1}, {2}, {3}})},
+                    .copy{Vec<IV>({{1}, {2}, {3}})},
+                    .greater{Vec<IV>({{4}, {5}, {6}})},
+                    .lesser{Vec<IV>({{0}, {0}, {0}})},
+                    .bigger{Vec<IV>({{1}, {2}, {3}, {0}})},
+                    .smaller{Vec<IV>({{1}, {2}})},
+                    .greater_smaller{Vec<IV>({{2}, {2}})},
+                    .lesser_bigger{Vec<IV>({{0}, {2}, {3}, {4}})}};
 
   runtests(list);
 
@@ -282,8 +282,8 @@ TEST(Compare, threeway_partial_ordering) {
   T t2 = t1;
   EXPECT_EQ(t1 <=> t2, std::partial_ordering::unordered);
 
-  inplace_vector<T, 4> v1{t1};
-  inplace_vector<T, 4> v2{t2};
+  auto v1 = Vec<IV>({t1});
+  auto v2 = Vec<IV>({t2});
 
   EXPECT_EQ(v1 <=> v2, std::partial_ordering::unordered);
   EXPECT_FALSE(v1 == v2);

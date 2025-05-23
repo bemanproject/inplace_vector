@@ -53,6 +53,8 @@ jobs:
             args: "-DCMAKE_CXX_FLAGS=-fsanitize=thread"
           - description: "ASan"
             args: "-DCMAKE_CXX_FLAGS='-fsanitize=address -fsanitize=undefined'"
+          - description: "delete freestanding"
+            args: "-DBEMAN_INPLACE_VECTOR_FREESTANDING_DELETED=ON"
           - description: "NoExcep"
             args: "-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=on"
         include:

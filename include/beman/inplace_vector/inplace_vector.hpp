@@ -25,6 +25,12 @@
 // Artifact from previous implementation, can be used as hints for optimizer
 #define IV_EXPECT(EXPR)
 
+#if BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+#define BEMAN_IV_FREESTANDING_DELETE(impl) = delete
+#else
+#define BEMAN_IV_FREESTANDING_DELETE(impl) impl
+#endif
+
 #ifndef BEMAN_IV_THROW_OR_ABORT
 #if BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
 #include <cstdlib> // for abort
@@ -271,11 +277,13 @@ public:
   constexpr size_type size() const noexcept { return storage_size(); }
   static constexpr size_type max_size() noexcept { return N; }
   static constexpr size_type capacity() noexcept { return N; }
-  constexpr void reserve(size_type n) {
+
+  constexpr void reserve(size_type n) BEMAN_IV_FREESTANDING_DELETE({
     if (n > N) [[unlikely]] {
       BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
     }
-  }
+  });
+
   constexpr void shrink_to_fit() {}
 
   // element access
@@ -363,24 +371,23 @@ public:
   template <class... Args>
   constexpr T &emplace_back(Args &&...args)
     requires(std::constructible_from<T, Args...>)
-  {
-    if (!try_emplace_back(std::forward<Args>(args)...)) [[unlikely]] {
+  BEMAN_IV_FREESTANDING_DELETE({
+    if (!try_emplace_back(std::forward<Args>(args)...)) [[unlikely]]
       BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
-    }
     return back();
-  }
+  });
   constexpr T &push_back(const T &x)
     requires(std::constructible_from<T, const T &>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     emplace_back(x);
     return back();
-  }
+  });
   constexpr T &push_back(T &&x)
     requires(std::constructible_from<T, T &&>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     emplace_back(std::forward<T &&>(x));
     return back();
-  }
+  });
 
   constexpr T *try_push_back(const T &x)
     requires(std::constructible_from<T, const T &>)
@@ -407,7 +414,7 @@ public:
   template <details::inplace_vector::container_compatible_range<T> R>
   constexpr void append_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     if constexpr (std::ranges::sized_range<R>) {
       if (size() + std::ranges::size(rg) > capacity()) [[unlikely]] {
         BEMAN_IV_THROW_OR_ABORT(std::bad_alloc());
@@ -419,7 +426,7 @@ public:
       }
       emplace_back(std::forward<decltype(e)>(e));
     }
-  }
+  });
 
   template <details::inplace_vector::container_compatible_range<T> R>
   constexpr std::ranges::borrowed_iterator_t<R> try_append_range(R &&rg)
@@ -436,21 +443,21 @@ public:
   template <class... Args>
   constexpr iterator emplace(const_iterator position, Args &&...args)
     requires(std::constructible_from<T, Args...> && std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     assert_iterator_in_range(position);
     auto b = end();
     emplace_back(std::forward<Args>(args)...);
     auto pos = begin() + (position - begin());
     std::rotate(pos, b, end());
     return pos;
-  }
+  });
 
   template <class InputIterator>
   constexpr iterator insert(const_iterator position, InputIterator first,
                             InputIterator last)
     requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     assert_iterator_in_range(position);
     if constexpr (std::random_access_iterator<InputIterator>) {
       if (size() + static_cast<size_type>(std::distance(first, last)) >
@@ -464,28 +471,26 @@ public:
     auto pos = begin() + (position - begin());
     std::rotate(pos, b, end());
     return pos;
-  }
+  });
 
   template <details::inplace_vector::container_compatible_range<T> R>
   constexpr iterator insert_range(const_iterator position, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     return insert(position, std::begin(rg), std::end(rg));
-  }
+  });
 
   constexpr iterator insert(const_iterator position,
                             std::initializer_list<T> il)
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
-  {
-    return insert_range(position, il);
-  }
+  BEMAN_IV_FREESTANDING_DELETE({ return insert_range(position, il); });
 
   constexpr iterator insert(const_iterator position, size_type n, const T &x)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     assert_iterator_in_range(position);
     auto b = end();
     for (size_type i = 0; i < n; ++i)
@@ -493,56 +498,46 @@ public:
     auto pos = begin() + (position - begin());
     std::rotate(pos, b, end());
     return pos;
-  }
+  });
 
   constexpr iterator insert(const_iterator position, const T &x)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
-  {
-    return insert(position, 1, x);
-  }
+  BEMAN_IV_FREESTANDING_DELETE({ return insert(position, 1, x); });
 
   constexpr iterator insert(const_iterator position, T &&x)
     requires(std::constructible_from<T, T &&> && std::movable<T>)
-  {
-    return emplace(position, std::move(x));
-  }
+  BEMAN_IV_FREESTANDING_DELETE({ return emplace(position, std::move(x)); });
 
   constexpr inplace_vector(std::initializer_list<T> il)
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
-  {
-    insert(begin(), il);
-  }
+  BEMAN_IV_FREESTANDING_DELETE({ insert(begin(), il); });
 
   constexpr inplace_vector(size_type n, const T &value)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
-  {
-    insert(begin(), n, value);
-  }
+  BEMAN_IV_FREESTANDING_DELETE({ insert(begin(), n, value); });
 
   constexpr explicit inplace_vector(size_type n)
     requires(std::constructible_from<T, T &&> && std::default_initializable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     for (size_type i = 0; i < n; ++i)
       emplace_back(T{});
-  }
+  });
 
   template <class InputIterator> // BUGBUG: why not std::ranges::input_iterator?
   constexpr inplace_vector(InputIterator first, InputIterator last)
     requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
-  {
-    insert(begin(), first, last);
-  }
+  BEMAN_IV_FREESTANDING_DELETE({ insert(begin(), first, last); });
 
   template <details::inplace_vector::container_compatible_range<T> R>
   constexpr inplace_vector(beman::from_range_t, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     insert_range(begin(), std::forward<R &&>(rg));
-  }
+  });
 
   constexpr iterator erase(const_iterator first, const_iterator last)
     requires(std::movable<T>)
@@ -569,7 +564,7 @@ public:
 
   constexpr void resize(size_type sz, const T &c)
     requires(std::constructible_from<T, const T &> && std::copyable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     if (sz == size())
       return;
     else if (sz > N) [[unlikely]] {
@@ -580,10 +575,10 @@ public:
       unsafe_destroy(begin() + sz, end());
       unsafe_set_size(sz);
     }
-  }
+  });
   constexpr void resize(size_type sz)
     requires(std::constructible_from<T, T &&> && std::default_initializable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     if (sz == size())
       return;
     else if (sz > N) [[unlikely]] {
@@ -595,20 +590,19 @@ public:
       unsafe_destroy(begin() + sz, end());
       unsafe_set_size(sz);
     }
-  }
+  });
 
-  constexpr reference at(size_type pos) {
-    if (pos >= size()) [[unlikely]] {
+  constexpr reference at(size_type pos) BEMAN_IV_FREESTANDING_DELETE({
+    if (pos >= size()) [[unlikely]]
       BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
-    }
     return details::inplace_vector::index(*this, pos);
-  }
-  constexpr const_reference at(size_type pos) const {
-    if (pos >= size()) [[unlikely]] {
-      BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
-    }
-    return details::inplace_vector::index(*this, pos);
-  }
+  });
+  constexpr const_reference at(size_type pos) const
+      BEMAN_IV_FREESTANDING_DELETE({
+        if (pos >= size()) [[unlikely]]
+          BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
+        return details::inplace_vector::index(*this, pos);
+      });
 
   constexpr void pop_back() {
     IV_EXPECT(size() > 0 && "pop_back from empty inplace_vector!");
@@ -682,10 +676,10 @@ public:
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     assign_range(il);
     return *this;
-  }
+  });
 
   constexpr void
   swap(inplace_vector &x) noexcept(N == 0 ||
@@ -702,31 +696,31 @@ public:
   constexpr void assign(InputIterator first, InputIterator last)
     requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     clear();
     insert(begin(), first, last);
-  }
+  });
   template <details::inplace_vector::container_compatible_range<T> R>
   constexpr void assign_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
-  {
-    assign(std::begin(rg), std::end(rg));
-  }
+  BEMAN_IV_FREESTANDING_DELETE({
+    assign(std::ranges::begin(rg), std::ranges::end(rg));
+  });
   constexpr void assign(size_type n, const T &u)
     requires(std::constructible_from<T, const T &> && std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     clear();
     insert(begin(), n, u);
-  }
+  });
   constexpr void assign(std::initializer_list<T> il)
     requires(std::constructible_from<
                  T, std::ranges::range_reference_t<std::initializer_list<T>>> &&
              std::movable<T>)
-  {
+  BEMAN_IV_FREESTANDING_DELETE({
     clear();
     insert_range(begin(), il);
-  }
+  });
 
   constexpr friend auto operator<=>(const inplace_vector &x,
                                     const inplace_vector &y)
@@ -769,5 +763,6 @@ constexpr std::size_t erase_if(inplace_vector<T, N> &c, Predicate pred) {
 } // namespace beman
 
 #undef IV_EXPECT
+#undef BEMAN_IV_FREESTANDING_DELETE
 
 #endif // BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP

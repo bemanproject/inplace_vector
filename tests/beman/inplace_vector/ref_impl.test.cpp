@@ -83,6 +83,7 @@ template struct beman::inplace_vector<int, 1>;
 template struct beman::inplace_vector<int, 2>;
 template struct beman::inplace_vector<const int, 3>;
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 // non-trivial
 template struct beman::inplace_vector<std::string, 3>;
 template struct beman::inplace_vector<const std::string, 3>;
@@ -90,6 +91,7 @@ template struct beman::inplace_vector<const std::string, 3>;
 // move-only:
 template struct beman::inplace_vector<std::unique_ptr<int>, 3>;
 template struct beman::inplace_vector<const std::unique_ptr<int>, 3>;
+#endif
 
 struct tint {
   std::size_t i;
@@ -178,6 +180,7 @@ template <typename T, int N> struct vec {
   vec(std::initializer_list<T> /*il*/) {}
 };
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 template <typename T, std::size_t N> constexpr void test_il_constructor() {
   auto v = [] {
     switch (N) {
@@ -238,6 +241,7 @@ template <typename T, std::size_t N> constexpr void test_il_assignment() {
                  std::bad_alloc);
   }
 }
+#endif
 
 template <typename T, std::size_t N> constexpr void test_default_constructor() {
   vector<T, N> v;
@@ -250,6 +254,7 @@ template <typename T, std::size_t N>
 constexpr void
 test_default_constructor_bounds_and_contiguous_iterators(std::size_t sz) {
   CHECK(sz <= N);
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   vector<T, N> v(sz);
   CHECK(v.size() == sz);
   CHECK(v.max_size() == N);
@@ -257,6 +262,12 @@ test_default_constructor_bounds_and_contiguous_iterators(std::size_t sz) {
   for (std::size_t i = 0; i != sz; ++i) {
     CHECK(v[i] == T{});
   }
+#else
+  vector<T, N> v;
+  for (auto i = 0; i < sz; ++i) {
+    v.unchecked_push_back(T{});
+  }
+#endif
   for (std::size_t i = 0; i < v.size(); ++i) { // contiguous
     CHECK(*(v.begin() + i) == *(std::addressof(*v.begin()) + i));
     CHECK(*(v.cbegin() + i) == *(std::addressof(*v.cbegin()) + i));
@@ -313,6 +324,7 @@ template <typename T, std::size_t N> constexpr void test_iterators() {
   }
 }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
 template <typename T, std::size_t N>
 constexpr void test_constructor_input_iterators() {
   CHECK(N < 11);
@@ -333,10 +345,16 @@ constexpr void test_constructor_input_iterators() {
     CHECK(std::distance(i, c.end()) == c.size() - idx);
   }
 }
+#else
+template <typename T, std::size_t N>
+constexpr void test_constructor_input_iterators() {}
+#endif
 
 template <typename T, std::size_t N> constexpr bool test_all_() {
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   test_il_constructor<T, N>();
   test_il_assignment<T, N>();
+#endif
   test_default_constructor<T, N>();
   for (size_t i = 0; i < N; ++i)
     test_default_constructor_bounds_and_contiguous_iterators<T, N>(i);
@@ -349,6 +367,19 @@ template <typename T, std::size_t N> void test_all() {
   constexpr bool ct = test_all_<T, N>();
   static_assert(ct, "CONSTEXPR TESTS FAILED");
   test_all_<T, N>();
+}
+
+template <typename T>
+T vec_of(std::initializer_list<typename T::value_type> il) {
+#if BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
+  T vec;
+  for (auto &v : il) {
+    vec.unchecked_push_back(v);
+  }
+  return vec;
+#else
+  return T(il);
+#endif
 }
 
 int main() {
@@ -371,6 +402,7 @@ int main() {
 
   // test_all<const int, 0>();
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   { // capacity
     vector<int, 10> a;
     static_assert(a.capacity() == std::size_t(10));
@@ -694,14 +726,6 @@ int main() {
     }
   }
 
-  {
-    constexpr vector<int, 5> v;
-    static_assert(v.data() != nullptr);
-
-    constexpr vector<int, 0> v0;
-    static_assert(v0.data() == nullptr);
-  }
-
   { // emplace:
     {
       vector<non_copyable, 3> c;
@@ -768,6 +792,32 @@ int main() {
     CHECK(c.back().getd() == 4.5);
     CHECK_THROWS(c.emplace_back(2, 3.5), std::bad_alloc);
   }
+
+  {   // emplace extra:
+    { //
+      vector<int, 4> v;
+      v = {1, 2, 3};
+
+      v.emplace(v.begin(), v.back());
+      CHECK(v[0] == 3);
+    }
+    {
+      vector<int, 4> v;
+      v = {1, 2, 3};
+      v.emplace(v.begin(), v.back());
+      CHECK(v[0] == 3);
+    }
+  }
+#endif
+
+  {
+    constexpr vector<int, 5> v;
+    static_assert(v.data() != nullptr);
+
+    constexpr vector<int, 0> v0;
+    static_assert(v0.data() == nullptr);
+  }
+
   { // try_emplace_back
     vector<non_copyable, 2> c;
     CHECK((uintptr_t)c.begin() == (uintptr_t)c.try_emplace_back(2, 3.5));
@@ -797,26 +847,9 @@ int main() {
     CHECK(c.back().getd() == 4.5);
   }
 
-  {   // emplace extra:
-    { //
-      vector<int, 4> v;
-      v = {1, 2, 3};
-
-      v.emplace(v.begin(), v.back());
-      CHECK(v[0] == 3);
-    }
-    {
-      vector<int, 4> v;
-      v = {1, 2, 3};
-      v.emplace(v.begin(), v.back());
-      CHECK(v[0] == 3);
-    }
-  }
-
   { // erase
     {
-      int a1[] = {1, 2, 3};
-      vector<int, 4> l1(a1, a1 + 3);
+      auto l1 = vec_of<vector<int, 4>>({1, 2, 3});
       CHECK(l1.size() == 3);
       vector<int, 4>::const_iterator i = l1.begin();
       ++i;
@@ -839,40 +872,40 @@ int main() {
   }
 
   { // erase iter iter
-    int a1[] = {1, 2, 3};
     using vec_t = vector<int, 5>;
     {
-      vec_t l1(a1, a1 + 3);
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), l1.cbegin());
       CHECK(l1.size() == 3);
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 3);
       CHECK(i == l1.begin());
     }
     {
-      vec_t l1(a1, a1 + 3);
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), std::next(l1.cbegin()));
       CHECK(l1.size() == 2);
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 2);
       CHECK(i == l1.begin());
-      CHECK(l1 == vec_t(a1 + 1, a1 + 3));
+      CHECK(l1 == vec_of<vec_t>({2, 3}));
     }
     {
-      vec_t l1(a1, a1 + 3);
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), std::next(l1.cbegin(), 2));
       CHECK(l1.size() == 1);
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 1);
       CHECK(i == l1.begin());
-      CHECK(l1 == vec_t(a1 + 2, a1 + 3));
+      CHECK(l1 == vec_of<vec_t>({3}));
     }
     {
-      vec_t l1(a1, a1 + 3);
+      auto l1 = vec_of<vec_t>({1, 2, 3});
       vec_t::iterator i = l1.erase(l1.cbegin(), std::next(l1.cbegin(), 3));
       CHECK(l1.empty());
       CHECK(std::distance(l1.cbegin(), l1.cend()) == 0);
       CHECK(i == l1.begin());
     }
     {
-      vector<vec_t, 3> outer(2, vec_t(1));
+      auto outer =
+          vec_of<vector<vec_t, 3>>({vec_of<vec_t>({1}), vec_of<vec_t>({1})});
       outer.erase(outer.begin(), outer.begin());
       CHECK(outer.size() == 2);
       CHECK(outer[0].size() == 1);
@@ -880,6 +913,7 @@ int main() {
     }
   }
 
+#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
   { // insert init list
     {
       vector<int, 15> d(10, 1);
@@ -1161,6 +1195,7 @@ int main() {
       }
     }
   }
+#endif
 
   std::cerr << "TESTS PASSED" << std::endl;
   return 0;
