@@ -45,6 +45,7 @@ if(BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED)
 else()
     add_gtest(container_requirements_fs)
     add_gtest(constructors_fs)
+    add_gtest(modifiers_fs)
 endif()
 
 # only add noexception tests if NO_EXCEPTIONS option is set and compiler supports -fno-exceptions
