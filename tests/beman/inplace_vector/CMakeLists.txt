@@ -36,13 +36,14 @@ endfunction()
 add_gtest(container_requirements)
 add_gtest(triviality)
 add_gtest(compare)
-add_gtest(constructors)
 add_gtest(size_n_data)
 add_gtest(erasure)
 add_gtest(modifiers)
 
 if(BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED)
     add_gtest(freestanding)
+else()
+    add_gtest(constructors_fs)
 endif()
 
 # only add noexception tests if NO_EXCEPTIONS option is set and compiler supports -fno-exceptions
