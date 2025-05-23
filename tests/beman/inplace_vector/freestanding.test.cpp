@@ -9,13 +9,6 @@ template <typename Param> class Freestanding : public IVBasicTest<Param> {};
 TYPED_TEST_SUITE(Freestanding, IVAllTypes);
 
 TYPED_TEST(Freestanding, alltypes) {
-
-#if !BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED()
-
-  GTEST_SKIP() << "Not applicable";
-
-#else
-
   using IV = TestFixture::IV;
   using T = TestFixture::T;
   using size_type = IV::size_type;
@@ -37,7 +30,5 @@ TYPED_TEST(Freestanding, alltypes) {
   static_assert(!requires(IV vec, size_type t) { vec.reserve(t); });
 
   // TODO make sure all of the freestanding-delete functions are deleted
-
-#endif
 }
 } // namespace
