@@ -43,6 +43,7 @@ add_gtest(modifiers)
 if(BEMAN_INPLACE_VECTOR_FREESTANDING_DELETED)
     add_gtest(freestanding)
 else()
+    add_gtest(container_requirements_fs)
     add_gtest(constructors_fs)
 endif()
 
