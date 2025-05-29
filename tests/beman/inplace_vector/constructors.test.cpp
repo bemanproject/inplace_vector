@@ -134,4 +134,26 @@ TYPED_TEST(Constructors, CopyRanges) {
   }
 }
 
+TYPED_TEST(Constructors, freestandingConversion) {
+  using T = TestFixture::T;
+
+  using IV = beman::inplace_vector<T, 5>;
+  using FS = beman::freestanding::inplace_vector<T, 5>;
+
+  static_assert(std::is_constructible_v<FS, FS>);
+  static_assert(std::is_constructible_v<IV, IV>);
+  static_assert(!std::is_constructible_v<IV, FS>);
+  static_assert(!std::is_constructible_v<FS, IV>);
+
+  static_assert(std::is_assignable_v<IV, IV>);
+  static_assert(std::is_assignable_v<FS, FS>);
+  static_assert(!std::is_assignable_v<FS, IV>);
+  static_assert(!std::is_assignable_v<IV, FS>);
+
+  static_assert(std::is_convertible_v<FS, FS>);
+  static_assert(std::is_convertible_v<IV, IV>);
+  static_assert(!std::is_convertible_v<IV, FS>);
+  static_assert(!std::is_convertible_v<FS, IV>);
+}
+
 }; // namespace
