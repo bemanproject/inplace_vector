@@ -15,7 +15,7 @@ project(
 
 # [CMAKE.SKIP_EXAMPLES]
 option(
-    BEMAN_EXEMPLAR_BUILD_EXAMPLES
+    BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES
     "Enable building examples. Default: ON. Values: { ON, OFF }."
     ${PROJECT_IS_TOP_LEVEL}
 )
@@ -51,24 +51,24 @@ target_include_directories(
     INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 # Install the InplaceVector library to the appropriate destination
 install(
     TARGETS beman.inplace_vector
-    EXPORT ${TARGETS_EXPORT_NAME}
-    DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}
+    EXPORT beman.inplace_vector-targets
+    FILE_SET HEADERS
 )
 
 # Install the header files to the appropriate destination
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}
+    DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        ${CMAKE_CURRENT_BINARY_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING
-    PATTERN
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp"
+    PATTERN "*.hpp"
 )
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
@@ -92,6 +92,6 @@ if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
     add_subdirectory(tests/beman/inplace_vector)
 endif()
 
-if(BEMAN_EXEMPLAR_BUILD_EXAMPLES)
+if(BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
