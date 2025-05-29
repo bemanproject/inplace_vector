@@ -41,34 +41,51 @@ configure_file(
 
 include(FetchContent)
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
-add_library(beman.inplace_vector INTERFACE)
+add_library(${PROJECT_NAME} INTERFACE)
 # [CMAKE.LIBRARY_ALIAS]
-add_library(beman::inplace_vector ALIAS beman.inplace_vector)
+add_library(beman::inplace_vector ALIAS ${PROJECT_NAME})
 
-target_include_directories(
-    beman.inplace_vector
+target_sources(
+    ${PROJECT_NAME}
     INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        FILE_SET HEADERS
+        BASE_DIRS
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_BINARY_DIR}/include
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp
+            ${CMAKE_CURRENT_BINARY_DIR}/include/beman/inplace_vector/config.hpp
 )
 
-# Install the InplaceVector library to the appropriate destination
-install(
-    TARGETS beman.inplace_vector
-    EXPORT beman.inplace_vector-targets
-    FILE_SET HEADERS
+# Install the INTERFACE library target and create an export set
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets FILE_SET HEADERS)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-# Install the header files to the appropriate destination
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
 install(
-    DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        ${CMAKE_CURRENT_BINARY_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    FILES_MATCHING
-    PATTERN "*.hpp"
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+install(
+    EXPORT ${PROJECT_NAME}-targets
+    FILE ${PROJECT_NAME}-targets.cmake
+    NAMESPACE beman::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
