@@ -15,15 +15,15 @@ project(
 
 # [CMAKE.SKIP_EXAMPLES]
 option(
-    BEMAN_EXEMPLAR_BUILD_EXAMPLES
-    "Enable building examples. Default: ON. Values: { ON, OFF }."
+    BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES
+    "Enable building examples. Default: ${PROJECT_IS_TOP_LEVEL}. Values: { ON, OFF}."
     ${PROJECT_IS_TOP_LEVEL}
 )
 
 # [CMAKE.SKIP_TESTS]
 option(
     BEMAN_INPLACE_VECTOR_BUILD_TESTS
-    "Enable building tests and test infrastructure. Default: ON. Values: { ON, OFF }."
+    "Enable building tests and test infrastructure. Default: ${PROJECT_IS_TOP_LEVEL}. Values: { ON, OFF }."
     ${PROJECT_IS_TOP_LEVEL}
 )
 
@@ -41,34 +41,55 @@ configure_file(
 
 include(FetchContent)
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 add_library(beman.inplace_vector INTERFACE)
 # [CMAKE.LIBRARY_ALIAS]
 add_library(beman::inplace_vector ALIAS beman.inplace_vector)
 
-target_include_directories(
+target_sources(
     beman.inplace_vector
     INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        FILE_SET HEADERS
+        BASE_DIRS
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_BINARY_DIR}/include
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp
+            ${CMAKE_CURRENT_BINARY_DIR}/include/beman/inplace_vector/config.hpp
 )
 
-# Install the InplaceVector library to the appropriate destination
+# Install the INTERFACE library target and create an export set
 install(
     TARGETS beman.inplace_vector
-    EXPORT ${TARGETS_EXPORT_NAME}
-    DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}
+    EXPORT beman.inplace_vector-targets
+    FILE_SET HEADERS
 )
 
-# Install the header files to the appropriate destination
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/beman.inplace_vector-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/beman.inplace_vector
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config-version.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}
-    FILES_MATCHING
-    PATTERN
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp"
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/beman.inplace_vector
+)
+
+install(
+    EXPORT beman.inplace_vector-targets
+    FILE beman.inplace_vector-targets.cmake
+    NAMESPACE beman::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/beman.inplace_vector
 )
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
@@ -92,6 +113,6 @@ if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
     add_subdirectory(tests/beman/inplace_vector)
 endif()
 
-if(BEMAN_EXEMPLAR_BUILD_EXAMPLES)
+if(BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
