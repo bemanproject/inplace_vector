@@ -23,6 +23,11 @@
 #define IV_EXPECT(EXPR)
 
 #ifndef BEMAN_IV_THROW_OR_ABORT
+
+#ifndef BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS
+#define BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS() 0
+#endif
+
 #if BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS()
 #include <cstdlib> // for abort
 #define BEMAN_IV_THROW_OR_ABORT(x) abort()
