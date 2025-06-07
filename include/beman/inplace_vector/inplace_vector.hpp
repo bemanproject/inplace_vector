@@ -139,15 +139,17 @@ public:
   constexpr ~trivial() = default;
 };
 
-template <class T, size_t N> struct raw_byte_based_storage {
-  alignas(T) std::byte _d[sizeof(T) * N];
-  constexpr T *storage_data(size_t i) noexcept {
+template <class T, std::size_t N> union raw_byte_based_storage {
+  T _d[N];
+  constexpr raw_byte_based_storage() {}
+  constexpr ~raw_byte_based_storage() {}
+  constexpr T *storage_data(std::size_t i) noexcept {
     IV_EXPECT(i < N);
-    return reinterpret_cast<T *>(_d) + i;
+    return _d + i;
   }
-  constexpr const T *storage_data(size_t i) const noexcept {
+  constexpr const T *storage_data(std::size_t i) const noexcept {
     IV_EXPECT(i < N);
-    return reinterpret_cast<const T *>(_d) + i;
+    return _d + i;
   }
 };
 
