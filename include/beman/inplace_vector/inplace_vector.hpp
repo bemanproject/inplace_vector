@@ -111,10 +111,7 @@ protected:
   using size_type = smallest_size_t<N>;
 
 private:
-  // If value_type is const, then const std::array of non-const elements:
-  using array_based_storage =
-      std::conditional_t<!std::is_const_v<T>, std::array<T, N>,
-                         const std::array<std::remove_const_t<T>, N>>;
+  using array_based_storage = std::array<std::remove_const_t<T>, N>;
   alignas(alignof(T)) array_based_storage storage_data_{};
   size_type storage_size_ = 0;
 
@@ -122,7 +119,7 @@ protected:
   constexpr const T *storage_data() const noexcept {
     return storage_data_.data();
   }
-  constexpr T *storage_data() noexcept { return storage_data_.data(); }
+  constexpr auto storage_data() noexcept { return storage_data_.data(); }
   constexpr size_type storage_size() const noexcept { return storage_size_; }
   constexpr void unsafe_set_size(size_t new_size) noexcept {
     IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N]");
@@ -166,9 +163,7 @@ protected:
   using size_type = smallest_size_t<N>;
 
 private:
-  using byte_based_storage = std::conditional_t<
-      !std::is_const_v<T>, raw_byte_based_storage<T, N>,
-      const raw_byte_based_storage<std::remove_const_t<T>, N>>;
+  using byte_based_storage = raw_byte_based_storage<std::remove_const_t<T>, N>;
   byte_based_storage storage_data_{}; // BUGBUG: test SIMD types
   size_type storage_size_ = 0;
 
@@ -176,7 +171,9 @@ protected:
   constexpr const T *storage_data() const noexcept {
     return storage_data_.storage_data(0);
   }
-  constexpr T *storage_data() noexcept { return storage_data_.storage_data(0); }
+  constexpr auto storage_data() noexcept {
+    return storage_data_.storage_data(0);
+  }
   constexpr size_type storage_size() const noexcept { return storage_size_; }
   constexpr void unsafe_set_size(size_t new_size) noexcept {
     IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
@@ -326,7 +323,7 @@ public:
     requires(std::constructible_from<T, Args...>)
   {
     IV_EXPECT(size() < capacity() && "inplace_vector out-of-memory");
-    std::construct_at(end(), std::forward<Args>(args)...);
+    std::construct_at(storage_data() + size(), std::forward<Args>(args)...);
     unsafe_set_size(size() + size_type(1));
     return this->back();
   }
