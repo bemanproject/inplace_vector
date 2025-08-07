@@ -137,8 +137,8 @@ concept has_insert_initializer =
 
 TEST(Freestanding, deleted) {
 
-  using IV = beman::inplace_vector<int, 10>;
-  using FIV = beman::freestanding::inplace_vector<int, 10>;
+  using IV = beman::inplace_vector::inplace_vector<int, 10>;
+  using FIV = beman::inplace_vector::freestanding::inplace_vector<int, 10>;
 
   using range = std::array<int, 10>;
   using input_iterator = std::istream_iterator<int>;
@@ -256,7 +256,7 @@ TEST(Freestanding, deleted) {
 }
 
 TEST(Freestanding, usage) {
-  using IV = beman::freestanding::inplace_vector<int, 10>;
+  using IV = beman::inplace_vector::freestanding::inplace_vector<int, 10>;
   using T = IV::value_type;
 
   IV device;

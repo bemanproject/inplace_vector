@@ -4,7 +4,7 @@
 
 #include <beman/inplace_vector/inplace_vector.hpp>
 
-using namespace beman;
+using namespace beman::inplace_vector;
 
 /**
  * Generates fibonacci sequence using inplace_vector.

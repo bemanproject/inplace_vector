@@ -31,8 +31,8 @@ struct Some {
 };
 static_assert(std::is_trivial_v<Some>);
 
-using beman::has_constexpr_support;
-using beman::inplace_vector;
+using beman::inplace_vector::has_constexpr_support;
+using beman::inplace_vector::inplace_vector;
 
 static_assert(has_constexpr_support<inplace_vector<int, 50>>);
 static_assert(has_constexpr_support<inplace_vector<Some, 50>>);
@@ -45,8 +45,8 @@ static_assert(!has_constexpr_support<inplace_vector<std::unique_ptr<int>, 50>>);
 
 #define TEST(NAME)                                                             \
   static_assert(std::invoke([]() {                                             \
-                  NAME<beman::inplace_vector<int, 20>>();                      \
-                  NAME<beman::inplace_vector<Some, 20>>();                     \
+                  NAME<beman::inplace_vector::inplace_vector<int, 20>>();      \
+                  NAME<beman::inplace_vector::inplace_vector<Some, 20>>();     \
                   return true;                                                 \
                 }),                                                            \
                 "##NAME");
@@ -269,8 +269,8 @@ TEST(test_op_comp);
 
 template <typename IV> constexpr void test_erase() {
   IV v{0, 1, 2, 3, 3, 5};
-  (void)beman::erase(v, 3);
-  (void)beman::erase_if(v, [](auto v) { return v < 3; });
+  (void)beman::inplace_vector::erase(v, 3);
+  (void)beman::inplace_vector::erase_if(v, [](auto v) { return v < 3; });
 }
 TEST(test_erase)
 
@@ -298,7 +298,7 @@ static_assert(!has_constexpr_support<inplace_vector<Complex, 50>>);
 
 template <typename T> constexpr void speical_test_empty() {
   static_assert(!std::is_trivially_default_constructible_v<T>);
-  using IV = beman::inplace_vector<T, 0>;
+  using IV = beman::inplace_vector::inplace_vector<T, 0>;
 
   std::array<T, 10> arr;
   arr.fill(T{50});

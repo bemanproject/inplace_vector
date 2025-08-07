@@ -4,7 +4,7 @@
 #include <cmath>
 #include <compare>
 
-using namespace beman;
+using namespace beman::inplace_vector;
 
 template <class T>
 concept has_threeway = requires(const T &t) {
@@ -13,7 +13,7 @@ concept has_threeway = requires(const T &t) {
 
 template <class T>
 concept lessthan_comparable =
-    beman::details::inplace_vector::lessthan_comparable<T>;
+    beman::inplace_vector::details::lessthan_comparable<T>;
 
 template <typename T> struct vec_list {
   T empty;
