@@ -160,8 +160,11 @@ TEST(Freestanding, deleted) {
   static_assert(!std::is_constructible_v<FIV, input_iterator, input_iterator>);
 
   // constexpr inplace_vector(from_range_t, R&& rg);
-  static_assert(std::is_constructible_v<IV, beman::from_range_t, range>);
-  static_assert(!std::is_constructible_v<FIV, beman::from_range_t, range>);
+  static_assert(
+      std::is_constructible_v<IV, beman::inplace_vector::details::from_range_t,
+                              range>);
+  static_assert(!std::is_constructible_v<
+                FIV, beman::inplace_vector::details::from_range_t, range>);
 
   // constexpr inplace_vector(initializer_list<T> il);
   static_assert(std::is_constructible_v<IV, initializer_list>);

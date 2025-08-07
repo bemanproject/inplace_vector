@@ -37,14 +37,11 @@
 #endif
 #endif
 
-// beman::from_range_t
-namespace beman {
-struct from_range_t {};
-inline constexpr from_range_t from_range;
-}; // namespace beman
-
 // Private utilities
 namespace beman::inplace_vector::details {
+
+struct from_range_t {};
+inline constexpr from_range_t from_range;
 
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
@@ -774,7 +771,7 @@ struct inplace_vector : public details::inplace_vector_base<T, N> {
   }
 
   template <details::container_compatible_range<T> R>
-  constexpr inplace_vector(beman::from_range_t, R &&rg)
+  constexpr inplace_vector(details::from_range_t, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
   {
@@ -918,7 +915,7 @@ struct inplace_vector : public details::inplace_vector_base<T, N> {
   = delete;
 
   template <details::container_compatible_range<T> R>
-  constexpr inplace_vector(beman::from_range_t, R &&rg)
+  constexpr inplace_vector(beman::inplace_vector::details::from_range_t, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
   = delete;

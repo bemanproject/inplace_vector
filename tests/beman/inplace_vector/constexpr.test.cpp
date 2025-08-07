@@ -70,7 +70,7 @@ template <typename IV> constexpr void test_constructors() {
     IV v(arr.begin(), arr.end());
   }
   {
-    IV v(beman::from_range_t{}, arr);
+    IV v(beman::inplace_vector::details::from_range_t{}, arr);
   }
   {
     IV other{0, 1};
