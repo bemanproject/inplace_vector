@@ -348,7 +348,7 @@ template <typename Param> class IVBasicTest : public ::testing::Test {
 public:
   using T = Param::value_type;
   inline static constexpr std::size_t N = Param::capacity;
-  using X = beman::inplace_vector<T, N>;
+  using X = beman::inplace_vector::inplace_vector<T, N>;
   using IV = X;
 
   // Returns IV of size n with unique values

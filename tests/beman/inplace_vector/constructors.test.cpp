@@ -115,7 +115,7 @@ TYPED_TEST(Constructors, CopyRanges) {
   auto reference = this->unique();
 
   {
-    IV device(beman::from_range, reference);
+    IV device(beman::inplace_vector::details::from_range, reference);
     EXPECT_EQ(device, reference);
   }
 
@@ -123,13 +123,15 @@ TYPED_TEST(Constructors, CopyRanges) {
     return;
 
   {
-    IV device(beman::from_range, reference | std::ranges::views::take(1));
+    IV device(beman::inplace_vector::details::from_range,
+              reference | std::ranges::views::take(1));
     EXPECT_EQ(device, IV{reference.front()});
   }
 
   {
     auto mid = std::midpoint(0ul, reference.size());
-    IV device(beman::from_range, reference | std::ranges::views::take(mid));
+    IV device(beman::inplace_vector::details::from_range,
+              reference | std::ranges::views::take(mid));
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + mid));
   }
 }
@@ -137,8 +139,8 @@ TYPED_TEST(Constructors, CopyRanges) {
 TYPED_TEST(Constructors, freestandingConversion) {
   using T = TestFixture::T;
 
-  using IV = beman::inplace_vector<T, 5>;
-  using FS = beman::freestanding::inplace_vector<T, 5>;
+  using IV = beman::inplace_vector::inplace_vector<T, 5>;
+  using FS = beman::inplace_vector::freestanding::inplace_vector<T, 5>;
 
   static_assert(std::is_constructible_v<FS, FS>);
   static_assert(std::is_constructible_v<IV, IV>);
