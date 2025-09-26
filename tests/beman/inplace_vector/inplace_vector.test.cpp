@@ -2,7 +2,7 @@
 #include <beman/inplace_vector/inplace_vector.hpp>
 #include <cassert>
 
-using namespace beman;
+using namespace beman::inplace_vector;
 
 template <typename T> constexpr void test() {
   using vec = inplace_vector<T, 42>;

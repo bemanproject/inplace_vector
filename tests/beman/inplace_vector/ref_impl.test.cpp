@@ -65,31 +65,32 @@ static constexpr void __assert_failure(char const *__file, int __line,
   }
 #endif
 
-template struct beman::details::inplace_vector::storage::zero_sized<int>;
-template struct beman::details::inplace_vector::storage::trivial<int, 10>;
-template struct beman::details::inplace_vector::storage::non_trivial<
+template struct beman::inplace_vector::details::storage::zero_sized<int>;
+template struct beman::inplace_vector::details::storage::trivial<int, 10>;
+template struct beman::inplace_vector::details::storage::non_trivial<
     std::unique_ptr<int>, 10>;
 
-template struct beman::details::inplace_vector::storage::zero_sized<const int>;
-template struct beman::details::inplace_vector::storage::trivial<const int, 10>;
-template struct beman::details::inplace_vector::storage::non_trivial<
+template struct beman::inplace_vector::details::storage::zero_sized<const int>;
+template struct beman::inplace_vector::details::storage::trivial<const int, 10>;
+template struct beman::inplace_vector::details::storage::non_trivial<
     const std::unique_ptr<int>, 10>;
 
 // empty:
-template struct beman::inplace_vector<int, 0>;
+template struct beman::inplace_vector::inplace_vector<int, 0>;
 
 // trivial non-empty:
-template struct beman::inplace_vector<int, 1>;
-template struct beman::inplace_vector<int, 2>;
-template struct beman::inplace_vector<const int, 3>;
+template struct beman::inplace_vector::inplace_vector<int, 1>;
+template struct beman::inplace_vector::inplace_vector<int, 2>;
+template struct beman::inplace_vector::inplace_vector<const int, 3>;
 
 // non-trivial
-template struct beman::inplace_vector<std::string, 3>;
-template struct beman::inplace_vector<const std::string, 3>;
+template struct beman::inplace_vector::inplace_vector<std::string, 3>;
+template struct beman::inplace_vector::inplace_vector<const std::string, 3>;
 
 // move-only:
-template struct beman::inplace_vector<std::unique_ptr<int>, 3>;
-template struct beman::inplace_vector<const std::unique_ptr<int>, 3>;
+template struct beman::inplace_vector::inplace_vector<std::unique_ptr<int>, 3>;
+template struct beman::inplace_vector::inplace_vector<
+    const std::unique_ptr<int>, 3>;
 
 struct tint {
   std::size_t i;
@@ -110,10 +111,13 @@ static_assert(std::is_trivial<tint>{} && std::is_copy_constructible<tint>{} &&
               "");
 
 // Explicit instantiations
-template struct beman::inplace_vector<tint, 0>; // trivial empty
-template struct beman::inplace_vector<tint, 1>; // trivial non-empty
-template struct beman::inplace_vector<tint, 2>; // trivial non-empty
-template struct beman::inplace_vector<tint, 3>; // trivial non-empty
+template struct beman::inplace_vector::inplace_vector<tint, 0>; // trivial empty
+template struct beman::inplace_vector::inplace_vector<tint,
+                                                      1>; // trivial non-empty
+template struct beman::inplace_vector::inplace_vector<tint,
+                                                      2>; // trivial non-empty
+template struct beman::inplace_vector::inplace_vector<tint,
+                                                      3>; // trivial non-empty
 
 struct moint final {
   std::size_t i = 0;
@@ -144,7 +148,8 @@ static_assert(!std::is_trivial<moint>{} and
 // template struct std::inplace_vector<moint, 2>;
 // template struct std::inplace_vector<moint, 3>;
 
-template <typename T, std::size_t N> using vector = beman::inplace_vector<T, N>;
+template <typename T, std::size_t N>
+using vector = beman::inplace_vector::inplace_vector<T, N>;
 
 class non_copyable {
   int i_;
@@ -353,10 +358,10 @@ template <typename T, std::size_t N> void test_all() {
 
 int main() {
   { // storage
-    using beman::details::inplace_vector::storage::non_trivial;
-    using beman::details::inplace_vector::storage::storage_for;
-    using beman::details::inplace_vector::storage::trivial;
-    using beman::details::inplace_vector::storage::zero_sized;
+    using beman::inplace_vector::details::storage::non_trivial;
+    using beman::inplace_vector::details::storage::storage_for;
+    using beman::inplace_vector::details::storage::trivial;
+    using beman::inplace_vector::details::storage::zero_sized;
 
     static_assert(std::is_same<storage_for<int, 0>, zero_sized<int>>{});
     static_assert(std::is_same<storage_for<int, 10>, trivial<int, 10>>{});

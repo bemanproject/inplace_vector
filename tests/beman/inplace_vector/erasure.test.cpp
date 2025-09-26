@@ -35,7 +35,7 @@ TYPED_TEST(Erasure, ByValue) {
       device.push_back(duplicates);
   }
 
-  beman::erase(device, duplicates);
+  beman::inplace_vector::erase(device, duplicates);
   EXPECT_EQ(uniques, device);
 }
 
@@ -59,8 +59,8 @@ TYPED_TEST(Erasure, ByPred) {
   for (auto i = 0; i < static_cast<int>(device.capacity()); ++i)
     device.push_back(T{i});
 
-  beman::erase_if(device,
-                  [&](auto &v) { return v.value > (device.capacity() / 2); });
+  beman::inplace_vector::erase_if(
+      device, [&](auto &v) { return v.value > (device.capacity() / 2); });
   EXPECT_TRUE(std::all_of(device.begin(), device.end(), [&](auto val) {
     return val.value <= (device.capacity() / 2);
   }));

@@ -49,7 +49,7 @@ Contributions are welcome.
 
 #include <beman/inplace_vector/inplace_vector.hpp>
 
-using namespace beman;
+using namespace beman::inplace_vector;
 
 /**
  * Generates fibonacci sequence using inplace_vector.
@@ -93,21 +93,21 @@ Note this is not part of the standard Library and should not be relied on once
 `constexpr` requirement stabilize.
 
 Example Usage:
-`static_assert(beman::has_constexpr_support<beman::inplace_vector<int, 5>>)`.
+`static_assert(beman::has_constexpr_support<beman::inplace_vector::inplace_vector<int, 5>>)`.
 
 ### Freestanding
 
-`beman::freestanding::inplace_vector` implements a minimal freestanding version of the specification,
+`beman::inplace_vector::freestanding::inplace_vector` implements a minimal freestanding version of the specification,
 which marks all potentially throwing functions as `= deleted`.
 This is useful for platforms without exception support, as it will generate a compile-time error
 instead of a potential runtime error when trying to use a throwing function.
 
 ``` C++
-beman::inplace_vector<int, 1> iv;
+beman::inplace_vector::inplace_vector<int, 1> iv;
 iv.resize(0); // OK
 iv.resize(10); // will throw or abort
 
-beman::freestanding::inplace_vector<int, 1> fs_iv;
+beman::inplace_vector::freestanding::inplace_vector<int, 1> fs_iv;
 fs_iv.resize(0); // will generate a compile-time error
 fs_iv.resize(10); // will generate a compile-time error
 ```

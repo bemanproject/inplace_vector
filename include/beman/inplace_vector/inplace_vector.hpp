@@ -37,14 +37,11 @@
 #endif
 #endif
 
-// beman::from_range_t
-namespace beman {
+// Private utilities
+namespace beman::inplace_vector::details {
+
 struct from_range_t {};
 inline constexpr from_range_t from_range;
-}; // namespace beman
-
-// Private utilities
-namespace beman::details::inplace_vector {
 
 // clang-format off
 // Smallest unsigned integer that can represent values in [0, N].
@@ -80,10 +77,7 @@ concept lessthan_comparable = requires(const T &a, const T &b) {
   { a < b } -> std::convertible_to<bool>;
 };
 
-} // namespace beman::details::inplace_vector
-
 // Types implementing the `inplace_vector`'s storage
-namespace beman::details::inplace_vector {
 namespace storage {
 
 // Storage for zero elements.
@@ -271,22 +265,20 @@ public:
   // element access
 
   constexpr reference operator[](size_type n) {
-    return details::inplace_vector::index(*this, n);
+    return details::index(*this, n);
   }
   constexpr const_reference operator[](size_type n) const {
-    return details::inplace_vector::index(*this, n);
+    return details::index(*this, n);
   }
-  constexpr reference front() {
-    return details::inplace_vector::index(*this, size_type(0));
-  }
+  constexpr reference front() { return details::index(*this, size_type(0)); }
   constexpr const_reference front() const {
-    return details::inplace_vector::index(*this, size_type(0));
+    return details::index(*this, size_type(0));
   }
   constexpr reference back() {
-    return details::inplace_vector::index(*this, size() - size_type(1));
+    return details::index(*this, size() - size_type(1));
   }
   constexpr const_reference back() const {
-    return details::inplace_vector::index(*this, size() - size_type(1));
+    return details::index(*this, size() - size_type(1));
   }
 
   // [containers.sequences.inplace_vector.data], data access
@@ -361,7 +353,7 @@ public:
     return unchecked_emplace_back(std::forward<T &&>(x));
   }
 
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr std::ranges::borrowed_iterator_t<R> try_append_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
   {
@@ -428,7 +420,7 @@ public:
 
   constexpr friend auto operator<=>(const inplace_vector_base &x,
                                     const inplace_vector_base &y)
-    requires(beman::details::inplace_vector::lessthan_comparable<T>)
+    requires(details::lessthan_comparable<T>)
   {
     if constexpr (std::three_way_comparable<T>) {
       return std::lexicographical_compare_three_way(x.begin(), x.end(),
@@ -514,19 +506,17 @@ public:
   }
 };
 
-} // namespace beman::details::inplace_vector
+} // namespace beman::inplace_vector::details
 
-namespace beman {
+namespace beman::inplace_vector {
 
 template <typename IV>
 concept has_constexpr_support =
-    details::inplace_vector::satify_constexpr<typename IV::value_type,
-                                              IV::capacity()>;
+    details::satify_constexpr<typename IV::value_type, IV::capacity()>;
 
 /// Dynamically-resizable fixed-N vector with inplace storage.
 template <class T, size_t N>
-struct inplace_vector
-    : public details::inplace_vector::inplace_vector_base<T, N> {
+struct inplace_vector : public details::inplace_vector_base<T, N> {
   using value_type = T;
   using pointer = T *;
   using const_pointer = const T *;
@@ -563,7 +553,7 @@ struct inplace_vector
     return this->back();
   }
 
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr void append_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
   {
@@ -614,7 +604,7 @@ struct inplace_vector
     return pos;
   }
 
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr iterator insert_range(const_iterator position, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
@@ -672,7 +662,7 @@ struct inplace_vector
     this->clear();
     insert(this->begin(), first, last);
   }
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr void assign_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
@@ -738,13 +728,13 @@ struct inplace_vector
     if (pos >= this->size()) [[unlikely]] {
       BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
     }
-    return details::inplace_vector::index(*this, pos);
+    return details::index(*this, pos);
   }
   constexpr const_reference at(size_type pos) const {
     if (pos >= this->size()) [[unlikely]] {
       BEMAN_IV_THROW_OR_ABORT(std::out_of_range("inplace_vector::at"));
     }
-    return details::inplace_vector::index(*this, pos);
+    return details::index(*this, pos);
   }
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
@@ -780,8 +770,8 @@ struct inplace_vector
     insert(this->begin(), first, last);
   }
 
-  template <details::inplace_vector::container_compatible_range<T> R>
-  constexpr inplace_vector(beman::from_range_t, R &&rg)
+  template <details::container_compatible_range<T> R>
+  constexpr inplace_vector(details::from_range_t, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
   {
@@ -791,8 +781,7 @@ struct inplace_vector
 
 namespace freestanding {
 template <class T, size_t N>
-struct inplace_vector
-    : public details::inplace_vector::inplace_vector_base<T, N> {
+struct inplace_vector : public details::inplace_vector_base<T, N> {
   using value_type = T;
   using pointer = T *;
   using const_pointer = const T *;
@@ -818,7 +807,7 @@ struct inplace_vector
     requires(std::constructible_from<T, T &&>)
   = delete;
 
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr void append_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
   = delete;
@@ -835,7 +824,7 @@ struct inplace_vector
              std::movable<T>)
   = delete;
 
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr iterator insert_range(const_iterator position, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
@@ -871,7 +860,7 @@ struct inplace_vector
     requires(std::constructible_from<T, std::iter_reference_t<InputIterator>> &&
              std::movable<T>)
   = delete;
-  template <details::inplace_vector::container_compatible_range<T> R>
+  template <details::container_compatible_range<T> R>
   constexpr void assign_range(R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
@@ -925,8 +914,8 @@ struct inplace_vector
              std::movable<T>)
   = delete;
 
-  template <details::inplace_vector::container_compatible_range<T> R>
-  constexpr inplace_vector(beman::from_range_t, R &&rg)
+  template <details::container_compatible_range<T> R>
+  constexpr inplace_vector(beman::inplace_vector::details::from_range_t, R &&rg)
     requires(std::constructible_from<T, std::ranges::range_reference_t<R>> &&
              std::movable<T>)
   = delete;
@@ -935,8 +924,8 @@ struct inplace_vector
 } // namespace freestanding
 
 template <typename T, std::size_t N, typename U = T>
-constexpr std::size_t
-erase(details::inplace_vector::inplace_vector_base<T, N> &c, const U &value) {
+constexpr std::size_t erase(details::inplace_vector_base<T, N> &c,
+                            const U &value) {
   auto it = std::remove(c.begin(), c.end(), value);
   auto r = std::distance(it, c.end());
   c.erase(it, c.end());
@@ -944,16 +933,15 @@ erase(details::inplace_vector::inplace_vector_base<T, N> &c, const U &value) {
 }
 
 template <typename T, std::size_t N, typename Predicate>
-constexpr std::size_t
-erase_if(details::inplace_vector::inplace_vector_base<T, N> &c,
-         Predicate pred) {
+constexpr std::size_t erase_if(details::inplace_vector_base<T, N> &c,
+                               Predicate pred) {
   auto it = std::remove_if(c.begin(), c.end(), pred);
   auto r = std::distance(it, c.end());
   c.erase(it, c.end());
   return r;
 }
 
-} // namespace beman
+} // namespace beman::inplace_vector
 
 #undef IV_EXPECT
 
