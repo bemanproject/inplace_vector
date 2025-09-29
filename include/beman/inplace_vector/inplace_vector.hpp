@@ -138,13 +138,19 @@ public:
   constexpr ~trivial() = default;
 };
 
+// This is the base storage for non-trivial types.
+// In this storage solution, elements are stored in type-erased byte storage,
+// thus, reinterpret_cast must be used,
+// which makes inplace_vector of non-trivial types non-constexpr-friendly.
+//
+// Note: This is not used if trivial union is supported.
 template <class T, size_t N> struct raw_byte_based_storage {
   alignas(T) std::byte _d[sizeof(T) * N];
-  constexpr T *storage_data(size_t i) noexcept {
+  T *storage_data(size_t i) noexcept {
     IV_EXPECT(i < N);
     return reinterpret_cast<T *>(_d) + i;
   }
-  constexpr const T *storage_data(size_t i) const noexcept {
+  const T *storage_data(size_t i) const noexcept {
     IV_EXPECT(i < N);
     return reinterpret_cast<const T *>(_d) + i;
   }
