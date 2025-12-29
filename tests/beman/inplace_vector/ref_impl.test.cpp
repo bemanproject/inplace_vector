@@ -106,7 +106,8 @@ struct tint {
   explicit operator std::size_t() { return i; }
 };
 
-static_assert(std::is_trivial<tint>{} && std::is_copy_constructible<tint>{} &&
+static_assert(beman::inplace_vector::details::satisfy_triviality<tint> &&
+                  std::is_copy_constructible<tint>{} &&
                   std::is_move_constructible<tint>{},
               "");
 
@@ -135,8 +136,8 @@ struct moint final {
   bool operator==(moint b) { return i == b.i; }
 };
 
-static_assert(!std::is_trivial<moint>{} and
-                  !std::is_copy_constructible<moint>{} and
+static_assert(!beman::inplace_vector::details::satisfy_triviality<moint> &&
+                  !std::is_copy_constructible<moint>{} &&
                   std::is_move_constructible<moint>{},
               "");
 

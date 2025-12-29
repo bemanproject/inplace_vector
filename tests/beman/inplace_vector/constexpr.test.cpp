@@ -29,7 +29,7 @@ struct Some {
     return val <=> other.val;
   }
 };
-static_assert(std::is_trivial_v<Some>);
+static_assert(beman::inplace_vector::details::satisfy_triviality<Some>);
 
 using beman::inplace_vector::has_constexpr_support;
 using beman::inplace_vector::inplace_vector;
