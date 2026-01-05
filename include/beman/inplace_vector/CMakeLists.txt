@@ -2,5 +2,8 @@
 
 target_sources(
     beman.inplace_vector
-    PUBLIC FILE_SET HEADERS FILES inplace_vector.hpp config.hpp.in
+    PUBLIC FILE_SET HEADERS
+    FILES
+        inplace_vector.hpp
+        "${CMAKE_CURRENT_BINARY_DIR}/config.hpp"
 )

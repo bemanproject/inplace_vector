@@ -30,6 +30,12 @@ option(
     OFF
 )
 
+configure_file(
+    "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"
+    @ONLY
+)
+
 # for find of beman-install-library
 include(infra/cmake/beman-install-library-config.cmake)
 
@@ -38,7 +44,10 @@ add_library(beman::inplace_vector ALIAS beman.inplace_vector)
 
 target_sources(
     beman.inplace_vector
-    PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 
 set_target_properties(
