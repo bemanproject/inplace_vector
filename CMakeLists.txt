@@ -44,10 +44,11 @@ add_library(beman::inplace_vector ALIAS beman.inplace_vector)
 
 target_sources(
     beman.inplace_vector
-    PUBLIC FILE_SET HEADERS
-    BASE_DIRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        "${CMAKE_CURRENT_BINARY_DIR}/include"
+    PUBLIC
+        FILE_SET HEADERS
+            BASE_DIRS
+                "${CMAKE_CURRENT_SOURCE_DIR}/include"
+                "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 
 set_target_properties(
