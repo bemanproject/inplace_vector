@@ -1,9 +1,6 @@
-# cmake-format: off
-# /CMakeLists.txt -*-makefile-*-
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# cmake-format: on
 
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.28...4.2)
 
 project(
     beman.inplace_vector
@@ -13,17 +10,17 @@ project(
     LANGUAGES CXX
 )
 
-# [CMAKE.SKIP_EXAMPLES]
-option(
-    BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES
-    "Enable building examples. Default: ${PROJECT_IS_TOP_LEVEL}. Values: { ON, OFF}."
-    ${PROJECT_IS_TOP_LEVEL}
-)
-
 # [CMAKE.SKIP_TESTS]
 option(
     BEMAN_INPLACE_VECTOR_BUILD_TESTS
     "Enable building tests and test infrastructure. Default: ${PROJECT_IS_TOP_LEVEL}. Values: { ON, OFF }."
+    ${PROJECT_IS_TOP_LEVEL}
+)
+
+# [CMAKE.SKIP_EXAMPLES]
+option(
+    BEMAN_INPLACE_VECTOR_BUILD_EXAMPLES
+    "Enable building examples. Default: ${PROJECT_IS_TOP_LEVEL}. Values: { ON, OFF }."
     ${PROJECT_IS_TOP_LEVEL}
 )
 
@@ -33,83 +30,25 @@ option(
     OFF
 )
 
-configure_file(
-    "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"
-    @ONLY
-)
-
-include(FetchContent)
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
+# for find of beman-install-library
+include(infra/cmake/beman-install-library-config.cmake)
 
 add_library(beman.inplace_vector INTERFACE)
-# [CMAKE.LIBRARY_ALIAS]
 add_library(beman::inplace_vector ALIAS beman.inplace_vector)
 
 target_sources(
     beman.inplace_vector
-    INTERFACE
-        FILE_SET HEADERS
-        BASE_DIRS
-            ${CMAKE_CURRENT_SOURCE_DIR}/include
-            ${CMAKE_CURRENT_BINARY_DIR}/include
-        FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/beman/inplace_vector/inplace_vector.hpp
-            ${CMAKE_CURRENT_BINARY_DIR}/include/beman/inplace_vector/config.hpp
+    PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-# Install the INTERFACE library target and create an export set
-install(
-    TARGETS beman.inplace_vector
-    EXPORT beman.inplace_vector-targets
-    FILE_SET HEADERS
-)
+set_target_properties(beman.inplace_vector PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON)
 
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/beman.inplace_vector-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/beman.inplace_vector
-)
+add_subdirectory(include/beman/inplace_vector)
 
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config-version.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
-
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/beman.inplace_vector-config-version.cmake"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/beman.inplace_vector
-)
-
-install(
-    EXPORT beman.inplace_vector-targets
-    FILE beman.inplace_vector-targets.cmake
-    NAMESPACE beman::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/beman.inplace_vector
-)
+beman_install_library(beman.inplace_vector)
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
-    include(CTest)
     enable_testing()
-
-    # Fetch GoogleTest
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG
-            f8d7d77c06936315286eb55f8de22cd23c188571 # release-1.14.0
-        EXCLUDE_FROM_ALL
-    )
-
-    block()
-        set(INSTALL_GTEST OFF) # Disable GoogleTest installation
-        FetchContent_MakeAvailable(googletest)
-    endblock()
-
     add_subdirectory(tests/beman/inplace_vector)
 endif()
 

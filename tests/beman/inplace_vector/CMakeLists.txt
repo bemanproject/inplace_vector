@@ -1,7 +1,6 @@
-# cmake-format: off
-# src/beman/inplace_vector/tests/CMakeLists.txt -*-makefile-*-
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# cmake-format: on
+
+find_package(GTest REQUIRED)
 
 # Tests
 add_executable(beman.inplace_vector.test inplace_vector.test.cpp)
