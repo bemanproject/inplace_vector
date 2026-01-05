@@ -41,7 +41,10 @@ target_sources(
     PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-set_target_properties(beman.inplace_vector PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON)
+set_target_properties(
+    beman.inplace_vector
+    PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON
+)
 
 add_subdirectory(include/beman/inplace_vector)
 
