@@ -69,8 +69,13 @@ concept container_compatible_range =
     std::ranges::input_range<Rng> &&
     std::convertible_to<std::ranges::range_reference_t<Rng>, T>;
 
+template <typename T>
+concept satisfy_triviality = std::is_trivially_copyable_v<T> &&
+                             std::is_trivially_default_constructible_v<T> &&
+                             std::is_trivially_destructible_v<T>;
+
 template <typename T, std::size_t N>
-concept satify_constexpr = N == 0 || std::is_trivial_v<T>;
+concept satisfy_constexpr = N == 0 || satisfy_triviality<T>;
 
 template <typename T>
 concept lessthan_comparable = requires(const T &a, const T &b) {
@@ -103,7 +108,7 @@ public:
 
 // Storage for trivial types.
 template <class T, size_t N> struct trivial {
-  static_assert(std::is_trivial_v<T>,
+  static_assert(satisfy_triviality<T>,
                 "storage::trivial<T, C> requires Trivial<T>");
   static_assert(N != size_t{0}, "N  == 0, use zero_sized");
 
@@ -155,7 +160,7 @@ template <class T, size_t N> struct raw_byte_based_storage {
 
 /// Storage for non-trivial elements.
 template <class T, size_t N> struct non_trivial {
-  static_assert(!std::is_trivial_v<T>,
+  static_assert(!satisfy_triviality<T>,
                 "use storage::trivial for Trivial<T> elements");
   static_assert(N != size_t{0}, "use storage::zero for N==0");
 
@@ -198,7 +203,7 @@ public:
 // Selects the vector storage.
 template <class T, size_t N>
 using storage_for = std::conditional_t<
-    !satify_constexpr<T, N>, non_trivial<T, N>,
+    !satisfy_constexpr<T, N>, non_trivial<T, N>,
     std::conditional_t<N == 0, zero_sized<T>, trivial<T, N>>>;
 
 } // namespace storage
@@ -309,7 +314,7 @@ protected: // Utilities
   unsafe_destroy(T *first,
                  T *last) noexcept(std::is_nothrow_destructible_v<T>) {
     assert_iterator_pair_in_range(first, last);
-    if constexpr (N > 0 && !std::is_trivial_v<T>) {
+    if constexpr (N > 0 && !std::is_trivially_destructible_v<T>) {
       for (; first != last; ++first)
         first->~T();
     }
@@ -515,7 +520,7 @@ namespace beman::inplace_vector {
 
 template <typename IV>
 concept has_constexpr_support =
-    details::satify_constexpr<typename IV::value_type, IV::capacity()>;
+    details::satisfy_constexpr<typename IV::value_type, IV::capacity()>;
 
 /// Dynamically-resizable fixed-N vector with inplace storage.
 template <class T, size_t N>

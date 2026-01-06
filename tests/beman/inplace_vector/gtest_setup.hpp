@@ -56,7 +56,7 @@
 // clang-format off
 /*
         | (Trivially default | Trivially    | Trivially copy | Trivially move | Trivially copy | Trivially move | Trivial* | Type
-        | constructible)     | destructible | constructible  | constructible	 | assignable	   | assignable 	  |          |
+        | constructible)     | destructible | constructible  | constructible	 | assignable	   | assignable 	  |  ***     |
 --------+--------------------+--------------+----------------+----------------+----------------+----------------+----------+----------------------------------
 Copy 	  | (YES)              | -            | YES            | -              | -              | -              | YES      | Trivial
 c'tor   | (NO)               | -            | YES            | -              | -              | -              | NO       | NonTriviallyDefaultConstructible
@@ -88,6 +88,7 @@ meant   | -                  | YES          | -              | NO             | 
 
 *) The values in this column do not vary independently, they are implied by the other properties
 **) Implied by "not trivially destructible"
+***) is_trivial<T> was deprecated in c++26, we use beman::inplace_vector::details::satisfy_triviality<T>
 */
 
 // A trivial type
@@ -95,7 +96,7 @@ struct Trivial {
   int value;
   friend constexpr bool operator==(Trivial x, Trivial y) = default;
 };
-static_assert(std::is_trivial_v                        <Trivial>);
+static_assert(beman::inplace_vector::details::satisfy_triviality<Trivial>);
 static_assert(std::is_trivially_default_constructible_v<Trivial>);
 static_assert(std::is_trivially_copy_constructible_v   <Trivial>);
 static_assert(std::is_trivially_move_constructible_v   <Trivial>);
@@ -109,7 +110,7 @@ struct NonTriviallyDefaultConstructible {
   int value = 0;
   friend constexpr bool operator==(NonTriviallyDefaultConstructible x, NonTriviallyDefaultConstructible y) = default;
 };
-static_assert(not std::is_trivial_v                        <NonTriviallyDefaultConstructible>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<NonTriviallyDefaultConstructible>);
 static_assert(not std::is_trivially_default_constructible_v<NonTriviallyDefaultConstructible>);
 static_assert(    std::is_default_constructible_v          <NonTriviallyDefaultConstructible>);
 static_assert(    std::is_trivially_copy_constructible_v   <NonTriviallyDefaultConstructible>);
@@ -129,7 +130,7 @@ struct NonTriviallyCopyConstructible {
   constexpr NonTriviallyCopyConstructible &operator=(NonTriviallyCopyConstructible const &) noexcept = default;
   friend constexpr bool operator==(NonTriviallyCopyConstructible x, NonTriviallyCopyConstructible y) = default;
 };
-static_assert(not std::is_trivial_v                         <NonTriviallyCopyConstructible>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<NonTriviallyCopyConstructible>);
 static_assert(    std::is_trivially_default_constructible_v <NonTriviallyCopyConstructible>);
 static_assert(not std::is_trivially_copy_constructible_v    <NonTriviallyCopyConstructible>);
 static_assert(    std::is_copy_constructible_v              <NonTriviallyCopyConstructible>);
@@ -149,7 +150,7 @@ struct NonTriviallyMoveConstructible {
   constexpr NonTriviallyMoveConstructible &operator=(NonTriviallyMoveConstructible const &) noexcept = default;
   friend constexpr bool operator==(NonTriviallyMoveConstructible x, NonTriviallyMoveConstructible y) = default;
 };
-static_assert(not std::is_trivial_v                         <NonTriviallyMoveConstructible>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<NonTriviallyMoveConstructible>);
 static_assert(    std::is_trivially_default_constructible_v <NonTriviallyMoveConstructible>);
 static_assert(    std::is_trivially_copy_constructible_v    <NonTriviallyMoveConstructible>);
 static_assert(not std::is_trivially_move_constructible_v    <NonTriviallyMoveConstructible>);
@@ -174,7 +175,7 @@ struct NonTriviallyCopyAssignable {
   constexpr NonTriviallyCopyAssignable &operator=(NonTriviallyCopyAssignable &&) noexcept = default;
   friend constexpr bool operator==(NonTriviallyCopyAssignable x, NonTriviallyCopyAssignable y) = default;
 };
-static_assert(not std::is_trivial_v                        <NonTriviallyCopyAssignable>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<NonTriviallyCopyAssignable>);
 static_assert(    std::is_trivially_default_constructible_v<NonTriviallyCopyAssignable>);
 static_assert(    std::is_trivially_copy_constructible_v   <NonTriviallyCopyAssignable>);
 static_assert(    std::is_trivially_move_constructible_v   <NonTriviallyCopyAssignable>);
@@ -199,7 +200,7 @@ struct NonTriviallyMoveAssignable {
 
   friend constexpr bool operator==(NonTriviallyMoveAssignable x, NonTriviallyMoveAssignable y) = default;
 };
-static_assert(not std::is_trivial_v                        <NonTriviallyMoveAssignable>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<NonTriviallyMoveAssignable>);
 static_assert(    std::is_trivially_default_constructible_v<NonTriviallyMoveAssignable>);
 static_assert(    std::is_trivially_copy_constructible_v   <NonTriviallyMoveAssignable>);
 static_assert(    std::is_trivially_move_constructible_v   <NonTriviallyMoveAssignable>);
@@ -215,7 +216,7 @@ struct TriviallyAssignable {
   constexpr ~TriviallyAssignable() {}
   friend constexpr bool operator==(TriviallyAssignable x, TriviallyAssignable y) = default;
 };
-static_assert(not std::is_trivial_v                        <TriviallyAssignable>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<TriviallyAssignable>);
 static_assert(not std::is_trivially_default_constructible_v<TriviallyAssignable>);
 static_assert(    std::is_default_constructible_v          <TriviallyAssignable>);
 static_assert(not std::is_trivially_copy_constructible_v   <TriviallyAssignable>);
@@ -242,7 +243,7 @@ struct TriviallyDestructible {
 
   friend constexpr bool operator==(TriviallyDestructible x, TriviallyDestructible y) = default;
 };
-static_assert(not std::is_trivial_v                        <TriviallyDestructible>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<TriviallyDestructible>);
 static_assert(not std::is_trivially_default_constructible_v<TriviallyDestructible>);
 static_assert(    std::is_default_constructible_v          <TriviallyDestructible>);
 static_assert(not std::is_trivially_copy_constructible_v   <TriviallyDestructible>);
@@ -294,7 +295,7 @@ struct counts_objects<T, std::void_t<decltype(T::num_objects)>>
 template<typename T>
 inline constexpr bool counts_objects_v = counts_objects<T>::value;
 
-static_assert(not std::is_trivial_v                        <NonTrivial>);
+static_assert(not beman::inplace_vector::details::satisfy_triviality<NonTrivial>);
 static_assert(not std::is_trivially_default_constructible_v<NonTrivial>);
 static_assert(    std::is_default_constructible_v          <NonTrivial>);
 static_assert(not std::is_trivially_copy_constructible_v   <NonTrivial>);
