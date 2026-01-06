@@ -322,7 +322,7 @@ TYPED_TEST(Modifiers, InsertItrRange) {
 }
 
 TEST(Modifiers, InsertItrString) {
-  // test if insertion of nontrivial type iterator into inplace_vector dose not
+  // test if insertion of nontrivial type iterator into inplace_vector does not
   // modify the input values
   using T = std::string;
   using IV = beman::inplace_vector::inplace_vector<T, 10>;
