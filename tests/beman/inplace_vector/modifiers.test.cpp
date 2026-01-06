@@ -321,6 +321,30 @@ TYPED_TEST(Modifiers, InsertItrRange) {
       std::bad_alloc);
 }
 
+TEST(Modifiers, InsertItrString) {
+  // test if insertion of nontrivial type iterator into inplace_vector dose not
+  // modify the input values
+  using T = std::string;
+  using IV = beman::inplace_vector::inplace_vector<T, 10>;
+  using V = std::vector<T>;
+
+  const V vec_const{"1", "2", "3"};
+  V vec = vec_const;
+  IV device;
+
+  auto res = device.insert(device.begin(), vec.begin(), vec.end());
+  EXPECT_EQ(res, device.begin());
+  EXPECT_EQ(device.size(), 3);
+  EXPECT_EQ(device, IV({"1", "2", "3"}));
+  EXPECT_EQ(vec, vec_const);
+
+  auto res2 = device.insert(device.end(), vec_const.begin(), vec_const.end());
+  EXPECT_EQ(res2, device.begin() + 3);
+  EXPECT_EQ(device.size(), 6);
+  EXPECT_EQ(device, IV({"1", "2", "3", "1", "2", "3"}));
+  EXPECT_EQ(vec, vec_const);
+}
+
 TYPED_TEST(Modifiers, InsertAppendRange) {
   // template<container-compatible-range<T> R>
   //   constexpr void append_range(R&& rg);
