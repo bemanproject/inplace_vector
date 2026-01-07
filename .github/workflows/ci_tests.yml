@@ -88,66 +88,31 @@ jobs:
         run: ctest --test-dir build --build-config Debug
 
   compiler-test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        compilers:
-          - class: gcc
-            version: 14
-          - class: gcc
-            version: 13
-          - class: gcc
-            version: 12
-          - class: clang
-            version: 20
-          - class: clang
-            version: 19
-          - class: clang
-            version: 18
-          - class: clang
-            version: 17
-    container:
-      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.compilers.class }}:${{ matrix.compilers.version }}
-    name: "Compiler: ${{ matrix.compilers.class }} ${{ matrix.compilers.version }}"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure CMake
-        run: cmake -B build -S . -DCMAKE_CXX_STANDARD=20
-        env:
-          CMAKE_GENERATOR: "Ninja Multi-Config"
-      - name: Build Debug
-        run: |
-          cmake --build build --config Debug --verbose
-          # cmake --build build --config Debug --target all_verify_interface_header_sets
-          cmake --install build --config Debug --prefix /tmp/beman.exemplar
-          find /tmp/beman.exemplar -type f
-      - name: Test Debug
-        run: ctest --test-dir build --build-config Debug
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.2.1
+    with:
+      matrix_config: >
+        {
+          "gcc": [
+            { "versions": ["14", "13", "12"],
+              "tests": [
+                { "cxxversions": ["c++20"],
+                  "tests": [{ "stdlibs": ["libstdc++"], "tests": ["Debug.Default"]}]
+                }
+              ]
+            }
+          ],
+          "clang": [
+            { "versions": ["20", "19", "18", "17"],
+              "tests": [
+                { "cxxversions": ["c++20"],
+                  "tests": [{ "stdlibs": ["libstdc++"], "tests": ["Debug.Default"]}]
+                }
+              ]
+            }
+          ]
+        }
 
   create-issue-when-fault:
-    runs-on: ubuntu-latest
-    needs: [test]
+    needs: [preset-test, test, compiler-test]
     if: failure() && github.event_name == 'schedule'
-    steps:
-      # See https://github.com/cli/cli/issues/5075
-      - uses: actions/checkout@v4
-      - name: Create issue
-        run: |
-          issue_num=$(gh issue list -s open -S "[SCHEDULED-BUILD] Build & Test failure" -L 1 --json number | jq 'if length == 0 then -1 else .[0].number end')
-
-          body="**Build-and-Test Failure Report**
-          - **Time of Failure**: $(date -u '+%B %d, %Y, %H:%M %Z')
-          - **Commit**: [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
-          - **Action Run**: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-
-          The scheduled build-and-test triggered by cron has failed.
-          Please investigate the logs and recent changes associated with this commit or rerun the workflow if you believe this is an error."
-
-          if [[ $issue_num -eq -1 ]]; then
-            gh issue create --repo ${{ github.repository }} --title "[SCHEDULED-BUILD] Build & Test failure" --body "$body"
-          else
-            gh issue comment --repo ${{ github.repository }} $issue_num --body "$body"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.2.1
