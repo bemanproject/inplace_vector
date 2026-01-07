@@ -12,27 +12,13 @@ on:
 
 jobs:
   preset-test:
-    strategy:
-      fail-fast: false
-      matrix:
-        presets:
-          - preset: gcc-debug
-            tag: "gcc:14"
-          - preset: gcc-release
-            tag: "gcc:14"
-    name: "Preset: ${{ matrix.presets.preset }}"
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.presets.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup MSVC
-        if: startsWith(matrix.presets.platform, 'windows')
-        uses: TheMrMilchmann/setup-msvc-dev@v3
-        with:
-          arch: x64
-      - name: Run preset
-        run: cmake --workflow --preset ${{ matrix.presets.preset }}
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-preset-test.yml@1.2.1
+    with:
+      matrix_config: >
+        [
+          {"preset": "gcc-debug", "image": "ghcr.io/bemanproject/infra-containers-gcc:latest"},
+          {"preset": "gcc-release", "image": "ghcr.io/bemanproject/infra-containers-gcc:latest"},
+        ]
 
   test:
     strategy:
