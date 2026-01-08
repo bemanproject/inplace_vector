@@ -32,9 +32,8 @@ jobs:
                   "tests": [
                     { "stdlibs": ["libstdc++"],
                       "tests": [
-                        "Debug.Default", "Release.Default",
+                        "Release.Default",
                         "Release.TSan", "Release.ASan",
-                        "Debug.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON",
                         "Release.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON"
                       ]
                     }
@@ -44,7 +43,6 @@ jobs:
                   "tests": [
                     { "stdlibs": ["libstdc++"],
                       "tests": [
-                        "Debug.-DBUILD_SHARED_LIBS=ON",
                         "Release.-DBUILD_SHARED_LIBS=ON"
                       ]
                     }
@@ -60,9 +58,8 @@ jobs:
                   "tests": [
                     { "stdlibs": ["libstdc++"],
                       "tests": [
-                        "Debug.Default", "Release.Default",
+                        "Release.Default",
                         "Release.TSan", "Release.ASan",
-                        "Debug.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON",
                         "Release.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON"
                       ]
                     }
