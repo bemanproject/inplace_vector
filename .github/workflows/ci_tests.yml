@@ -21,71 +21,57 @@ jobs:
         ]
 
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler:
-          - cpp: g++
-            c: gcc
-            tag: "gcc:14"
-          - cpp: clang++
-            c: clang
-            tag: "clang:20"
-        cpp_version: [20, 23]
-        cmake_args:
-          - description: "Default"
-            args: ""
-          - description: "TSan"
-            args: "-DCMAKE_CXX_FLAGS=-fsanitize=thread"
-          - description: "ASan"
-            args: "-DCMAKE_CXX_FLAGS='-fsanitize=address -fsanitize=undefined'"
-          - description: "NoExcep"
-            args: "-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=on"
-        include:
-          - platform: ubuntu-24.04
-            compiler:
-              cpp: g++
-              c: gcc
-              tag: "gcc:14"
-            cpp_version: 20
-            cmake_args:
-              description: "Dynamic"
-              cmake_args: "-DBUILD_SHARED_LIBS=on"
-
-    name: "Build & Test: ${{ matrix.compiler.c }} ${{ matrix.cpp_version }} ${{ matrix.cmake_args.description }}"
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/bemanproject/testingcontainers-${{ matrix.compiler.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Print installed software
-        run: |
-          cmake --version
-          ninja --version
-          ctest --version
-      - name: Configure CMake
-        run: |
-          cmake -B build -S . -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }} ${{ matrix.cmake_args.args }}
-        env:
-          CC: ${{ matrix.compiler.c }}
-          CXX: ${{ matrix.compiler.cpp }}
-          CMAKE_GENERATOR: "Ninja Multi-Config"
-      - name: Build Release
-        run: |
-          cmake --build build --config Release --verbose
-          # TODO: cmake --build build --config Release --target all_verify_interface_header_sets
-          cmake --install build --config Release --prefix /tmp/beman.inplace_vector
-          find /tmp/beman.inplace_vector -type f
-      - name: Test Release
-        run: ctest --test-dir build --build-config Release
-      - name: Build Debug
-        run: |
-          cmake --build build --config Debug --verbose
-          # TODO: cmake --build build --config Debug --target all_verify_interface_header_sets
-          cmake --install build --config Debug --prefix /tmp/beman.inplace_vector
-          find /tmp/beman.inplace_vector -type f
-      - name: Test Debug
-        run: ctest --test-dir build --build-config Debug
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.2.1
+    with:
+      matrix_config: >
+        {
+          "gcc": [
+            { "versions": ["14"],
+              "tests": [
+                { "cxxversions": ["c++23", "c++20"],
+                  "tests": [
+                    { "stdlibs": ["libstdc++"],
+                      "tests": [
+                        "Debug.Default", "Release.Default",
+                        "Release.TSan", "Release.ASan",
+                        "Debug.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON",
+                        "Release.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON"
+                      ]
+                    }
+                  ]
+                },
+                { "cxxversions": ["c++20"],
+                  "tests": [
+                    { "stdlibs": ["libstdc++"],
+                      "tests": [
+                        "Debug.-DBUILD_SHARED_LIBS=ON",
+                        "Release.-DBUILD_SHARED_LIBS=ON"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "clang": [
+            { "versions": ["20"],
+              "tests": [
+                { "cxxversions": ["c++23", "c++20"],
+                  "tests": [
+                    { "stdlibs": ["libstdc++"],
+                      "tests": [
+                        "Debug.Default", "Release.Default",
+                        "Release.TSan", "Release.ASan",
+                        "Debug.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON",
+                        "Release.-DBEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
 
   compiler-test:
     uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.2.1
