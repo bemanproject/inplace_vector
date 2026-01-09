@@ -97,7 +97,13 @@ jobs:
           ]
         }
 
+  install-test:
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-install-test.yml@1.2.1
+    with:
+      image: ghcr.io/bemanproject/infra-containers-gcc:latest
+      cxx_standard: 26
+
   create-issue-when-fault:
-    needs: [preset-test, test, compiler-test]
+    needs: [preset-test, test, compiler-test, install-test]
     if: failure() && github.event_name == 'schedule'
     uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.2.1
