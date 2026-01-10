@@ -606,7 +606,7 @@ struct inplace_vector : public details::inplace_vector_base<T, N> {
     }
     auto b = this->end();
     for (; first != last; ++first)
-      emplace_back(std::move(*first));
+      emplace_back(*first);
     auto pos = this->begin() + (position - this->begin());
     std::rotate(pos, b, this->end());
     return pos;
