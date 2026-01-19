@@ -12,6 +12,6 @@ foreach(example ${ALL_EXAMPLES})
     )
     target_link_libraries(
         beman.inplace_vector.examples.${example}
-        beman.inplace_vector
+        PRIVATE beman::inplace_vector
     )
 endforeach()

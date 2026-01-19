@@ -20,7 +20,7 @@ set(CMAKE_CXX_COMPILER clang++)
 
 if(BEMAN_BUILDSYS_SANITIZER STREQUAL "MaxSan")
     set(SANITIZER_FLAGS
-        "-fsanitize=address -fsanitize=leak -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=undefined"
+        "-fsanitize=address -fsanitize=leak -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=undefined -fsanitize-undefined-trap-on-error"
     )
 elseif(BEMAN_BUILDSYS_SANITIZER STREQUAL "TSan")
     set(SANITIZER_FLAGS "-fsanitize=thread")
@@ -36,3 +36,6 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${RELEASE_FLAGS}")
 
 set(CMAKE_C_FLAGS_RELEASE_INIT "${RELEASE_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "${RELEASE_FLAGS}")
+
+# Add this dir to the module path so that `find_package(beman-install-library)` works
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}")
