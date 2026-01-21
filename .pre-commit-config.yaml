@@ -38,5 +38,6 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        exclude: ^tests/beman/inplace_vector/ref_impl\.test\.cpp$
 
 exclude: 'cookiecutter/|infra/'

@@ -4,9 +4,9 @@ SPDX-License-Identifier: <SPDX License Expression>
 
 # beman.inplace\_vector: Dynamically-resizable vector with fixed capacity
 
-![Library Status](https://github.com/bemanproject/beman/blob/c6997986557ec6dda98acbdf502082cdf7335526/images/badges/beman_badge-beman_library_under_development.svg)
+![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)
 ![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)
-![Code Format](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit.yml/badge.svg)
+![Code Format](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit-check.yml/badge.svg)
 
 **Implements**: [`inplace_vector` (P0843R14)](https://wg21.link/P0843R14)
 
