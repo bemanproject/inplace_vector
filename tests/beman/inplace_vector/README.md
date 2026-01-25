@@ -4,7 +4,7 @@ This folder contains tests for `inplace_vector` implementation.
 
 The aim for the test cases are to keep the implementation in-check with its standing in the latest C++ draft.
 
-You can checkout `inplace_vector`'s current state in C++ draft [here](https://eel.is/c++draft/inplace.vector).
+You can checkout `inplace_vector`'s [current state](https://eel.is/c++draft/inplace.vector) in the C++ draft.
 
 ## C++ Draft paragraph to test file
 
