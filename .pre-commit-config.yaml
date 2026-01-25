@@ -20,7 +20,7 @@ repos:
 
     # CMake linting and formatting
   - repo: https://github.com/BlankSpruce/gersemi
-    rev: 0.25.0
+    rev: 0.25.1
     hooks:
     - id: gersemi
       name: CMake linting
@@ -30,7 +30,7 @@ repos:
     # Config file: .markdownlint.yaml
     # Commented out to disable this by default. Uncomment to enable markdown linting.
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.42.0
+    rev: v0.47.0
     hooks:
     - id: markdownlint
 
