@@ -13,14 +13,14 @@ repos:
     # This brings in a portable version of clang-format.
     # See also: https://github.com/ssciwr/clang-format-wheel
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v21.1.8
+    rev: v22.1.1
     hooks:
     - id: clang-format
       types_or: [c++, c]
 
     # CMake linting and formatting
   - repo: https://github.com/BlankSpruce/gersemi
-    rev: 0.26.0
+    rev: 0.26.1
     hooks:
     - id: gersemi
       name: CMake linting
@@ -30,12 +30,12 @@ repos:
     # Config file: .markdownlint.yaml
     # Commented out to disable this by default. Uncomment to enable markdown linting.
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
     - id: markdownlint
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         exclude: ^tests/beman/inplace_vector/ref_impl\.test\.cpp$
