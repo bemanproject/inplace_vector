@@ -224,6 +224,13 @@ Total Test time (real) =   0.01 sec
 
 ## Development
 
+### Supported Platforms
+
+| Compiler | Version | C++ Standards | Standard Library |
+|----------|---------|---------------|------------------|
+| GCC      | 14      | C++23, C++20  | libstdc++        |
+| Clang    | 20      | C++23, C++20  | libstdc++        |
+
 ### Linting
 
 This project use [pre-commit](https://pre-commit.com/) framework for linting.
