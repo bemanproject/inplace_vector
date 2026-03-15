@@ -24,7 +24,7 @@ jobs:
           {"preset": "appleclang-release", "runner": "macos-latest"}
         ]
 
-  test:
+  build-and-test:
     uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.2.1
     with:
       matrix_config: >
@@ -106,6 +106,6 @@ jobs:
       cxx_standard: 26
 
   create-issue-when-fault:
-    needs: [preset-test, test, compiler-test, install-test]
+    needs: [preset-test, build-and-test, compiler-test, install-test]
     if: failure() && github.event_name == 'schedule'
     uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.2.1
