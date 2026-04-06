@@ -5,11 +5,11 @@ name: Weekly pre-commit autoupdate
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 16 * * 0"
+    - cron: "13 14 * * 4"
 
 jobs:
   auto-update-pre-commit:
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-update-pre-commit.yml@1.2.1
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-update-pre-commit.yml@1.5.0
     secrets:
       APP_ID: ${{ secrets.AUTO_PR_BOT_APP_ID }}
       PRIVATE_KEY: ${{ secrets.AUTO_PR_BOT_PRIVATE_KEY }}

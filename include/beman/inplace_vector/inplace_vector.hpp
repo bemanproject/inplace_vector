@@ -99,8 +99,8 @@ protected:
 
 public:
   constexpr zero_sized() = default;
-  constexpr zero_sized(zero_sized const &) = default;
-  constexpr zero_sized &operator=(zero_sized const &) = default;
+  constexpr zero_sized(const zero_sized &) = default;
+  constexpr zero_sized &operator=(const zero_sized &) = default;
   constexpr zero_sized(zero_sized &&) = default;
   constexpr zero_sized &operator=(zero_sized &&) = default;
   constexpr ~zero_sized() = default;
@@ -133,8 +133,8 @@ protected:
 
 public:
   constexpr trivial() noexcept = default;
-  constexpr trivial(trivial const &) noexcept = default;
-  constexpr trivial &operator=(trivial const &) noexcept = default;
+  constexpr trivial(const trivial &) noexcept = default;
+  constexpr trivial &operator=(const trivial &) noexcept = default;
   constexpr trivial(trivial &&) noexcept = default;
   constexpr trivial &operator=(trivial &&) noexcept = default;
   constexpr ~trivial() = default;
@@ -187,8 +187,8 @@ protected:
 
 public:
   constexpr non_trivial() noexcept = default;
-  constexpr non_trivial(non_trivial const &) noexcept = default;
-  constexpr non_trivial &operator=(non_trivial const &) noexcept = default;
+  constexpr non_trivial(const non_trivial &) noexcept = default;
+  constexpr non_trivial &operator=(const non_trivial &) noexcept = default;
   constexpr non_trivial(non_trivial &&) noexcept = default;
   constexpr non_trivial &operator=(non_trivial &&) noexcept = default;
 

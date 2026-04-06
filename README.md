@@ -1,17 +1,19 @@
-<!--
-SPDX-License-Identifier: <SPDX License Expression>
--->
-
 # beman.inplace\_vector: Dynamically-resizable vector with fixed capacity
 
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)
-![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)
-![Code Format](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit-check.yml/badge.svg)
+<!--
+SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+-->
 
-**Implements**: [`inplace_vector` (P0843R14)](https://wg21.link/P0843R14)
+<!-- markdownlint-disable-next-line line-length -->
+![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg) ![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit-check.yml/badge.svg) [![Coverage](https://coveralls.io/repos/github/bemanproject/inplace_vector/badge.svg?branch=main)](https://coveralls.io/github/bemanproject/inplace_vector?branch=main) ![Standard Target](https://github.com/bemanproject/beman/blob/main/images/badges/cpp29.svg)
 
-**Status**:
-[Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#under-development-and-not-yet-ready-for-production-use)
+**Implements**: [`inplace_vector` (P0843R14)](https://wg21.link/P0843R14).
+
+**Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#under-development-and-not-yet-ready-for-production-use)
+
+## License
+
+`beman.inplace_vector` is licensed under the Apache License v2.0 with LLVM Exceptions.
 
 ## Usage
 
@@ -80,8 +82,9 @@ constexpr bool check_5() {
 }
 
 static_assert(check_5());
-
 ```
+
+Full runnable examples can be found in [`examples/`](examples/).
 
 ### Note on constexpr support
 
@@ -102,7 +105,7 @@ which marks all potentially throwing functions as `= deleted`.
 This is useful for platforms without exception support, as it will generate a compile-time error
 instead of a potential runtime error when trying to use a throwing function.
 
-``` C++
+```c++
 beman::inplace_vector::inplace_vector<int, 1> iv;
 iv.resize(0); // OK
 iv.resize(10); // will throw or abort
@@ -112,117 +115,18 @@ fs_iv.resize(0); // will generate a compile-time error
 fs_iv.resize(10); // will generate a compile-time error
 ```
 
-## How to Build
+## Dependencies
 
-### Compiler support
+### Build Environment
 
-Building this repository requires **C++20** or later.
+This project requires at least the following to build:
 
-We will evaluate the possibility of partial support for C++17
-when constexpr is fully supported and tested.
+* A C++ compiler that conforms to the C++20 standard or greater
+* CMake 3.30 or later
+* (Test Only) GoogleTest
 
-### Dependencies
-
-Current implementation is tested against both GNU gcc and LLVM clang compilers.
-More specifically, gcc version 12 to 14, and clang version 17 to 20.
-Versions outside of this range will likely work as well,
-they are just not tested in our current infrastructure.
-We are working on expanding this range of compiler support,
-and aim to bring `inplace_vector` to MSVC soon!
-
-### Instructions
-
-#### Using CMake Preset
-
-[CMake Preset](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html)
-is a new CMake functionality that provides one-line configure + test.
-
-You can use `gcc-debug` to setup a debug orienated `inplace_vector` development environment.
-
-```text
-$ cmake --workflow --preset gcc-debug
-Executing workflow step 1 of 3: configure preset "gcc-debug"
-
-Preset CMake variables:
-
-  BEMAN_BUILDSYS_SANITIZER="MaxSan"
-  CMAKE_BUILD_TYPE="Debug"
-  CMAKE_CXX_STANDARD="20"
-  CMAKE_TOOLCHAIN_FILE="cmake/gnu-toolchain.cmake"
-
--- The CXX compiler identification is GNU 14.2.0
-....
--- Generating done (0.0s)
--- Build files have been written to: /inplace_vector/build/gcc-debug
-
-Executing workflow step 2 of 3: build preset "gcc-debug"
-
-[8/20] Building CXX object tests/beman/inplace_vector/CMakeFiles/beman.inplace_vector.tests.erasure.dir/erasure.test.cpp.o
-
-Executing workflow step 3 of 3: test preset "gcc-debug"
-
-Test project /home/bradwu/Desktop/inplace_vector/build/gcc-debug
-      Start  1: beman.inplace_vector.test
- 1/54 Test  #1: beman.inplace_vector.test ....................................   Passed    0.03 sec
-      Start  2: beman.inplace_vector.ref-test
- 2/54 Test  #2: beman.inplace_vector.ref-test ................................   Passed    0.03 sec
-      Start  3: ContainerRequirements/*.ValueType
- 3/54 Test  #3: ContainerRequirements/*.ValueType ............................   Passed    0.15 sec
-      Start  4: ContainerRequirements/*.Reference
-...
-50/54 Test #50: SizeNCapacity/*.ResizeDown ...................................   Passed    0.05 sec
-      Start 51: SizeNCapacity/*.ResizeUp
-51/54 Test #51: SizeNCapacity/*.ResizeUp .....................................   Passed    0.05 sec
-      Start 52: Data/*.Test
-52/54 Test #52: Data/*.Test ..................................................   Passed    0.05 sec
-      Start 53: Erasure/*.ByValue
-53/54 Test #53: Erasure/*.ByValue ............................................***Skipped   0.04 sec
-      Start 54: Erasure/*.ByPred
-54/54 Test #54: Erasure/*.ByPred .............................................***Skipped   0.04 sec
-
-100% tests passed, 0 tests failed out of 54
-
-Total Test time (real) =   6.20 sec
-```
-
-Note that this workflow compiles the project with sanitizers,
-if you wish to playaround with `inplace_vector` without sanitizers,
-use `gcc-release`.
-
-#### Manual CMake Build
-
-```text
-# Configure build
-$ cmake -S . -B build -DCMAKE_CXX_STANDARD=20
--- The CXX compiler identification is GNU 11.4.0
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /usr/bin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- Configuring done (0.4s)
--- Generating done (0.0s)
--- Build files have been written to: /.../inplace_vector/build
-
-# Build
-$ cmake --build build
-[ 50%] Building CXX object src/beman/inplace_vector/tests/CMakeFiles/beman.inplace_vector.test.dir/inplace_vector.test.cpp.o
-[100%] Linking CXX executable beman.inplace_vector.test
-[100%] Built target beman.inplace_vector.test
-
-# Run tests
-$ ctest --test-dir build/
-Internal ctest changing into directory: /.../inplace_vector/build
-Test project /.../inplace_vector/build
-    Start 1: beman.inplace_vector.test
-1/1 Test #1: beman.inplace_vector.test ........   Passed    0.00 sec
-
-100% tests passed, 0 tests failed out of 1
-
-Total Test time (real) =   0.01 sec
-```
-
-## Development
+You can disable building tests by setting CMake option `BEMAN_INPLACE_VECTOR_BUILD_TESTS` to
+`OFF` when configuring the project.
 
 ### Supported Platforms
 
@@ -231,30 +135,91 @@ Total Test time (real) =   0.01 sec
 | GCC      | 14      | C++23, C++20  | libstdc++        |
 | Clang    | 20      | C++23, C++20  | libstdc++        |
 
-### Linting
+## Development
 
-This project use [pre-commit](https://pre-commit.com/) framework for linting.
+See the [Contributing Guidelines](CONTRIBUTING.md).
 
-#### Install pre-commit
+## Integrate beman.inplace\_vector into your project
 
-```bash
-pip3 install pre-commit
-```
+### Build
 
-pre-commit can be configured to automatically triggered before git commit,
-to install this functionality, run:
+You can build inplace_vector using a CMake workflow preset:
 
 ```bash
-pre-commit install
+cmake --workflow --preset gcc-release
 ```
 
-#### Running pre-commit
+To list available workflow presets, you can invoke:
 
 ```bash
-pre-commit run --all-files
+cmake --list-presets=workflow
 ```
 
-This will download and check linting rules on all files.
-Apart from Markdown files,
-`pre-commit` will automatically format the files
-to conform with linting rules in place.
+For details on building beman.inplace_vector without using a CMake preset, refer to the
+[Contributing Guidelines](CONTRIBUTING.md).
+
+### Installation
+
+To install beman.inplace_vector globally after building with the `gcc-release` preset, you can
+run:
+
+```bash
+sudo cmake --install build/gcc-release
+```
+
+Alternatively, to install to a prefix, for example `/opt/beman`, you can run:
+
+```bash
+sudo cmake --install build/gcc-release --prefix /opt/beman
+```
+
+This will generate the following directory structure:
+
+```txt
+/opt/beman
+├── include
+│   └── beman
+│       └── inplace_vector
+│           ├── inplace_vector.hpp
+│           └── ...
+└── lib
+    └── cmake
+        └── beman.inplace_vector
+            ├── beman.inplace_vector-config-version.cmake
+            ├── beman.inplace_vector-config.cmake
+            └── beman.inplace_vector-targets.cmake
+```
+
+### CMake Configuration
+
+If you installed beman.inplace_vector to a prefix, you can specify that prefix to your CMake
+project using `CMAKE_PREFIX_PATH`; for example, `-DCMAKE_PREFIX_PATH=/opt/beman`.
+
+You need to bring in the `beman.inplace_vector` package to define the `beman::inplace_vector` CMake
+target:
+
+```cmake
+find_package(beman.inplace_vector REQUIRED)
+```
+
+You will then need to add `beman::inplace_vector` to the link libraries of any libraries or
+executables that include `beman.inplace_vector` headers.
+
+```cmake
+target_link_libraries(yourlib PUBLIC beman::inplace_vector)
+```
+
+### Using beman.inplace\_vector
+
+To use `beman.inplace_vector` in your C++ project,
+include an appropriate `beman.inplace_vector` header from your source code.
+
+```c++
+#include <beman/inplace_vector/inplace_vector.hpp>
+```
+
+> [!NOTE]
+>
+> `beman.inplace_vector` headers are to be included with the `beman/inplace_vector/` prefix.
+> Altering include search paths to spell the include target another way (e.g.
+> `#include <inplace_vector.hpp>`) is unsupported.

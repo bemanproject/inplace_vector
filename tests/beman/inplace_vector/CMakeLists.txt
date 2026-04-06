@@ -28,7 +28,7 @@ function(add_gtest NAME)
     target_sources(beman.inplace_vector.tests.${NAME} PRIVATE ${NAME}.test.cpp)
     target_link_libraries(
         beman.inplace_vector.tests.${NAME}
-        PRIVATE beman.inplace_vector GTest::gtest GTest::gtest_main
+        PRIVATE beman.inplace_vector GTest::gtest_main
     )
     gtest_add_tests(beman.inplace_vector.tests.${NAME} "" AUTO)
 endfunction()
