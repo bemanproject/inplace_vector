@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-cmake_minimum_required(VERSION 3.28...4.2)
+cmake_minimum_required(VERSION 3.30...4.3)
 
 project(
-    beman.inplace_vector
-    VERSION 1.0.0
+    beman.inplace_vector # CMake Project Name, which is also the name of the top-level
+    # targets (e.g., library, executable, etc.).
     DESCRIPTION
         "A dynamically-resizable vector with fixed capacity and embedded storage"
     LANGUAGES CXX
+    VERSION 0.1.0
 )
 
 # [CMAKE.SKIP_TESTS]
@@ -37,7 +38,7 @@ configure_file(
 )
 
 # for find of beman-install-library
-include(infra/cmake/beman-install-library-config.cmake)
+include(infra/cmake/beman-install-library.cmake)
 
 add_library(beman.inplace_vector INTERFACE)
 add_library(beman::inplace_vector ALIAS beman.inplace_vector)
@@ -53,12 +54,12 @@ target_sources(
 
 set_target_properties(
     beman.inplace_vector
-    PROPERTIES VERIFY_INTERFACE_HEADER_SETS ON
+    PROPERTIES VERIFY_INTERFACE_HEADER_SETS ${PROJECT_IS_TOP_LEVEL}
 )
 
 add_subdirectory(include/beman/inplace_vector)
 
-beman_install_library(beman.inplace_vector)
+beman_install_library(beman.inplace_vector TARGETS beman.inplace_vector)
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
     enable_testing()

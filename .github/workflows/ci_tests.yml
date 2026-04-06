@@ -4,15 +4,19 @@ name: Continuous Integration Tests
 
 on:
   push:
+    branches:
+      - main
   pull_request:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   schedule:
-    - cron: '30 15 * * *'
+    - cron: '52 17 * * 3'
 
 jobs:
+  beman-submodule-check:
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-submodule-check.yml@1.5.0
+
   preset-test:
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-preset-test.yml@1.2.1
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-preset-test.yml@1.5.0
     with:
       matrix_config: >
         [
@@ -25,7 +29,7 @@ jobs:
         ]
 
   build-and-test:
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.2.1
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.5.0
     with:
       matrix_config: >
         {
@@ -74,38 +78,7 @@ jobs:
           ]
         }
 
-  compiler-test:
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-build-and-test.yml@1.2.1
-    with:
-      matrix_config: >
-        {
-          "gcc": [
-            { "versions": ["14", "13", "12"],
-              "tests": [
-                { "cxxversions": ["c++20"],
-                  "tests": [{ "stdlibs": ["libstdc++"], "tests": ["Debug.Default"]}]
-                }
-              ]
-            }
-          ],
-          "clang": [
-            { "versions": ["20", "19", "18", "17"],
-              "tests": [
-                { "cxxversions": ["c++20"],
-                  "tests": [{ "stdlibs": ["libstdc++"], "tests": ["Debug.Default"]}]
-                }
-              ]
-            }
-          ]
-        }
-
-  install-test:
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-install-test.yml@1.2.1
-    with:
-      image: ghcr.io/bemanproject/infra-containers-gcc:latest
-      cxx_standard: 26
-
   create-issue-when-fault:
-    needs: [preset-test, build-and-test, compiler-test, install-test]
+    needs: [preset-test, build-and-test]
     if: failure() && github.event_name == 'schedule'
-    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.2.1
+    uses: bemanproject/infra-workflows/.github/workflows/reusable-beman-create-issue-when-fault.yml@1.5.0
