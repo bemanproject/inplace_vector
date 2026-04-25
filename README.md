@@ -1,4 +1,4 @@
-# beman.inplace\_vector: Dynamically-resizable vector with fixed capacity
+# beman.inplace_vector: Dynamically-resizable vector with fixed capacity
 
 <!--
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
