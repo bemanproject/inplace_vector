@@ -37,8 +37,9 @@ configure_file(
     @ONLY
 )
 
-# for find of beman-install-library
+# for find of beman_install_library and configure_build_telemetry
 include(infra/cmake/beman-install-library.cmake)
+include(infra/cmake/BuildTelemetryConfig.cmake)
 
 add_library(beman.inplace_vector INTERFACE)
 add_library(beman::inplace_vector ALIAS beman.inplace_vector)
@@ -60,6 +61,7 @@ set_target_properties(
 add_subdirectory(include/beman/inplace_vector)
 
 beman_install_library(beman.inplace_vector TARGETS beman.inplace_vector)
+configure_build_telemetry()
 
 if(BEMAN_INPLACE_VECTOR_BUILD_TESTS)
     enable_testing()
