@@ -31,8 +31,8 @@ option(
 )
 
 configure_file(
-    "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config.hpp"
+    "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config_generated.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config_generated.hpp"
     @ONLY
 )
 
