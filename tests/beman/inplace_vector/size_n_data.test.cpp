@@ -1,9 +1,25 @@
 #include <gtest/gtest.h>
 #include <numeric>
 
+#include <cstdint>
+
 #include "gtest_setup.hpp"
 
 namespace {
+// details::smallest_size_t — smallest unsigned integer holding values in [0, N]
+using beman::inplace_vector::details::smallest_size_t;
+static_assert(std::is_same_v<smallest_size_t<0>, uint8_t>);
+static_assert(std::is_same_v<smallest_size_t<255>, uint8_t>);
+static_assert(std::is_same_v<smallest_size_t<256>, uint16_t>);
+static_assert(std::is_same_v<smallest_size_t<65535>, uint16_t>);
+static_assert(std::is_same_v<smallest_size_t<65536>, uint32_t>);
+static_assert(std::is_same_v<
+              smallest_size_t<std::numeric_limits<uint32_t>::max()>, uint32_t>);
+static_assert(
+    std::is_same_v<
+        smallest_size_t<std::size_t{1} + std::numeric_limits<uint32_t>::max()>,
+        uint64_t>);
+
 // 23.3.14.3 Size and capacity [inplace.vector.capacity]
 
 template <typename Param> class SizeNCapacity : public IVBasicTest<Param> {};
