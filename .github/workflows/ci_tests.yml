@@ -34,7 +34,7 @@ jobs:
       matrix_config: >
         {
           "gcc": [
-            { "versions": ["14"],
+            { "versions": ["14", "15"],
               "tests": [
                 { "cxxversions": ["c++23", "c++20"],
                   "tests": [
@@ -60,7 +60,7 @@ jobs:
             }
           ],
           "clang": [
-            { "versions": ["20"],
+            { "versions": ["20", "21", "22"],
               "tests": [
                 { "cxxversions": ["c++23", "c++20"],
                   "tests": [
