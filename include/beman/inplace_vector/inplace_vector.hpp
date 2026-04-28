@@ -437,13 +437,11 @@ public:
       const auto sz = std::min(x.size(), y.size());
       for (std::size_t i = 0; i < sz; ++i) {
         if (x[i] < y[i])
-          return std::strong_ordering::less;
+          return std::weak_ordering::less;
         if (y[i] < x[i])
-          return std::strong_ordering::greater;
-        // [container.opt.reqmts] < must be total ordering relationship
+          return std::weak_ordering::greater;
       }
-
-      return x.size() <=> y.size();
+      return static_cast<std::weak_ordering>(x.size() <=> y.size());
     }
   }
 
