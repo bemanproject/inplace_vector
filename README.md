@@ -160,6 +160,17 @@ For details on building beman.inplace_vector without using a CMake preset, refer
 
 ### Installation
 
+#### Vcpkg
+
+The preferred way to install inplace_vector is via vcpkg. To do so, after installing vcpkg
+itself, you need to add support for the Beman project's [vcpkg
+registry](https://github.com/bemanproject/vcpkg-registry) by configuring a
+`vcpkg-configuration.json` file (which inplace_vector [provides](vcpkg-configuration.json)).
+
+Then, simply run `vcpkg install beman-inplace-vector`.
+
+#### Manual
+
 To install beman.inplace_vector globally after building with the `gcc-release` preset, you can
 run:
 

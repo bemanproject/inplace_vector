@@ -3,8 +3,7 @@
 cmake_minimum_required(VERSION 3.30...4.3)
 
 project(
-    beman.inplace_vector # CMake Project Name, which is also the name of the top-level
-    # targets (e.g., library, executable, etc.).
+    beman.inplace_vector
     DESCRIPTION
         "A dynamically-resizable vector with fixed capacity and embedded storage"
     LANGUAGES CXX
