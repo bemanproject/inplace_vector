@@ -13,5 +13,10 @@
       "name": "vcpkg-cmake-config",
       "host": true
     }
-  ]
+  ],
+  "features": {
+    "no-exceptions": {
+      "description": "Replace throw with abort (BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS=ON)"
+    }
+  }
 }
