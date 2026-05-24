@@ -4,8 +4,13 @@
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 -->
 
-<!-- markdownlint-disable-next-line line-length -->
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg) ![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit-check.yml/badge.svg) [![Coverage](https://coveralls.io/repos/github/bemanproject/inplace_vector/badge.svg?branch=main)](https://coveralls.io/github/bemanproject/inplace_vector?branch=main) ![Standard Target](https://github.com/bemanproject/beman/blob/main/images/badges/cpp29.svg)
+<!-- markdownlint-disable line-length -->
+[![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#the-beman-library-maturity-model)
+[![Continuous Integration Tests](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/bemanproject/inplace_vector/actions/workflows/ci_tests.yml)
+[![Lint Check (pre-commit)](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit-check.yml/badge.svg)](https://github.com/bemanproject/inplace_vector/actions/workflows/pre-commit-check.yml)
+[![Coverage](https://coveralls.io/repos/github/bemanproject/inplace_vector/badge.svg?branch=main)](https://coveralls.io/github/bemanproject/inplace_vector?branch=main)
+![Standard Target](https://github.com/bemanproject/beman/blob/main/images/badges/cpp29.svg)
+<!-- markdownlint-restore -->
 
 **Implements**: [`inplace_vector` (P0843R14)](https://wg21.link/P0843R14).
 
@@ -233,9 +238,3 @@ include an appropriate `beman.inplace_vector` header from your source code.
 ```c++
 #include <beman/inplace_vector/inplace_vector.hpp>
 ```
-
-> [!NOTE]
->
-> `beman.inplace_vector` headers are to be included with the `beman/inplace_vector/` prefix.
-> Altering include search paths to spell the include target another way (e.g.
-> `#include <inplace_vector.hpp>`) is unsupported.
