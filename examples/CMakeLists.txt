@@ -1,10 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-set(ALL_EXAMPLES
-    capacity
-    comparison
-    fallible
-    fibonacci)
+set(ALL_EXAMPLES capacity comparison fallible fibonacci)
 
 message("Examples to be built: ${ALL_EXAMPLES}")
 
