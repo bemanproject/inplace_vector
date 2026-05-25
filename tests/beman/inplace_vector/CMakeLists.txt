@@ -2,7 +2,7 @@
 
 find_package(GTest REQUIRED)
 
-# Tests
+# External test suite from @Hels15
 add_executable(beman.inplace_vector.test inplace_vector.test.cpp)
 
 target_link_libraries(beman.inplace_vector.test PRIVATE beman.inplace_vector)
