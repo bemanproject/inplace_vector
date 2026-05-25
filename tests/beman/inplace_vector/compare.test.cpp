@@ -16,21 +16,23 @@ template <class T>
 concept lessthan_comparable =
     beman::inplace_vector::details::lessthan_comparable<T>;
 
-template <typename T> struct vec_list {
-  T empty;
+template <typename T, typename U = T> struct vec_list {
+  U empty;
   T base;            // base
-  T copy;            // identical to base
-  T greater;         // greater number of elements
-  T lesser;          // lesser number of elements
-  T bigger;          // bigger value of the elements
-  T smaller;         // smaller value of the elements
-  T greater_smaller; // greater number of elements but smaller values
-  T lesser_bigger;   // lesser number of elements but bigger values
+  U copy;            // identical to base
+  U greater;         // greater number of elements
+  U lesser;          // lesser number of elements
+  U bigger;          // bigger value of the elements
+  U smaller;         // smaller value of the elements
+  U greater_smaller; // greater number of elements but smaller values
+  U lesser_bigger;   // lesser number of elements but bigger values
 };
 
-template <typename T> static void runtests(vec_list<T> &list) {
+template <typename T, typename U = T>
+static void runtests(vec_list<T, U> &list) {
 
   static_assert(std::three_way_comparable<T> || lessthan_comparable<T>);
+  static_assert(std::three_way_comparable<U> || lessthan_comparable<U>);
 
   // if T::value_type is threewaycomparable with ordering X then T must also
   // be comparable with ordering X
@@ -324,4 +326,23 @@ TEST(Compare, threeway_uncomparable) {
   static_assert(!has_threeway<uncomparable3>);
   static_assert(!std::three_way_comparable<inplace_vector<uncomparable3, 4>>);
   static_assert(!has_threeway<inplace_vector<uncomparable3, 4>>);
+}
+
+// In accordance with P3698R0, we compare vectors with identical elements but
+// different capacities
+
+TEST(Compare, threeway_cross_capacity_smaller) {
+  vec_list<inplace_vector<int, 4>, inplace_vector<int, 5>> list{
+      .empty{},
+      .base{1, 2, 3},
+      .copy{1, 2, 3},
+      .greater{4, 5, 6},
+      .lesser{0, 0, 0},
+      .bigger{1, 2, 3, 0},
+      .smaller{1, 2},
+      .greater_smaller{2, 2},
+      .lesser_bigger{0, 2, 3, 4},
+  };
+
+  runtests(list);
 }
