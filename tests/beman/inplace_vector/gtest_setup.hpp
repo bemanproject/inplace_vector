@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#include <beman/inplace_vector/inplace_vector.hpp>
 #include <gtest/gtest.h>
-#include <type_traits>
 
-#include "beman/inplace_vector/inplace_vector.hpp"
+#include <type_traits>
 
 // We run the tests on various element types with the help of GoogleTest's
 // typed tests. Which types shall we use?
@@ -285,7 +286,7 @@ struct NonTrivial {
   }
   friend constexpr bool operator==(NonTrivial x, NonTrivial y) = default;
 };
-std::size_t NonTrivial::num_objects;
+inline std::size_t NonTrivial::num_objects;
 
 template<typename T, typename = void>
 struct counts_objects : std::false_type {};

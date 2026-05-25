@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// #include <beman/inplace_vector/inplace_vector.hpp> 'BEMAN_IV_THROW_OR_ABORT'
+// macro redfined
+#include <gtest/gtest.h>
+
 #include <array>
 
 #include <cstdlib>
