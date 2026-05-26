@@ -330,7 +330,6 @@ TEST(Compare, threeway_uncomparable) {
 
 // In accordance with P3698R0, we compare vectors with identical elements but
 // different capacities
-
 TEST(Compare, threeway_cross_capacity_smaller) {
   vec_list<inplace_vector<int, 4>, inplace_vector<int, 5>> list{
       .empty{},
