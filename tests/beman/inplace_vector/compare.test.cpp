@@ -2,6 +2,8 @@
 #include <beman/inplace_vector/inplace_vector.hpp>
 #include <gtest/gtest.h>
 
+#include <beman/inplace_vector/config.hpp>
+
 #include <cmath>
 #include <compare>
 
@@ -330,6 +332,8 @@ TEST(Compare, threeway_uncomparable) {
 
 // In accordance with P3698R0, we compare vectors with identical elements but
 // different capacities
+#if BEMAN_INPLACE_VECTOR_CROSS_CAPACITY_COMPARISON()
+
 TEST(Compare, threeway_cross_capacity) {
   vec_list<inplace_vector<int, 4>, inplace_vector<int, 5>> list{
       .empty{},
@@ -345,3 +349,5 @@ TEST(Compare, threeway_cross_capacity) {
 
   runtests(list);
 }
+
+#endif

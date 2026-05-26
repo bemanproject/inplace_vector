@@ -30,6 +30,13 @@ option(
     OFF
 )
 
+# Enable P3698
+option(
+    BEMAN_INPLACE_VECTOR_CROSS_CAPACITY_COMPARISON
+    "Enable comparison operators between vectors of different capacities. Default: OFF. Values: { ON, OFF }."
+    OFF
+)
+
 configure_file(
     "${PROJECT_SOURCE_DIR}/include/beman/inplace_vector/config_generated.hpp.in"
     "${PROJECT_BINARY_DIR}/include/beman/inplace_vector/config_generated.hpp"

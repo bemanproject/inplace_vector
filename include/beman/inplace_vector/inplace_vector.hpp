@@ -418,6 +418,7 @@ public:
 
   // [inplace.vector.comparison], comparison
 
+#if BEMAN_INPLACE_VECTOR_CROSS_CAPACITY_COMPARISON()
   template <std::size_t M>
   constexpr friend bool operator==(const inplace_vector_base &x,
                                    const inplace_vector_base<T, M> &y) {
@@ -453,6 +454,34 @@ public:
       return x.size() <=> y.size();
     }
   }
+#else
+  constexpr friend bool operator==(const inplace_vector_base &x,
+                                   const inplace_vector_base &y) {
+    return x.size() == y.size() && std::ranges::equal(x, y);
+  }
+
+  constexpr friend auto operator<=>(const inplace_vector_base &x,
+                                    const inplace_vector_base &y)
+    requires(details::lessthan_comparable<T>)
+  {
+    if constexpr (std::three_way_comparable<T>) {
+      return std::lexicographical_compare_three_way(x.begin(), x.end(),
+                                                    y.begin(), y.end());
+    } else {
+      const auto sz = std::min(x.size(), y.size());
+      for (std::size_t i = 0; i < sz; ++i) {
+        if (x[i] < y[i])
+          return std::strong_ordering::less;
+        if (y[i] < x[i])
+          return std::strong_ordering::greater;
+        // [container.opt.reqmts] < must be total ordering relationship
+      }
+
+      return x.size() <=> y.size();
+    }
+  }
+
+#endif
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
 
