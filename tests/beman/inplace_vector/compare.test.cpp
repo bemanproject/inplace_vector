@@ -350,4 +350,20 @@ TEST(Compare, threeway_cross_capacity) {
   runtests(list);
 }
 
+TEST(Compare, threeway_cross_capacity_full) {
+  vec_list<inplace_vector<int, 3>, inplace_vector<int, 4>> list{
+      .empty{},
+      .base{1, 2, 3},
+      .copy{1, 2, 3},
+      .greater{4, 5, 6},
+      .lesser{0, 0, 0},
+      .bigger{1, 2, 3, 0},
+      .smaller{1, 2},
+      .greater_smaller{2, 2},
+      .lesser_bigger{0, 2, 3, 4},
+  };
+
+  runtests(list);
+}
+
 #endif
