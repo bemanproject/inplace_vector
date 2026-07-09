@@ -4,7 +4,5 @@
 # Check documentation for beman-tidy here:
 # https://github.com/bemanproject/beman-tidy/blob/main/README.md
 
-disabled_rules:
-    # None
-ignored_paths:
-    # None
+disabled_rules: []
+ignored_paths: []
