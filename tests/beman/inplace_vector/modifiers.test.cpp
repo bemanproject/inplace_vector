@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#include <beman/inplace_vector/inplace_vector.hpp>
+#include <gtest/gtest.h>
 
 #include <numeric>
 
 #include "gtest_setup.hpp"
-#include <gtest/gtest.h>
 
 namespace {
 // 23.3.14.5 Modifiers [inplace.vector.modifiers]

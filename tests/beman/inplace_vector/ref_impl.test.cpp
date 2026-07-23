@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
 /// \file

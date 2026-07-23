@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#include <beman/inplace_vector/inplace_vector.hpp>
+#include <gtest/gtest.h>
 
-#include "gtest/gtest.h"
 #include <algorithm>
 #include <array>
-#include <gtest/gtest.h>
 #include <new>
 
 #include "gtest_setup.hpp"

@@ -2,7 +2,7 @@
 
 find_package(GTest REQUIRED)
 
-# Tests
+# External test suite from @Hels15
 add_executable(beman.inplace_vector.test inplace_vector.test.cpp)
 
 target_link_libraries(beman.inplace_vector.test PRIVATE beman.inplace_vector)
@@ -18,6 +18,17 @@ target_link_libraries(
 add_test(
     NAME beman.inplace_vector.ref-test
     COMMAND beman.inplace_vector.ref-test
+)
+
+# constexpr test
+add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
+target_link_libraries(
+    beman.inplace_vector.tests.constexpr
+    PRIVATE beman.inplace_vector
+)
+add_test(
+    NAME beman.inplace_vector.tests.constexpr
+    COMMAND beman.inplace_vector.tests.constexpr
 )
 
 # GoogleTest based tests
@@ -43,7 +54,7 @@ add_gtest(erasure)
 add_gtest(modifiers)
 add_gtest(freestanding)
 
-# only add noexception tests if NO_EXCEPTIONS option is set and compiler supports -fno-exceptions
+# Only add noexception tests if NO_EXCEPTIONS option is set and compiler supports -fno-exceptions
 if(
     BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS
     AND (
@@ -57,14 +68,3 @@ if(
         PRIVATE -fno-exceptions
     )
 endif()
-
-# constexpr test
-add_executable(beman.inplace_vector.tests.constexpr constexpr.test.cpp)
-target_link_libraries(
-    beman.inplace_vector.tests.constexpr
-    PRIVATE beman.inplace_vector
-)
-add_test(
-    NAME beman.inplace_vector.tests.constexpr
-    COMMAND beman.inplace_vector.tests.constexpr
-)

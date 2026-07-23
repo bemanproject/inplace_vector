@@ -284,6 +284,7 @@ public:
   }
 
   // [containers.sequences.inplace_vector.data], data access
+
   constexpr T *data() noexcept { return storage_data(); }
   constexpr const T *data() const noexcept { return storage_data(); }
 
@@ -398,11 +399,6 @@ public:
     }
   }
 
-  constexpr friend bool operator==(const inplace_vector_base &x,
-                                   const inplace_vector_base &y) {
-    return x.size() == y.size() && std::ranges::equal(x, y);
-  }
-
   constexpr void swap(inplace_vector_base &x) noexcept(
       N == 0 || (std::is_nothrow_swappable_v<T> &&
                  std::is_nothrow_move_constructible_v<T>))
@@ -418,6 +414,50 @@ public:
       N == 0 || (std::is_nothrow_swappable_v<T> &&
                  std::is_nothrow_move_constructible_v<T>)) {
     x.swap(y);
+  }
+
+  // [inplace.vector.comparison], comparison
+
+#if BEMAN_INPLACE_VECTOR_CROSS_CAPACITY_COMPARISON()
+  template <std::size_t M>
+  constexpr friend bool operator==(const inplace_vector_base &x,
+                                   const inplace_vector_base<T, M> &y) {
+    const auto sz = std::min(x.size(), y.size());
+
+    return x.size() == y.size() &&
+           std::ranges::equal(x.begin(), x.begin() + sz, y.begin(),
+                              y.begin() + sz);
+  }
+
+  template <std::size_t M>
+    requires std::three_way_comparable<T> || lessthan_comparable<T>
+  constexpr friend auto operator<=>(const inplace_vector_base &x,
+                                    const inplace_vector_base<T, M> &y) {
+    using result_t = std::conditional_t<std::three_way_comparable<T>,
+                                        std::compare_three_way_result<T>,
+                                        std::strong_ordering>;
+
+    if constexpr (std::three_way_comparable<T>) {
+      return std::lexicographical_compare_three_way(
+          x.begin(), x.end(), y.begin(), y.end(), std::compare_three_way());
+    } else {
+      const auto sz = std::min(x.size(), y.size());
+
+      for (std::size_t i = 0; i < sz; ++i) {
+        if (x[i] < y[i])
+          return result_t::less;
+        if (y[i] < x[i])
+          return result_t::greater;
+        // [container.opt.reqmts] < must be total ordering relationship
+      }
+
+      return x.size() <=> y.size();
+    }
+  }
+#else
+  constexpr friend bool operator==(const inplace_vector_base &x,
+                                   const inplace_vector_base &y) {
+    return x.size() == y.size() && std::ranges::equal(x, y);
   }
 
   constexpr friend auto operator<=>(const inplace_vector_base &x,
@@ -440,6 +480,8 @@ public:
       return x.size() <=> y.size();
     }
   }
+
+#endif
 
   // [containers.sequences.inplace_vector.cons], construct/copy/destroy
 
@@ -924,6 +966,8 @@ struct inplace_vector : public details::inplace_vector_base<T, N> {
 };
 
 } // namespace freestanding
+
+// [inplace.vector.erasure], erasure
 
 template <typename T, std::size_t N, typename U = T>
 constexpr std::size_t erase(details::inplace_vector_base<T, N> &c,
