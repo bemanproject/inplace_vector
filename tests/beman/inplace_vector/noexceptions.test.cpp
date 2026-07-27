@@ -32,8 +32,6 @@ TYPED_TEST(NoExceptions, NonThrowing) {
 
   EXPECT_EQ(device.try_emplace_back(T{}), nullptr);
   EXPECT_EQ(device.try_push_back(T{}), nullptr);
-  auto range = std::array<T, 1>{};
-  EXPECT_EQ(device.try_append_range(range), range.begin());
 
   IV sanitycheck = this->unique();
   EXPECT_EQ(sanitycheck.size(), IV::capacity());

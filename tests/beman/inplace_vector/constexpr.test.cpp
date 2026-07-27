@@ -224,7 +224,6 @@ template <typename IV> constexpr void test_modifiers() {
     v.try_emplace_back(20);
     v.try_push_back(arr[0]);
     v.try_push_back(T(20));
-    // v.try_append_range(arr);
   }
 
   {
@@ -347,7 +346,6 @@ template <typename T> constexpr void speical_test_empty() {
     v.try_emplace_back(50);
     v.try_push_back(T(50));
     v.try_push_back(arr[0]);
-    // v.try_append_range(arr);
     v.clear();
   }
   {
