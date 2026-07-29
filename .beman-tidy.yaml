@@ -5,4 +5,5 @@
 # https://github.com/bemanproject/beman-tidy/blob/main/README.md
 
 disabled_rules: []
-ignored_paths: []
+ignored_paths:
+  - infra/
