@@ -271,14 +271,14 @@ TEST(Freestanding, usage) {
   for (auto i = 0; i < device.capacity(); ++i) {
     const auto value = T{i};
     auto res = device.try_emplace_back(value);
-    EXPECT_NE(res, nullptr);
+    EXPECT_NE(res, beman::optional::nullopt);
     EXPECT_EQ(*res, value);
     EXPECT_EQ(device.back(), value);
   }
 
   EXPECT_EQ(device.size(), device.capacity());
 
-  EXPECT_EQ(nullptr, device.try_emplace_back(T{}));
+  EXPECT_EQ(beman::optional::nullopt, device.try_emplace_back(T{}));
 
   EXPECT_EQ(device.size(), device.capacity());
 

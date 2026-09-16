@@ -4,6 +4,7 @@
 #define BEMAN_INPLACE_VECTOR_INPLACE_VECTOR_HPP
 
 #include <beman/inplace_vector/config.hpp>
+#include <beman/optional/optional.hpp>
 
 #include <algorithm> // for rotate...
 #include <array>
@@ -327,18 +328,20 @@ public:
     return this->back();
   }
 
-  template <class... Args> constexpr T *try_emplace_back(Args &&...args) {
+  template <class... Args>
+  constexpr beman::optional::optional<T &> try_emplace_back(Args &&...args) {
     if (size() == capacity()) [[unlikely]]
-      return nullptr;
-    return &unchecked_emplace_back(std::forward<Args>(args)...);
+      return beman::optional::nullopt;
+    return beman::optional::optional<T &>(
+        unchecked_emplace_back(std::forward<Args>(args)...));
   }
 
-  constexpr T *try_push_back(const T &x)
+  constexpr beman::optional::optional<T &> try_push_back(const T &x)
     requires(std::constructible_from<T, const T &>)
   {
     return try_emplace_back(x);
   }
-  constexpr T *try_push_back(T &&x)
+  constexpr beman::optional::optional<T &> try_push_back(T &&x)
     requires(std::constructible_from<T, T &&>)
   {
     return try_emplace_back(std::forward<T &&>(x));

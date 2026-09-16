@@ -390,7 +390,7 @@ int main() {
     CHECK(a.size() == std::size_t(10));
     CHECK(!a.empty());
     CHECK_THROWS(a.push_back(0), std::bad_alloc);
-    CHECK((uintptr_t)nullptr == (uintptr_t)a.try_push_back(0));
+    CHECK(!a.try_push_back(0).has_value());
   }
 
   { // resize copyable
@@ -778,17 +778,19 @@ int main() {
   }
   { // try_emplace_back
     vector<non_copyable, 2> c;
-    CHECK((uintptr_t)c.begin() == (uintptr_t)c.try_emplace_back(2, 3.5));
+    CHECK((uintptr_t)c.begin() ==
+          (uintptr_t)std::addressof(*c.try_emplace_back(2, 3.5)));
     CHECK(c.size() == 1);
     CHECK(c.front().geti() == 2);
     CHECK(c.front().getd() == 3.5);
-    CHECK((uintptr_t)(c.begin() + 1) == (uintptr_t)c.try_emplace_back(3, 4.5));
+    CHECK((uintptr_t)(c.begin() + 1) ==
+          (uintptr_t)std::addressof(*c.try_emplace_back(3, 4.5)));
     CHECK(c.size() == 2);
     CHECK(c.front().geti() == 2);
     CHECK(c.front().getd() == 3.5);
     CHECK(c.back().geti() == 3);
     CHECK(c.back().getd() == 4.5);
-    CHECK((uintptr_t)nullptr == (uintptr_t)c.try_emplace_back(2, 3.5));
+    CHECK(!c.try_emplace_back(2, 3.5).has_value());
   }
   { // unchecked_emplace_back
     vector<non_copyable, 2> c;
@@ -1106,30 +1108,30 @@ int main() {
       vector<moint, 6> c;
       auto i = c.try_push_back(moint(0));
       CHECK(c.size() == 1);
-      CHECK((uintptr_t)(c.begin() + 0) == (uintptr_t)i);
+      CHECK((uintptr_t)(c.begin() + 0) == (uintptr_t)std::addressof(*i));
       for (std::size_t j = 0; j < c.size(); ++j) {
         CHECK(c[j] == moint(j));
       }
       i = c.try_push_back(moint(1));
       CHECK(c.size() == 2);
-      CHECK((uintptr_t)(c.begin() + 1) == (uintptr_t)i);
+      CHECK((uintptr_t)(c.begin() + 1) == (uintptr_t)std::addressof(*i));
       for (std::size_t j = 0; j < c.size(); ++j) {
         CHECK(c[j] == moint(j));
       }
       i = c.try_push_back(moint(2));
-      CHECK((uintptr_t)(c.begin() + 2) == (uintptr_t)i);
+      CHECK((uintptr_t)(c.begin() + 2) == (uintptr_t)std::addressof(*i));
       CHECK(c.size() == 3);
       for (std::size_t j = 0; j < c.size(); ++j) {
         CHECK(c[j] == moint(j));
       }
       i = c.try_push_back(moint(3));
-      CHECK((uintptr_t)(c.begin() + 3) == (uintptr_t)i);
+      CHECK((uintptr_t)(c.begin() + 3) == (uintptr_t)std::addressof(*i));
       CHECK(c.size() == 4);
       for (std::size_t j = 0; j < c.size(); ++j) {
         CHECK(c[j] == moint(j));
       }
       i = c.try_push_back(moint(4));
-      CHECK((uintptr_t)(c.begin() + 4) == (uintptr_t)i);
+      CHECK((uintptr_t)(c.begin() + 4) == (uintptr_t)std::addressof(*i));
       CHECK(c.size() == 5);
       for (std::size_t j = 0; j < c.size(); ++j) {
         CHECK(c[j] == moint(j));
