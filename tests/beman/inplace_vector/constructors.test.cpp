@@ -25,7 +25,7 @@ TYPED_TEST(Constructors, SizedDefault) {
 
   SAFE_EXPECT_THROW(IV(IV::capacity() + 1), std::bad_alloc);
 
-  constexpr auto mid_size = std::midpoint(0ul, IV::capacity());
+  constexpr auto mid_size = std::midpoint(std::size_t{0}, IV::capacity());
   IV mid(mid_size);
   EXPECT_EQ(mid.size(), mid_size);
   if constexpr (std::is_scalar_v<T> || std::is_aggregate_v<T> ||
@@ -131,7 +131,7 @@ TYPED_TEST(Constructors, CopyRanges) {
   }
 
   {
-    auto mid = std::midpoint(0ul, reference.size());
+    auto mid = std::midpoint(std::size_t{0}, reference.size());
     IV device(beman::inplace_vector::details::from_range,
               reference | std::ranges::views::take(mid));
     EXPECT_EQ(device, IV(reference.begin(), reference.begin() + mid));
