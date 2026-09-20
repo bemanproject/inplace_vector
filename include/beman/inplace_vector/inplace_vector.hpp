@@ -355,18 +355,6 @@ public:
     return unchecked_emplace_back(std::forward<T &&>(x));
   }
 
-  template <details::container_compatible_range<T> R>
-  constexpr std::ranges::borrowed_iterator_t<R> try_append_range(R &&rg)
-    requires(std::constructible_from<T, std::ranges::range_reference_t<R>>)
-  {
-    auto it = std::ranges::begin(rg);
-    const auto end = std::ranges::end(rg);
-    for (; size() != capacity() && it != end; ++it) {
-      unchecked_emplace_back(*it);
-    }
-    return it;
-  }
-
   constexpr iterator erase(const_iterator first, const_iterator last)
     requires(std::movable<T>)
   {

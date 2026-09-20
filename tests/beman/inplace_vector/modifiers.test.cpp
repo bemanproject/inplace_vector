@@ -589,63 +589,6 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
   }
 }
 
-TYPED_TEST(Modifiers, TryAppendRanges) {
-  // template<container-compatible-range<T> R>
-  // constexpr ranges::borrowed_iterator_t<R> try_append_range(R&& rg);
-  //
-  // Preconditions: value_type is Cpp17EmplaceConstructible into inplace_vector
-  // from *ranges::begin(rg).
-  //
-  // Effects: Appends copies of initial elements
-  // in rg before end(), until all elements are inserted or size() == capacity()
-  // is true. Each iterator in the range rg is dereferenced at most once.
-  //
-  // Returns: An iterator pointing to the first element of rg that was not
-  // inserted into *this, or ranges::end(rg) if no such element exists.
-  // Complexity: Linear in the number of elements inserted.
-  //
-  // Remarks: Let n be the value of size() prior to this call. If an exception
-  // is thrown after the insertion of k elements, then size() equals n + k ,
-  // elements in the range begin() + [0, n) are not modified, and elements in
-  // the range begin() + [n, n + k) correspond to the inserted elements.
-
-  using IV = TestFixture::IV;
-  using T = TestFixture::T;
-  using size_type = IV::size_type;
-
-  IV device;
-  auto reference = this->unique();
-
-  device.try_append_range(reference | std::views::take(0));
-  EXPECT_EQ(device, IV());
-  device.clear();
-
-  EXPECT_EQ(device.try_append_range(reference), reference.end());
-  EXPECT_EQ(device, reference);
-  EXPECT_EQ(device.try_append_range(reference), reference.begin());
-  device.clear();
-
-  auto range = std::array<T, IV::capacity() + 1>{};
-  std::copy_n(reference.begin(), IV::capacity(), range.begin());
-  EXPECT_EQ(device.try_append_range(range), range.end() - 1);
-  EXPECT_EQ(device, reference);
-  device.clear();
-
-  auto half_size = std::midpoint(size_type(0), reference.size());
-  EXPECT_EQ(device.try_append_range(reference | std::views::take(half_size)),
-            reference.begin() + half_size);
-  EXPECT_EQ(device.try_append_range(reference | std::views::drop(half_size)),
-            reference.end());
-  EXPECT_EQ(device, reference);
-
-  device.clear();
-
-  EXPECT_EQ(device.try_append_range(reference | std::views::drop(half_size)),
-            reference.end());
-  EXPECT_EQ(device.try_append_range(reference), reference.begin() + half_size);
-  device.clear();
-}
-
 TYPED_TEST(Modifiers, UncheckedEmplacedBack) {
   // template<class... Args>
   // constexpr reference unchecked_emplace_back(Args&&... args);
