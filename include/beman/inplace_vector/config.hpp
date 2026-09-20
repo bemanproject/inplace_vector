@@ -8,6 +8,7 @@
 #include <beman/inplace_vector/config_generated.hpp>
 #else
 #define BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS() 0
+#define BEMAN_INPLACE_VECTOR_CROSS_CAPACITY_COMPARISON() 0
 #endif
 
 #endif

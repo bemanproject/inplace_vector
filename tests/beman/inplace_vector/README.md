@@ -17,7 +17,7 @@ You can checkout `inplace_vector`'s [current state](https://eel.is/c++draft/inpl
 #### 6.1 Overview
 
 > An inplace_vector is a contiguous container. Its capacity is fixed and its
-elements are stored within the inplace_vector object itself.
+> elements are stored within the inplace_vector object itself.
 
 This is not testable.
 
@@ -26,7 +26,7 @@ This is not testable.
 > An inplace_vector meets all of the requirements of a container ([container.reqmts]),
 > of a reversible container ([container.rev.reqmts]), of a contiguous container,
 > and of a sequence container, including most of the optional sequence
-container requirements ([sequence.reqmts]). The exceptions are the push_front,
+> container requirements ([sequence.reqmts]). The exceptions are the push_front,
 > prepend_range, pop_front, and emplace_front member functions,
 > which are not provided.
 > Descriptions are provided here only for operations on inplace_vector that
@@ -50,7 +50,7 @@ Not tested for now.
 > then no `inplace_vector<T, N>` member functions are usable in
 > constant expressions.
 
-See [constexpr.test.cpp](constexpr.test.cpp),
+See [constexpr.test.cpp](constexpr.test.cpp) -
 note that this test suite only ensure functions are usable in a constexpr
 environment.
 The validity of those functions are tested in the main test suite.
@@ -67,6 +67,7 @@ These are tested with individual functions.
 #### 6.6 Triviality
 
 Let IV denote a specialization of `inplace_vector<T, N>`.
+
 > If N is zero, then IV is trivially copyable and empty,
 > and std​::​is_trivially_default_constructible_v<IV> is true.
 > (Sub-clauses omitted)
