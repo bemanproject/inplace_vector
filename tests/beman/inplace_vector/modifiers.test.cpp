@@ -373,7 +373,7 @@ TYPED_TEST(Modifiers, InsertAppendRange) {
   EXPECT_EQ(device, reference);
   device.clear();
 
-  auto half_size = std::midpoint(0ul, reference.size());
+  auto half_size = std::midpoint(std::size_t{0}, reference.size());
   device.append_range(reference | std::views::take(half_size));
   device.append_range(reference | std::views::drop(half_size));
   EXPECT_EQ(device, reference);
@@ -484,16 +484,17 @@ TYPED_TEST(Modifiers, TryEmplaceBack) {
   if (!reference.empty()) {
     for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_emplace_back(reference[i].value);
-      EXPECT_EQ(res, std::addressof(device.back()));
+      ASSERT_TRUE(res.has_value());
+      EXPECT_EQ(std::addressof(*res), std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
     auto res = device.try_emplace_back(reference[0].value);
-    EXPECT_EQ(res, nullptr);
+    EXPECT_EQ(res, beman::optional::nullopt);
     EXPECT_EQ(device, reference);
   } else {
     auto res = device.try_emplace_back(0);
-    EXPECT_EQ(res, nullptr);
+    EXPECT_EQ(res, beman::optional::nullopt);
     EXPECT_EQ(device, IV());
   }
 }
@@ -526,18 +527,19 @@ TYPED_TEST(Modifiers, TryPushBackConstRef) {
   if (!reference.empty()) {
     for (auto i = 0ul; i < reference.size(); ++i) {
       auto res = device.try_push_back(reference[i]);
-      EXPECT_EQ(res, std::addressof(device.back()));
+      ASSERT_TRUE(res.has_value());
+      EXPECT_EQ(std::addressof(*res), std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
     auto res = device.try_push_back(reference[0]);
-    EXPECT_EQ(res, nullptr);
+    EXPECT_EQ(res, beman::optional::nullopt);
     EXPECT_EQ(device, reference);
   } else {
     T val{0};
 
     auto res = device.try_push_back(val);
-    EXPECT_EQ(res, nullptr);
+    EXPECT_EQ(res, beman::optional::nullopt);
     EXPECT_EQ(device, IV());
   }
 }
@@ -573,18 +575,19 @@ TYPED_TEST(Modifiers, TryPushBackRV) {
       T val{reference[i].value};
 
       auto res = device.try_push_back(std::move(val));
-      EXPECT_EQ(res, std::addressof(device.back()));
+      ASSERT_TRUE(res.has_value());
+      EXPECT_EQ(std::addressof(*res), std::addressof(device.back()));
       EXPECT_EQ(device, IV(reference.begin(), reference.begin() + i + 1));
     }
 
     auto res = device.try_push_back(reference[0]);
-    EXPECT_EQ(res, nullptr);
+    EXPECT_EQ(res, beman::optional::nullopt);
     EXPECT_EQ(device, reference);
   } else {
     T val{0};
 
     auto res = device.try_push_back(std::move(val));
-    EXPECT_EQ(res, nullptr);
+    EXPECT_EQ(res, beman::optional::nullopt);
     EXPECT_EQ(device, IV());
   }
 }

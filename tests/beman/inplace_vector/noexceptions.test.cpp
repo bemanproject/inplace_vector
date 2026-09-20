@@ -30,8 +30,8 @@ TYPED_TEST(NoExceptions, NonThrowing) {
   device.assign(reference.begin(), reference.end());
   EXPECT_EQ(device, reference);
 
-  EXPECT_EQ(device.try_emplace_back(T{}), nullptr);
-  EXPECT_EQ(device.try_push_back(T{}), nullptr);
+  EXPECT_EQ(device.try_emplace_back(T{}), beman::optional::nullopt);
+  EXPECT_EQ(device.try_push_back(T{}), beman::optional::nullopt);
   auto range = std::array<T, 1>{};
   EXPECT_EQ(device.try_append_range(range), range.begin());
 
