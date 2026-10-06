@@ -69,7 +69,12 @@ concept satisfy_triviality = std::is_trivially_copyable_v<T> &&
                              std::is_trivially_destructible_v<T>;
 
 template <typename T, std::size_t N>
-concept satisfy_constexpr = N == 0 || satisfy_triviality<T>;
+concept satisfy_constexpr =
+#if BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION
+    true;
+#else
+    N == 0 || satisfy_triviality<T>;
+#endif
 
 template <typename T>
 concept lessthan_comparable = requires(const T &a, const T &b) {
@@ -140,6 +145,7 @@ public:
 // which makes inplace_vector of non-trivial types non-constexpr-friendly.
 //
 // Note: This is not used if trivial union is supported.
+#if !BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION
 template <class T, size_t N> struct raw_byte_based_storage {
   alignas(T) std::byte _d[sizeof(T) * N];
   T *storage_data(size_t i) noexcept {
@@ -193,13 +199,60 @@ public:
     std::destroy(storage_data(), storage_data() + storage_size());
   }
 };
+#else
+template <class T, size_t N> struct union_storage {
+  static_assert(!satisfy_triviality<T>,
+                "use storage::trivial for Trivial<T> elements");
+  static_assert(N != size_t{0}, "use storage::zero for N==0");
+
+protected:
+  using size_type = smallest_size_t<N>;
+
+private:
+  union {
+    T storage_[N];
+  };
+  size_type storage_size_ = 0;
+
+protected:
+  constexpr const T *storage_data() const noexcept { return storage_; }
+  constexpr auto storage_data() noexcept { return storage_; }
+  constexpr size_type storage_size() const noexcept { return storage_size_; }
+  constexpr void unsafe_set_size(size_t new_size) noexcept {
+    IV_EXPECT(size_type(new_size) <= N && "new_size out-of-bounds [0, N)");
+    storage_size_ = size_type(new_size);
+  }
+
+public:
+  constexpr union_storage() noexcept { std::start_lifetime(storage_); }
+  constexpr union_storage(const union_storage &) noexcept = default;
+  constexpr union_storage &operator=(const union_storage &) noexcept = default;
+  constexpr union_storage(union_storage &&) noexcept = default;
+  constexpr union_storage &operator=(union_storage &&) noexcept = default;
+
+  constexpr ~union_storage()
+    requires(std::is_trivially_destructible_v<T>)
+  = default;
+  constexpr ~union_storage()
+    requires(!std::is_trivially_destructible_v<T>)
+  {
+    std::destroy(storage_data(), storage_data() + storage_size());
+  }
+};
+#endif
 
 // Selects the vector storage.
 template <class T, size_t N>
-using storage_for = std::conditional_t<
-    !satisfy_constexpr<T, N>, non_trivial<T, N>,
-    std::conditional_t<N == 0, zero_sized<T>, trivial<T, N>>>;
-
+using storage_for =
+#if BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION
+    std::conditional_t<N == 0, zero_sized<T>,
+                       std::conditional_t<satisfy_triviality<T>, trivial<T, N>,
+                                          union_storage<T, N>>>;
+#else
+    std::conditional_t<
+        !satisfy_constexpr<T, N>, non_trivial<T, N>,
+        std::conditional_t<N == 0, zero_sized<T>, trivial<T, N>>>;
+#endif
 } // namespace storage
 
 template <class T, size_t N>

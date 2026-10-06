@@ -10,4 +10,12 @@
 #define BEMAN_INPLACE_VECTOR_NO_EXCEPTIONS() 0
 #endif
 
+#ifndef BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION
+#if defined(__cpp_trivial_union) && __cpp_trivial_union >= 202602L
+#define BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION 1
+#else
+#define BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION 0
+#endif
+#endif
+
 #endif
