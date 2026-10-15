@@ -38,6 +38,13 @@ jobs:
       matrix_config: >
         {
           "gcc": [
+            { "versions": ["trunk"],
+              "tests": [
+                { "cxxversions": ["c++26"],
+                  "tests": [{ "stdlibs": ["libstdc++"], "tests": ["Release.Default"]}]
+                }
+              ]
+            },
             { "versions": ["16"],
               "tests": [
                 { "cxxversions": ["c++26"],
@@ -65,6 +72,15 @@ jobs:
             }
           ],
           "clang": [
+            { "versions": ["trunk"],
+              "tests": [
+                { "cxxversions": ["c++26"],
+                  "tests": [
+                    {"stdlibs": ["libstdc++", "libc++"], "tests": ["Release.Default"]}
+                  ]
+                }
+              ]
+            },
             { "versions": ["23"],
               "tests": [
                 {"cxxversions": ["c++26"],

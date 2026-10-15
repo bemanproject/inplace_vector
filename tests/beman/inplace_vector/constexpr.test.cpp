@@ -45,6 +45,34 @@ static_assert(!has_constexpr_support<inplace_vector<std::string, 50>>);
 static_assert(has_constexpr_support<inplace_vector<std::unique_ptr<int>, 0>>);
 static_assert(!has_constexpr_support<inplace_vector<std::unique_ptr<int>, 50>>);
 
+constexpr bool test_non_trivial_constexpr() {
+  inplace_vector<std::string, 4> v;
+
+  // Construction and emplacement in constant evaluation.
+  v.emplace_back("hello");
+  v.emplace_back("world");
+
+  if (v.size() != 2)
+    return false;
+
+  if (v[0] != "hello" || v[1] != "world")
+    return false;
+
+  // Modification of an existing element.
+  v[0] = "goodbye";
+
+  if (v[0] != "goodbye")
+    return false;
+
+  // Destruction of the vector with live non-trivial elements is
+  // also exercised when leaving this function.
+  return true;
+}
+
+#if BEMAN_INPLACE_VECTOR_HAS_TRIVIAL_UNION
+static_assert(test_non_trivial_constexpr());
+#endif
+
 #define TEST(NAME)                                                             \
   static_assert(std::invoke([]() {                                             \
                   NAME<beman::inplace_vector::inplace_vector<int, 20>>();      \
