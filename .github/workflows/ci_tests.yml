@@ -65,6 +65,15 @@ jobs:
             }
           ],
           "clang": [
+            { "versions": ["trunk"],
+              "tests": [
+                { "cxxversions": ["c++26"],
+                  "tests": [
+                    {"stdlibs": ["libstdc++", "libc++"], "tests": ["Release.Default"]}
+                  ]
+                }
+              ]
+            },
             { "versions": ["23"],
               "tests": [
                 {"cxxversions": ["c++26"],
